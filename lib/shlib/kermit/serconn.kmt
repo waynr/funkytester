@@ -1,0 +1,14 @@
+#!/usr/bin/kermit +
+
+# \%1 is the first parameter and should be a /dev/ttyS#
+# \%2 is the second parameter and should be the baud rate
+
+if < \v(argc) 2 exit 1 "Usage: som9m10g45.kermit <ttyS> <ubscript>"
+
+set modem type none
+set line \%1
+if fail exit 1 "\%1 not available!"
+
+set speed \%2
+set flow-control none
+set carrier-watch off

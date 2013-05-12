@@ -1,0 +1,39 @@
+howto.
+
+  the basic_testset is intended to be a template from which all EMAC testsets
+  are built. as such, it contains a number of generic elements that must be
+  adapted for each specific test. this is reflected most strongly in the
+  'templates' directory, where a number of shell scripts and c files are kept.
+
+  the reason these templates are kept in a separate directory rather than in the
+  top-level for this project is that they are not intended to be modified and
+  used directly since it is desirable to always be able to update the
+  basic_testset part of a particular project without directly affecting the
+  parts that have been modified for that project. to make this work, then, a
+  number of tasks must be attended when initiating a specific testset project.
+  those are:
+
+    - move all the scripts and c-files you wish to use to the top-level of the
+    testset's directory (that is to say, the directory that contains 
+    templates, lib, include, et cetera)
+    - rename all the files to reflect the specific test that they address. for
+    example, the GE EVSC project dialog script might be called evsc_test.sh and
+    its corresponding c-file called evsc_test.c
+    - rename all the configuration files (those in the 'config' directory) to
+    remove the trailing ".template". 
+
+  an eventual goal of this project should be to automate the tedious task of
+  synchronizing script and configuration file names for this project. in
+  particular, there are several variables in the project.properties file that
+  could be automatically updated by the same process that alters the names of
+  the default/template files
+
+  one additional piece of advice to follow when using this template/API is to
+  run the following command to find recommended places in various files that
+  should be modified on a per-project basis:
+
+   $ grep -rn "TODO" *
+
+  this will produce a list of file locations that the developers of this 
+  testset though would be important to modify for a new specific testset
+  instance
