@@ -1,0 +1,9 @@
+[submodule "ext/interfaces"]
+	path = ext/interfaces
+	url = git@git.emacinc.com:public/mirror/interfaces.git
+[submodule "ext/integration"]
+	path = ext/integration
+	url = git@git.emacinc.com:public/mirror/integration.git
+[submodule "ext/eserial"]
+	path = ext/eserial
+	url = git@git.emacinc.com:public/mirror/eserial.git
