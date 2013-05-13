@@ -17,14 +17,13 @@ from sqlalchemy.orm import relationship
 from ft import Base
 
 from interfaces import (
-        xmlrpc_interface,
+        xmlrpc,
         ADAMInterface, 
         ADAM_4068, 
         UBootTerminalInterface, 
         LinuxTerminalInterface,
         )
 
-from ft.util.thread import QueuedThread
 from ft.command import Commandable
 
 ## Representation of a UUT for logging/viewing purposes.

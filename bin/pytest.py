@@ -155,7 +155,7 @@ def main():
     #
     # Need to choose database module dynamically as with platformserver
     #
-    from achievo import setup_default_engine
+    from emac.orm.achievo import setup_default_engine
     setup_default_engine()
 
     #-------------------
