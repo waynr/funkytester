@@ -13,7 +13,7 @@ from sqlalchemy.orm import relationship
 from ft import Base
 
 import ft.event
-from ft.test import Action, Status
+from ft.test import Action
 from ft.util import ui_adapter
 
 class TestDB(Base):
@@ -214,7 +214,7 @@ class SingleTest(Test,):
         
         for action_dict in self.test_dict["actionlist"]:
             set_remote(action_dict, xmlrpc_client)
-            self.actions.append( Action(action_dict) )
+            self.actions.append( Action(action_dict, self) )
 
         ft.event.fire(ft.event.TestReady(self))
     
@@ -279,7 +279,7 @@ class ExpectTest(Test,):
             set_remote(action_dict, xmlrpc_client)
             self.statechangers.append( 
                     { 
-                        "action" : Action(action_dict), 
+                        "action" : Action(action_dict, self), 
                         "values" : action_dict["values"], 
                         }
                     )
@@ -289,7 +289,7 @@ class ExpectTest(Test,):
         set_remote(action_dict, xmlrpc_client)
 
         self.statecheckers.append( {
-                    "action" : Action(action_dict), 
+                    "action" : Action(action_dict, self), 
                     "values" : action_dict["values"],
                     } )
 

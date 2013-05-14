@@ -9,7 +9,6 @@ from sqlalchemy.orm import relationship
 from ft import Base
 
 import ft.event
-from ft.test import Status
 from ft.util import ui_adapter
 
 ## Base class for actions that comprise a test run.
