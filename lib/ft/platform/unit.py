@@ -14,7 +14,6 @@ import fysom
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
         ForeignKey )
 from sqlalchemy.orm import relationship
-from ft import Base
 
 from interfaces import (
         xmlrpc,
@@ -24,7 +23,10 @@ from interfaces import (
         LinuxTerminalInterface,
         )
 
+import ft.event
+from ft import Base
 from ft.command import Commandable
+from ft.test import Test
 
 ## Representation of a UUT for logging/viewing purposes.
 #
@@ -72,18 +74,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.product = None
         self.macaddr = None
 
-        print(config)
         self.com = config["control"]["com"]
         self.adam = config["control"]["adam"]
 
         self.parent = parent
-
-        self.interfaces = { 
-                "linux" : LinuxTerminalInterface(configuration, 
-                    self.com["serial"]),
-                "uboot" : UBootTerminalInterface(configuration, 
-                    self.com["serial"]),
-                }
 
         self.ip_address = None
 
@@ -95,13 +89,40 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 status = self.status,
                 )
 
-    def fire(self, event, *args):
+    def fire(self, event, **kwargs):
         self.parent.fire(event, **kwargs)
 
     def configure(self, serial_num, product, macaddr=None):
         self.serial_num = serial_num
         self.product = product
         self.macaddr = macaddr
+
+        self.serial = self.parent.get_serialport()
+        self.interfaces = { 
+                "linux" : LinuxTerminalInterface(
+                    prompt = self.product.config.prompt["linux"]["standard"],
+                    enhanced_serial = self.serial,
+                    ),
+                "uboot" : UBootTerminalInterface(
+                    prompt = self.product.config.prompt["uboot"],
+                    enhanced_serial = self.serial,
+                    )
+                }
+
+        self.specification = self.product.specification
+
+        self.fire( ft.event.UUTReady,
+                obj = self,
+                name = self.serial_num,
+                status = self.status,
+                )
+
+    def __load_testlist(self):
+        self.testlist = list()
+
+        for test_dict in self.specification["testlist"]:
+            newtest = Test(test_dict, self, None)
+            self.testlist.append(newtest)
 
     def _init_adam(self):
 
