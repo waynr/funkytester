@@ -21,10 +21,11 @@ from ft.util.locker import (
         )
 
 ##
-# Drop-in replacement
+# General configuration tool.
 #
 @cls_locker_all
 class GenConfig(object):
+
     def __init__(self, file_name):
         self._load(file_name)
     
@@ -66,6 +67,7 @@ class GenConfig(object):
 #  Obviously this needs a great deal of work before it is awesome.
 #
 class HasMetadata(object):
+
     def __init__(self):
         self.metadata_repo = ""
         self.metadata_rev = ""
@@ -88,6 +90,7 @@ class HasMetadata(object):
         self.repo.update()
 
 class MetaDataDir(object):
+
     local_base_path = "./resources/"
 
     def __init__(self, relative_path):
@@ -96,6 +99,7 @@ class MetaDataDir(object):
         self.version = ""
 
 class GitMetaDataRepo(MetaDataDir):
+
     def __init__(self, repo_dict, relative_path, metadata_type=""):
         MetaDataDir.__init__(self, path.join( metadata_type, relative_path ))
         self.url = ( repo_dict['url'] + repo_dict['basepath'] + relative_path +

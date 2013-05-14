@@ -115,6 +115,12 @@ def parse_options():
             type="string",
             dest="logdb_connection",
         )
+    option_parser.add_option("-p", "--platform-manifest", 
+            help="Use the specified platform manifest file.",
+            action="store", 
+            type="string",
+            dest="platform_manifest_file",
+        )
     
     option_parser.set_defaults(
             tftp_server_ip = "192.168.2.1",

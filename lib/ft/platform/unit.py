@@ -155,6 +155,7 @@ def __onchangestate(e):
         e.dst ))
 
 class PowerPin(fysom.Fysom,):
+
     def __init__(self, adam_4068, relay_pin):
         fysom.Fysom.__init__(self, {
             'initial' : 'poweroff',
@@ -188,6 +189,7 @@ class PowerPin(fysom.Fysom,):
             self.relay.set_digital(self.relay_pin_list, 0)
 
 class BootPin(fysom.Fysom,):
+
     def __init__(self, adam_4068, relay_pin):
         fysom.Fysom.__init__(self, {
             'initial' : 'nfe',
@@ -221,6 +223,7 @@ class BootPin(fysom.Fysom,):
             self.relay.set_digital(self.relay_pin_list, 0)
 
 class UUTState(fysom.Fysom,):
+
     def __init__(self,):
         fysom.Fysom.__init__(self, {
             'initial' : 'poweroff',
