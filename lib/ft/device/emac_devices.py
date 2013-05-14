@@ -14,7 +14,7 @@ import inspect
 
 import logging
 
-from interfaces.xmlrpc_interface import (
+from interfaces.xmlrpc import (
         ServerInterface,
         xmlrpc_all,
         )

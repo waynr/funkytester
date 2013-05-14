@@ -116,6 +116,11 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             refs = product.get_product_versions()
             return refs, ""
 
+        @staticmethod
+        def set_product_specification(platform_slot, data):
+            platform_slot.product.set_specification(data)
+            return None, ""
+
     class CommandsAsync:
         @staticmethod
         def acknowledge(platform_slot, data):
@@ -124,11 +129,6 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         @staticmethod
         def set_uut_serialnum(platform_slot, serialnum):
             platform_slot._create_uut(serialnum)
-            return None, ""
-
-        @staticmethod
-        def set_product_specification(platform_slot, data):
-            platform_slot.product.specification_name = data
             return None, ""
 
         @staticmethod

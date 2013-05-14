@@ -238,8 +238,11 @@ class FunctionalTestWindow(gtk.Window):
     def __set_product_specification_cb(self, name, adapter):
         result = self.__run_command(
                 ("set_product_specification", RecipientType.SLOT,
+                    adapter.address, name, True) )
+        self.__run_command(
+                ("configure", RecipientType.SLOT,
                     adapter.address, name, False) )
-        return None
+        return result
 
     def __get_platform_versions_cb(self, name, adapter):
         version_list, message = self.__run_command(

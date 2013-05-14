@@ -152,7 +152,6 @@ class FuncTEventHandler(gobject.GObject):
 
     def handle_event(self, event):
 
-        logging.debug(str(event))
         if isinstance(event, ft.event.TestEvent):
             return self.handle_test_event(event)
         elif isinstance(event, ft.event.ActionEvent):
