@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import threading, sys, logging, os.path as path
+import threading, sys, logging, os.path as path, weakref
 
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
         ForeignKey )
@@ -12,6 +12,8 @@ import ft.event
 from ft.platform.unit import UnitUnderTest
 from ft.platform.product import Product
 from ft.command import Commandable
+
+from eserial import EnhancedSerial
 
 class PlatformSlotDB(Base):
 
@@ -39,6 +41,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.hardware_rev = None
         self.status = PlatformSlot.Status.INIT
 
+        self.__serial = None
+
         self.parent = parent
         self.lock = threading.RLock()
 
@@ -50,12 +54,20 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                 status = self.status,
                 )
 
+    def get_serialport(self):
+        return weakref.ref(self.__serial)
+
     def fire(self, event, **kwargs):
         self.parent.fire(event, **kwargs)
 
     def configure(self, specification_name):
-        self.product.specification_name = specification_name
+        self.product.set_specification(specification_name)
+        self.product.configure()
         self.status = PlatformSlot.Status.EMPTY
+        self.__serial = EnhancedSerial(
+                self.config["control"]["com"]["serial"],
+                self.product.config.serial["baud"],
+                )
         self.fire(ft.event.PlatformSlotReady,
             obj = self,
             status = self.status,
@@ -72,6 +84,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
     #
     def _create_uut(self, serial_number):
         self.uut = UnitUnderTest(self.config, self)
+        self.uut.set_address(serial_number)
         self.uut.configure(serial_number, self.product)
 
     # - - - - - - - - - - - - - - - - -
@@ -89,15 +102,14 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             product_list = product.manifest["repositories"]
             return product_list, ""
 
-
         @staticmethod
         def set_product_version(platform_slot, data):
             product = platform_slot.product
-            product.repo.checkout(data)
+            product.select(data)
             platform_slot.fire(ft.event.UpdateStatus,
                     message = "Retrieving specification list.",
                     )
-            spec_list = product.get_specifications()
+            spec_list = product.get_spec_menu_list()
             return spec_list, ""
 
         @staticmethod
