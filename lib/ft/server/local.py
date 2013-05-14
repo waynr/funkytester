@@ -43,6 +43,7 @@ class PlatformServerConnection(threading.Thread):
 
     def __handle_message(self, message):
         if isinstance(message, ft.event.Event):
+            logging.debug(message)
             self.handler_registry.fire(message)
         elif message[0] == "RESPONSE":
             self.incoming_queue.put(message[1])

@@ -34,7 +34,6 @@ class Command(object):
     #  command information.
     #
     def run_command(self, command):
-        logging.debug(command)
         if len(command) == 3:
             return self.__run_command_v2(command)
         elif len(command) == 5:
@@ -60,8 +59,12 @@ class Command(object):
                 cw.start()
         except:
             import traceback
-            exc = traceback.format_exc()
-            error = "Command {0} failed: {1}".format(command_name, exc)
+            error = traceback.format_exc()
+            self.platform.fire(ft.event.ErrorEvent,
+                    obj = self.platform,
+                    traceback = error,
+                    )
+            logging.debug(error)
             return None, error
 
     def __get_recipient(self, command):
@@ -109,10 +112,12 @@ class CommandWorker(threading.Thread):
             self.result = command_method(obj, command_data)
         except:
             import traceback
+            error = traceback.format_exc()
             obj.fire(ft.event.ErrorEvent,
                     obj = obj,
-                    traceback = traceback.format_exc()
+                    traceback = error,
                     )
+            logging.debug(error)
 
         obj.lock.release()
 
