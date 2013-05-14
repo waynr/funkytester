@@ -86,15 +86,13 @@ class Test(TestDB):
     # @param uut_id Serial number of the UUT
     # @param test_dict Dictionary 
     #
-    def __init__(self, xmlrpc_client, uut_id, test_dict, event_handler):
-        self.uut_id = uut_id
-        self.status = Status.init
-
-        self.event_handler = event_handler
-
+    def __init__(self, test_dict, parent, xmlrpc_client=None):
+        self.uut_id = parent.serial_num
+        self.parent = parent
         self.test_dict  = test_dict
 
         self.name   = test_dict["name"]
+        self.type   = test_dict["type"]
         self.shortdesc  = test_dict["shortdesc"]
         self.refdes = test_dict["refdes"]
         self.is_valid   = test_dict["valid"]
@@ -104,6 +102,8 @@ class Test(TestDB):
             self.max_retry  = test_dict["max_retry"]
 
         self.debug["count"] = self.debug["count"] + 1
+
+        self.status = Status.init
         logging.debug(pprint.pformat(self.debug))
 
     def set_address(self, address):
@@ -115,7 +115,7 @@ class Test(TestDB):
                 )
 
     def fire(self, event, **kwargs):
-        self.event_handler.fire(event, **kwargs)
+        self.parent.fire(event, **kwargs)
 
     ## Runs the test, fires events to signal that the test begins and ends
     #
@@ -205,9 +205,8 @@ class SingleTest(Test,):
     # @param uut_id Serial number of the UUT
     # @param test_dict Dictionary from the test
     #
-    def __init__(self, xmlrpc_client, uut_id, test_dict):
-        Test.__init__(self, xmlrpc_client, uut_id, test_dict)
-        self.test_type = "single"
+    def __init__(self, *args, **kwargs):
+        super(SingleTest, self).__init__(*args, **kwargs)
         ft.event.fire(ft.event.TestInit(self))
 
         self.actions    = []
@@ -268,9 +267,9 @@ class ExpectTest(Test,):
     # @param uut_id Serial number of the UUT
     # @param test_dict Dictionary from the test
     #
-    def __init__(self, xmlrpc_client, uut_id, test_dict):
-        Test.__init__(self, xmlrpc_client, uut_id, test_dict)
-        self.test_type = "expect"
+    def __init__(self, *args, **kwargs):
+        super(ExpectTest, self).__init__(*args, **kwargs)
+        test_dict = self.test_dict
 
         self.statechangers  = list( dict() )
         self.statecheckers  = list( dict() )
@@ -286,7 +285,7 @@ class ExpectTest(Test,):
         
         action_dict = test_dict["statechecker"]
 
-        set_remote(action_dict, xmlrpc_client)
+        set_remote(action_dict, self.xmlrpc_client)
 
         self.statecheckers.append( {
                     "action" : Action(action_dict, self), 
@@ -386,9 +385,9 @@ class InteractTest(Test,):
     # @param uut_id Serial number of the UUT
     # @param test_dict Dictionary from the test
     #
-    def __init__(self, xmlrpc_client, uut_id, test_dict):
-        Test.__init__(self, xmlrpc_client, uut_id, test_dict)
-        self.test_type = "interact"
+    def __init__(self, *args, **kwargs):
+        super(InteractTest, self).__init__(*args, **kwargs)
+        test_dict = self.test_dict
 
     ## Runs the ExpectTest
     #
