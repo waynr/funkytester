@@ -7,6 +7,60 @@ from multiprocessing import Queue
 import ft.event
 from ft.platform import Platform
 
+__MAX_CLIENTS = 1
+__HEADER_FIELD_SIZE = 128
+__HEADER_FORMAT_LIST = [
+        "\{0:0>{0}d\}".format(__HEADER_FIELD_SIZE),
+        ]
+__HEADER_NUM_FIELDS = len(__HEADER_FORMAT_LIST)
+__HEADER_SIZE = __HEADER_FIELD_SIZE * __HEADER_NUM_FIELDS
+
+class SocketDataHandler(object):
+
+    def send(self, message):
+        self.__check_socket()
+        self.__send_header(message)
+        self.__send_message(message)
+
+    def recv(self):
+        self.__check_socket()
+        size = self.__receive_header()
+        message = self.__receive_message(size)
+        return message
+
+    def __check_socket(self):
+        if not isinstance(self.socket, socket.Socket):
+            raise AttributeError("Socket object not available.")
+
+    def __send_header(self, message):
+        message_size = len(message)
+        header = __HEADER_FORMAT_LIST[0].format(message_size)
+        self.__send_message(header)
+
+    def __receive_header(self):
+        msg = self.__receive_message(__HEADER_SIZE)
+        return int(msg)
+
+    def __send_message(self, message):
+        message_size = len(message)
+        sent_bytes = 0
+        while sent_bytes < message_size:
+            tmp = self.socket.send(message[sent_bytes:])
+            if tmp == 0:
+                raise RuntimeError("Socket connection lost!")
+            sent_bytes += tmp
+
+    def __receive_message(self, size):
+        msg = ''
+        msglen = len(msg)
+        while msglen < size:
+            chunk = self.socket.recv(size - msglen)
+            if chunk == '':
+                raise RuntimeError("Socket connection lost!")
+            msg += chunk
+            msglen = len(msg)
+        return msg
+
 class PlatformServerConnection(threading.Thread):
 
     def __init__(self):
