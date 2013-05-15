@@ -242,7 +242,6 @@ class FunctionalTestWindow(gtk.Window):
         self.__run_command(
                 ("configure", RecipientType.SLOT,
                     adapter.address, name, False) )
-        return result
 
     def __get_platform_versions_cb(self, name, adapter):
         version_list, message = self.__run_command(

@@ -1,0 +1,4 @@
+lib/ui/elements/functwidgets.py
+  * Need to revisit handling of func() callback call to more gracefully handle
+    unexpected output.
+  
