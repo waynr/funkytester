@@ -1,19 +1,51 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import Queue as StdLibQueue, threading, logging, os, socket
+import Queue as StdLibQueue, threading, logging, os, socket, hashlib
 from multiprocessing import Queue
 
 import ft.event
 from ft.platform import Platform
 
 __MAX_CLIENTS = 1
-__HEADER_FIELD_SIZE = 128
+
+__HASH_FUNCTION = hashlib.md5
+
+def __get_len(message):
+    return len(message)
+
+def __get_hexdigest(message):
+    m = __HASH_FUNCTION()
+    m.update(message)
+    return m.hexdigest()
+
+m = __HASH_FUNCTION()
+m.update(" ")
+__HASH_DIGESTLEN = len(m.hexdigest())
+
+__HEADER_FIELD_DELIMITER = ','
 __HEADER_FORMAT_LIST = [
-        "\{0:0>{0}d\}".format(__HEADER_FIELD_SIZE),
+        ("0:0>{width}d", 16, __get_len),
+        ("0:0>{width}s", __HASH_DIGESTLEN, __get_hexdigest),
         ]
-__HEADER_NUM_FIELDS = len(__HEADER_FORMAT_LIST)
-__HEADER_SIZE = __HEADER_FIELD_SIZE * __HEADER_NUM_FIELDS
+
+( __HFIELD_SIZE, 
+        __HFIELD_DIGEST,
+        ) = range(2)
+
+def __get_header(message):
+    header = ""
+    for field in __HEADER_FORMAT_LIST:
+        field = field[0].format(field[2](message), width=field[1])
+        header += field + __HEADER_FIELD_DELIMITER
+    return header[:1]
+
+def __parse_header(header):
+    return header.split(__HEADER_FIELD_DELIMITER)
+
+__HEADER_SIZE = 0
+for field in __HEADER_FORMAT_LIST:
+    __HEADER_SIZE += field[1] + len(__HEADER_FIELD_DELIMITER)
 
 class SocketDataHandler(object):
 
@@ -24,8 +56,13 @@ class SocketDataHandler(object):
 
     def recv(self):
         self.__check_socket()
-        size = self.__receive_header()
-        message = self.__receive_message(size)
+
+        header = self.__receive_header()
+        message = self.__receive_message(header[__HFIELD_SIZE])
+        check = __parse_header(__get_header(message))
+
+        assert header == check
+
         return message
 
     def __check_socket(self):
@@ -33,13 +70,12 @@ class SocketDataHandler(object):
             raise AttributeError("Socket object not available.")
 
     def __send_header(self, message):
-        message_size = len(message)
-        header = __HEADER_FORMAT_LIST[0].format(message_size)
+        header = __get_header(message)
         self.__send_message(header)
 
     def __receive_header(self):
-        msg = self.__receive_message(__HEADER_SIZE)
-        return int(msg)
+        header = self.__receive_message(__HEADER_SIZE)
+        return __parse_header(header)
 
     def __send_message(self, message):
         message_size = len(message)
