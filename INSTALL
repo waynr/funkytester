@@ -1,7 +1,11 @@
+Basic Installation
+==================
 
-Install the following from Debian or Ubuntu package repositories:
+Install the following from your distribution's repositories:
 
+  * git
   * python
+  * python-mysqldb
   * python-dev
   * python-pip
 
@@ -11,3 +15,5 @@ Run the following commands:
 # pip install fysom
 # pip install pyyaml
 # pip install sqlalchemy
+
+

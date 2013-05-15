@@ -1,39 +1,104 @@
-howto.
+Funky Tester v 0.6
 
-  the basic_testset is intended to be a template from which all EMAC testsets
-  are built. as such, it contains a number of generic elements that must be
-  adapted for each specific test. this is reflected most strongly in the
-  'templates' directory, where a number of shell scripts and c files are kept.
+Introduction
+============
 
-  the reason these templates are kept in a separate directory rather than in the
-  top-level for this project is that they are not intended to be modified and
-  used directly since it is desirable to always be able to update the
-  basic_testset part of a particular project without directly affecting the
-  parts that have been modified for that project. to make this work, then, a
-  number of tasks must be attended when initiating a specific testset project.
-  those are:
+This project is designed to provide a generic functional test framework for
+embedded systems. Two types of external metadata make this possible:
 
-    - move all the scripts and c-files you wish to use to the top-level of the
-    testset's directory (that is to say, the directory that contains 
-    templates, lib, include, et cetera)
-    - rename all the files to reflect the specific test that they address. for
-    example, the GE EVSC project dialog script might be called evsc_test.sh and
-    its corresponding c-file called evsc_test.c
-    - rename all the configuration files (those in the 'config' directory) to
-    remove the trailing ".template". 
+ - Platform metadata defines the functional test platform and the capabilities
+ it provides during test.
+ 
+ - Product metadata defines various important characteristics of the system
+ being tested such as:
+   - Test Specification; declaration of tests to be run and associated
+   information about the interfaces being tested.
+   - config.yaml; describe operational characteristics of the UUT such as serial
+   console baud rate, expected u-boot and linux command prompts, and other
+   information that is still being defined.
 
-  an eventual goal of this project should be to automate the tedious task of
-  synchronizing script and configuration file names for this project. in
-  particular, there are several variables in the project.properties file that
-  could be automatically updated by the same process that alters the names of
-  the default/template files
+Terminology
+===========
 
-  one additional piece of advice to follow when using this template/API is to
-  run the following command to find recommended places in various files that
-  should be modified on a per-project basis:
+Platform
+PlatformSlot
+UnitUnderTest
+Test
+Action
+Device
+PlatformServer
+Event
+Command
 
-   $ grep -rn "TODO" *
+Getting Started
+===============
 
-  this will produce a list of file locations that the developers of this 
-  testset though would be important to modify for a new specific testset
-  instance
+First you must create a platform manifest file which points to a repository
+containing Platform metadata. 
+
+Roadmap
+=======
+
+This is a preliminary feature roadmap which will provide a guideline for what to
+expect as development continues.
+
+0.6
+  
+  * Metadata
+    * Support Git repositories
+    * Platform, Product
+
+  * Gtk "functester" GUI
+    * Platform/Version Selection
+    * PlatformSlot/UUT Setup Page
+      * Product/Version/Specification Selection
+      * Change the UUT on a Platform Slot by changing serial number.
+
+  * UUT/Test Manager Page
+    * Change the UUT on a Platform Slot by changing serial number.
+    * Run individual test on the selected UUT.
+    * Run all selected tests.
+    * Run all tests on selected UUT.
+
+  * Test logging using SQLAlchemy 0.8
+    * Local sqlite DB or remote DB using connection parameters specified on
+      commandline.
+
+0.7
+
+  * Unit Testing 
+    * Need to focus on unit testing to prevent regression when bug fixing.
+
+  * Socket-based IPC between UI and PlatformServer backend.
+
+  * Support for Redboot
+
+0.8
+
+  * Metadata
+    * Solidify API to allow abstraction to different backends: SVN,
+      CVS, Git, local directory, database
+    * Implement SVN alongside Git support to prove out API, leave the rest to
+      interested parties.
+
+  * Define and document protocol for replacing modular components in UI or
+    supplementing backend components with custom code.
+    * UI: Different users might need to identify their UUT in different
+      ways which requires switching out the UUT Setup Widget.
+    * Backend: Different users might want to add their own situation-specific
+      Action types.
+
+0.9
+
+  * GUI
+    * Multi-GUI Access control issues.
+    * LogViewer GUI
+      * Web-based?
+  
+1.0
+
+  * Replace declarative Specification DSL (yaml) with custom DSL to provide more
+    intuitive syntax--should be understandable and usable by test technicians
+    who need to make changes to testsets.
+
+
