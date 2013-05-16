@@ -181,11 +181,10 @@ class FunctionalTestWindow(gtk.Window):
             platformslot.address, "", True) )
         self.slotsmanagermodel.add(platformslot)
         self.slot_setup_page.add_slot(platformslot, ("Product", manifest),
-            self.__get_product_version_cb,
-            is_ready_cb=self.__configure_platformslot_cb)
+            self.__get_product_version_cb,)
 
     def __platform_ready_cb(self, event):
-        self.show_all()
+        self.show()
 
     def __setup_platform_cb(self, handler, event):
         result, msg = self.__run_command(
@@ -202,11 +201,6 @@ class FunctionalTestWindow(gtk.Window):
             dialog.connect('response', self.__dialog_response_cb,
                     self.__configure_platform_cb)
             dialog.show()
-
-    def __configure_platformslot_cb(self, ready, adapter):
-        if ready:
-            result, msg = self.__run_command( ("configure", RecipientType.SLOT,
-                adapter.address, "", False) )
 
     def __configure_platform_cb(self):
         result, msg = self.__run_command(

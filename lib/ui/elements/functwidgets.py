@@ -15,11 +15,18 @@ class PlatformSlotSetupWidget(gtk.Frame):
         self.platform_slot_adapter.connect('on-changed', self.__update)
 
         self.product_selection_widget = product_selection_widget
+        product_selection_widget.set_isready_cb(self.__product_selection_isready_cb)
 
         self._init_visuals()
 
     def __update(self):
         pass
+
+    def __product_selection_isready_cb(self, is_ready, adapter):
+        if is_ready:
+            self.uut_setup_frame.show()
+        else:
+            self.uut_setup_frame.hide()
 
     def _init_visuals(self):
         
@@ -116,6 +123,10 @@ class PlatformSlotSetupWidget(gtk.Frame):
                 self.platform_slot_adapter)
         self.vbox["left"].pack_start(self.uut_setup_widget)
 
+        self.show_all()
+        self.product_setup_frame.show()
+        self.uut_setup_frame.hide()
+
 class AbstractSelectionWidget(gtk.VBox):
 
     def __init__(self, initial_data, cb, is_ready_cb=None, adapter=None):
@@ -134,6 +145,9 @@ class AbstractSelectionWidget(gtk.VBox):
                 self.__combobox_changed_cb, cb)
         self.labeled_combobox[0][1].on_changed_handler_id = handler_id
         self.labeled_combobox[0][1].show()
+
+    def set_isready_cb(self, cb):
+        self.__is_ready_cb = cb
 
     def __is_ready(self, ready, adapter):
         if callable(self.__is_ready_cb):
