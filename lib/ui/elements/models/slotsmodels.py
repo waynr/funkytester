@@ -20,25 +20,11 @@ class SlotsManagerModel(FunctTreeStore):
                 adapters.platformslot.PlatformSlotAdapter,
                 ]
         super(SlotsManagerModel, self).__init__(str, str, str)
-        self.title_height = 24
-        self.row_height = 18
 
     def _add(self, parent_iter, adapter):
         row_iter = self.append( parent_iter, ( adapter.status,
             adapter.current_uut, adapter.product_type ))
-        self.__set_tv_height()
         return row_iter
-
-    def __set_tv_height(self):
-        count = 0
-        rowiter = iter(self)
-        for row in rowiter:
-            count += 1
-        self.set_treeview_size(-1, self.title_height + self.row_height * count)
-    ## Function gets set externally otherwise does nothing. Use grep.
-    #
-    def set_treeview_size(treeview,):
-        pass
 
     def __status_data(self, treeview_column, cell, model, iter, 
             user_data):

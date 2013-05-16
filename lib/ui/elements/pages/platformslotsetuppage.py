@@ -26,14 +26,12 @@ class PlatformSlotSetupPage(FunctPage):
                 adapter=platform_slot_adapter, **kwargs)
         widget = PlatformSlotSetupWidget(platform_slot_adapter,
                 product_selection_widget)
-        
+
         self.pack_start(widget, expand=False, fill=False)
         widget.show()
-        #self._update_slot_position(widget)
 
     def _update_slot_position(self, widget):
         position = self.child_get_property(widget, "position")
-        #widget.set_label_by_index(position)
         self.platform_slot_widgets[platform_slot] = (widget, position)
 
 

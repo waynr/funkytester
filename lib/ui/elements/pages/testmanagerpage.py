@@ -63,12 +63,6 @@ class TestManagerPage(FunctPage):
         for column in self.slotsmanagermodel.tvcolumns:
             self.treeview_slots.append_column(column)
 
-        self.slotsmanagermodel.set_treeview_size = (
-                self.treeview_slots.set_size_request )
-        self.treeview_slots.set_size_request(-1, 100)
-        #self.treeview_slots.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color('#335533'))
-        #self.treeview_slots.modify_bg(gtk.STATE_INSENSITIVE, gtk.gdk.Color('#335533'))
-
         self.treeview_tests = gtk.TreeView(self.testmanagermodel)
         for column in self.testmanagermodel.tvcolumns:
             self.treeview_tests.append_column(column)
