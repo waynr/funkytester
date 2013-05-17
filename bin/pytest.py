@@ -98,7 +98,7 @@ def parse_options():
             dest="test_mode",
         )
     option_parser.add_option("", "--server-type", 
-            help="Specify the server type. Default is 'local'.",
+            help="Specify the server type. Default is 'process'.",
             action="store", 
             type="string",
             dest="platform_server_type",
@@ -127,7 +127,7 @@ def parse_options():
             nfs_server_ip = "192.168.2.1",
 
             platform_server = "localhost:5932",
-            platform_server_type = "local",
+            platform_server_type = "process",
 
             logdb_connection = "sqlite:///testlog.db",
     
@@ -153,7 +153,7 @@ def main():
         server = getattr(module, options.platform_server_type)
     except AttributeError:
         sys.exit("ERROR: Invalid server type '%s'.\n"
-                "Available Servers: local [default]." 
+                "Available Servers: process [default], socket." 
                 % options.platform_server_type )
 
     #-------------------
