@@ -89,6 +89,11 @@ class GenericAdapter(gobject.GObject):
             return adapter
         return super(GenericAdapter, cls).__new__(cls)
 
+    def __setattr__(self, name, value):
+        super(GenericAdapter, self).__setattr__(name, value)
+        if not name.startswith("_"):
+            self.emit('on-changed')
+
     def __init__(self, handler=None, **kwargs):
         super(GenericAdapter, self).__init__()
         self.name = None
@@ -104,11 +109,6 @@ class GenericAdapter(gobject.GObject):
 
         self.__update(kwargs)
         self.__registry[self.address] = self
-
-        def inline(self, name, value):
-            if not name.startswith("_"):
-                self.emit('on-changed')
-        self.__setattr__ = inline
 
     def update(self, event):
         event_attrs = event.get_all()
