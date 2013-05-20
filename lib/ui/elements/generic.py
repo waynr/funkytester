@@ -115,8 +115,6 @@ class GenericAdapter(gobject.GObject):
         self.__update(event_attrs)
 
     def __update(self, kwargs):
-        print(self)
-        print(kwargs)
         for key, value in kwargs.items():
             setattr(self, key, value)
 

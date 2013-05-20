@@ -78,7 +78,6 @@ class Product(ProductDB, HasMetadata):
         if len(self.__specification_list) == 0:
             self.__load_specs()
         menu_info =  self.__get_spec_menu_info()
-        print(menu_info)
         return menu_info
 
     def __get_spec_menu_info(self):
