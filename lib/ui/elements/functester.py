@@ -156,7 +156,7 @@ class FunctionalTestWindow(gtk.Window):
         self.context_id = self.statusbar.get_context_id("update-event")
         self.statusbar.push(self.context_id, message)
 
-    def __uut_ready_cb(self, handler, event):
+    def __uut_ready_cb(self, handler):
         pass
 
     def __uut_init_cb(self, handler, event):
@@ -175,7 +175,7 @@ class FunctionalTestWindow(gtk.Window):
                 )
         uut.update(event)
 
-    def __platformslot_ready_cb(self, handler, event):
+    def __platformslot_ready_cb(self, handler):
         pass
 
     def __platformslot_update_cb(self, handler, event):
@@ -199,7 +199,7 @@ class FunctionalTestWindow(gtk.Window):
         self.slot_setup_page.add_slot(platformslot, ("Product", manifest),
             self.__get_product_version_cb,)
 
-    def __platform_ready_cb(self, event):
+    def __platform_ready_cb(self, handler):
         self.show()
 
     def __platform_update_cb(self, handler, event):

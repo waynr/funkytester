@@ -100,7 +100,7 @@ class FuncTEventHandler(gobject.GObject):
                                 (gobject.TYPE_PYOBJECT,)),
             'uut-ready' : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
-                                (gobject.TYPE_PYOBJECT,)),
+                                ()),
             'uut-program-bootloader' : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
                                 ()),
@@ -189,19 +189,19 @@ class FuncTEventHandler(gobject.GObject):
         return 
 
     def handle_test_event(self, event):
-        if isinstance(event, ft.event.PlatformReady):
-            self.emit('action-ready')
-        elif isinstance(event, ft.event.PlatformInit):
-            self.emit('action-init', event)
+        if isinstance(event, ft.event.TestReady):
+            self.emit('test-ready')
+        elif isinstance(event, ft.event.TestInit):
+            self.emit('test-init', event)
         else:
-            self.emit('action-update', event)
+            self.emit('test-update', event)
 
         return
 
     def handle_action_event(self, event):
-        if isinstance(event, ft.event.PlatformReady):
+        if isinstance(event, ft.event.ActionReady):
             self.emit('action-ready')
-        elif isinstance(event, ft.event.PlatformInit):
+        elif isinstance(event, ft.event.ActionInit):
             self.emit('action-init', event)
         else:
             self.emit('action-update', event)
@@ -223,8 +223,8 @@ class FuncTEventHandler(gobject.GObject):
         return 
 
     def handle_platform_slot_event(self, event):
-        if isinstance(event, ft.event.PlatformReady):
-            self.emit('platformslot-ready' )
+        if isinstance(event, ft.event.PlatformSlotReady):
+            self.emit('platformslot-ready')
         elif isinstance(event, ft.event.PlatformSlotInit):
             self.emit('platformslot-init', event)
         else:
@@ -233,8 +233,8 @@ class FuncTEventHandler(gobject.GObject):
         return
 
     def handle_platform_uut_event(self, event):
-        if isinstance(event, ft.event.PlatformReady):
-            self.emit('uut-ready' )
+        if isinstance(event, ft.event.UUTReady):
+            self.emit('uut-ready')
         elif isinstance(event, ft.event.UUTInit):
             self.emit('uut-init', event)
         else:
