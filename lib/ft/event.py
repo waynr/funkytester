@@ -59,6 +59,9 @@ class Event(object):
             setattr(self, key, value)
         del obj
 
+    def get_all(self):
+        return self.__dict__
+
 #-------------------------------------------------------------------------------
 # Event Base Classes
 
