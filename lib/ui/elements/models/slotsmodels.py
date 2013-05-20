@@ -24,7 +24,12 @@ class SlotsManagerModel(FunctTreeStore):
     def _add(self, parent_iter, adapter):
         row_iter = self.append( parent_iter, ( adapter.status,
             adapter.current_uut, adapter.product_type ))
+        adapter.connect('on-changed', self.__update, row_iter)
         return row_iter
+
+    def __update(self, adapter, row_iter):
+        self[row_iter] = (adapter.status, adapter.current_uut,
+                adapter.product_type)
 
     def __status_data(self, treeview_column, cell, model, iter, 
             user_data):

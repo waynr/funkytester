@@ -19,7 +19,7 @@ class PlatformSlotSetupWidget(gtk.Frame):
 
         self._init_visuals()
 
-    def __update(self):
+    def __update(self, adapter):
         pass
 
     def __product_selection_isready_cb(self, is_ready, adapter):
