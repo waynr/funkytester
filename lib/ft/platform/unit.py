@@ -73,13 +73,13 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.serial_num = "0000000000"
         self.product = None
         self.macaddr = None
+        self.ip_address = None
+        self.status = self.Status.INIT
 
         self.com = config["control"]["com"]
         self.adam = config["control"]["adam"]
 
         self.parent = parent
-
-        self.ip_address = None
 
     def set_address(self, address):
         self.address = (self.parent.address, address)

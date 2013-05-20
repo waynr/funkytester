@@ -67,6 +67,7 @@ class Product(ProductDB, HasMetadata):
         if len(self.__specification_list) == 0:
             self.__load_specs()
         self.specification = self.__get_specification_by_name(name)
+        self.name = name
         return self.specification
 
     def __get_specification_by_name(self, name):
