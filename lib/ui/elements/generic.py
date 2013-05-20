@@ -85,7 +85,7 @@ class GenericAdapter(gobject.GObject):
         address = kwargs["address"]
         if cls.__registry.has_key(address):
             adapter = cls.__registry[address]
-            adapter.__update(**kwargs)
+            adapter.__update(kwargs)
             return adapter
         return super(GenericAdapter, cls).__new__(cls)
 
@@ -102,7 +102,7 @@ class GenericAdapter(gobject.GObject):
 
         self.__iters = {}
 
-        self.__update(**kwargs)
+        self.__update(kwargs)
         self.__registry[self.address] = self
 
         def inline(self, name, value):
@@ -110,7 +110,13 @@ class GenericAdapter(gobject.GObject):
                 self.emit('on-changed')
         self.__setattr__ = inline
 
-    def __update(self, **kwargs):
+    def update(self, event):
+        event_attrs = event.get_all()
+        self.__update(event_attrs)
+
+    def __update(self, kwargs):
+        print(self)
+        print(kwargs)
         for key, value in kwargs.items():
             setattr(self, key, value)
 

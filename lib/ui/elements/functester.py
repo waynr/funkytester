@@ -111,10 +111,15 @@ class FunctionalTestWindow(gtk.Window):
         self.connect("destroy", lambda *w: gtk.main_quit())
         self.handler.connect('platform-init', self.__setup_platform_cb)
         self.handler.connect('platform-ready', self.__platform_ready_cb)
+        self.handler.connect('platform-update', self.__platform_update_cb)
         self.handler.connect('platformslot-ready', self.__platformslot_ready_cb)
+        self.handler.connect('platformslot-update', self.__platformslot_update_cb)
         self.handler.connect('platformslot-init', self.__platformslot_init_cb)
         self.handler.connect('uut-ready', self.__uut_ready_cb)
         self.handler.connect('uut-init', self.__uut_init_cb)
+        self.handler.connect('uut-update', self.__uut_update_cb)
+        self.handler.connect('test-update', self.__test_update_cb)
+        self.handler.connect('action-update', self.__action_update_cb)
         self.handler.connect('update-status', self.__update_statusbar_cb)
         self.handler.connect('error', self.__error_cb)
 
@@ -162,11 +167,22 @@ class FunctionalTestWindow(gtk.Window):
                 product_type = None,
                 name = event.name,
                 )
-        logging.debug(uut)
         self.testmanagermodel.add(uut)
+
+    def __uut_update_cb(self, handler, event):
+        uut = UnitUnderTestAdapter(
+                address = event.address,
+                )
+        uut.update(event)
 
     def __platformslot_ready_cb(self, handler, event):
         pass
+
+    def __platformslot_update_cb(self, handler, event):
+        platformslot = PlatformSlotAdapter(
+                address = event.address,
+                )
+        platformslot.update(event)
 
     def __platformslot_init_cb(self, handler, event):
         platformslot = PlatformSlotAdapter(
@@ -185,6 +201,15 @@ class FunctionalTestWindow(gtk.Window):
 
     def __platform_ready_cb(self, event):
         self.show()
+
+    def __platform_update_cb(self, handler, event):
+        raise NotImplementedError
+
+    def __test_update_cb(self, handler, event):
+        raise NotImplementedError
+
+    def __action_update_cb(self, handler, event):
+        raise NotImplementedError
 
     def __setup_platform_cb(self, handler, event):
         result, msg = self.__run_command(

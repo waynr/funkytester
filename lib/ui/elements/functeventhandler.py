@@ -16,6 +16,9 @@ class FuncTEventHandler(gobject.GObject):
             # - - - - - - - - - - - - -
             # test signals
             #
+            'test-update'    : (gobject.SIGNAL_RUN_LAST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,)),
             'test-begin'    : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
                                 ()),
@@ -35,6 +38,9 @@ class FuncTEventHandler(gobject.GObject):
             # - - - - - - - - - - - - -
             # action signals
             #
+            'action-update'    : (gobject.SIGNAL_RUN_LAST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,)),
             'action-start'  : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
                                 ()),
@@ -54,6 +60,9 @@ class FuncTEventHandler(gobject.GObject):
             # - - - - - - - - - - - - -
             # platform signals
             #
+            'platform-update'    : (gobject.SIGNAL_RUN_LAST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,)),
             'platform-init'    : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
@@ -67,6 +76,9 @@ class FuncTEventHandler(gobject.GObject):
             # - - - - - - - - - - - - -
             # platform signals
             #
+            'platformslot-update'    : (gobject.SIGNAL_RUN_LAST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,)),
             'platformslot-init'    : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
@@ -80,6 +92,9 @@ class FuncTEventHandler(gobject.GObject):
             # - - - - - - - - - - - - -
             # unit under test signals
             #
+            'uut-update'    : (gobject.SIGNAL_RUN_LAST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,)),
             'uut-init' : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
@@ -174,10 +189,24 @@ class FuncTEventHandler(gobject.GObject):
         return 
 
     def handle_test_event(self, event):
-        raise NotImplementedError
+        if isinstance(event, ft.event.PlatformReady):
+            self.emit('action-ready')
+        elif isinstance(event, ft.event.PlatformInit):
+            self.emit('action-init', event)
+        else:
+            self.emit('action-update', event)
+
+        return
 
     def handle_action_event(self, event):
-        raise NotImplementedError
+        if isinstance(event, ft.event.PlatformReady):
+            self.emit('action-ready')
+        elif isinstance(event, ft.event.PlatformInit):
+            self.emit('action-init', event)
+        else:
+            self.emit('action-update', event)
+
+        return
 
     def handle_specification_event(self, event):
         raise NotImplementedError
@@ -189,7 +218,7 @@ class FuncTEventHandler(gobject.GObject):
         elif isinstance(event, ft.event.PlatformInit):
             self.emit('platform-init', event)
         else:
-            logging.error("Event not supported.")
+            self.emit('platform-update', event)
 
         return 
 
@@ -198,6 +227,9 @@ class FuncTEventHandler(gobject.GObject):
             self.emit('platformslot-ready' )
         elif isinstance(event, ft.event.PlatformSlotInit):
             self.emit('platformslot-init', event)
+        else:
+            self.emit('platformslot-update', event)
+
         return
 
     def handle_platform_uut_event(self, event):
@@ -205,4 +237,7 @@ class FuncTEventHandler(gobject.GObject):
             self.emit('uut-ready' )
         elif isinstance(event, ft.event.UUTInit):
             self.emit('uut-init', event)
+        else:
+            self.emit('uut-update', event)
+
         return
