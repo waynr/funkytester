@@ -69,8 +69,8 @@ class UnitUnderTestDB(Base):
 #  
 class UnitUnderTest(UnitUnderTestDB, Commandable):
 
-    def __init__(self, config, parent=None):
-        self.serial_num = "0000000000"
+    def __init__(self, config, parent=None, serial_number="0000000000"):
+        self.serial_num = serial_number
         self.product = None
         self.macaddr = None
         self.ip_address = None

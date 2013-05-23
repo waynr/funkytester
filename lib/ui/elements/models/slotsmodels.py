@@ -4,8 +4,9 @@
 import gtk
 
 from ui.elements import adapters
-
 from ui.elements.generic import FunctTreeStore
+
+from ft.platform import PlatformSlot
 
 class SlotsManagerModel(FunctTreeStore):
     
@@ -28,8 +29,10 @@ class SlotsManagerModel(FunctTreeStore):
         return row_iter
 
     def __update(self, adapter, row_iter):
+        product_data = "{0} | {1} | {2}".format(adapter.product_type,
+                adapter.metadata_version, adapter.specification_name)
         self[row_iter] = (adapter.status, adapter.current_uut,
-                adapter.product_type)
+                product_data)
 
     def __status_data(self, treeview_column, cell, model, iter, 
             user_data):
@@ -37,7 +40,14 @@ class SlotsManagerModel(FunctTreeStore):
         cell.set_property('text', str(obj))
         cell.set_property('xalign', 0.5)
         cell.set_property('width-chars', 15)
-        cell.set_property('cell-background', gtk.gdk.Color('#FF0033'))
+        if str(obj) == PlatformSlot.Status.POPULATED:
+            cell.set_property('cell-background', gtk.gdk.Color('#00FF33'))
+        elif str(obj) == PlatformSlot.Status.EMPTY:
+            cell.set_property('cell-background', gtk.gdk.Color('#FFFFFF'))
+        elif str(obj) == PlatformSlot.Status.BUSY:
+            cell.set_property('cell-background', gtk.gdk.Color('#FF3300'))
+        else:
+            cell.set_property('cell-background', gtk.gdk.Color('#FF0033'))
         return
 
     def __currentuut_data(self, treeview_column, cell, model, iter, 

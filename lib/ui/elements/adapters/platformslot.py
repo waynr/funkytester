@@ -10,3 +10,5 @@ class PlatformSlotAdapter(GenericAdapter):
     def __init__(self, **kwargs):
         super(PlatformSlotAdapter, self).__init__(**kwargs)
         self.recipient_type = RecipientType.SLOT
+        self.metadata_version = ""
+        self.specification_name = ""

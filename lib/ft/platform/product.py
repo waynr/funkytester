@@ -25,7 +25,7 @@ class ProductDB(Base):
     name = Column(String(50))
     hardware_rev = Column(String(20))
     metadata_repo = Column(String(100))
-    metadata_rev = Column(String(100))
+    metadata_version = Column(String(100))
 
     uuts = relationship("UnitUnderTest")
     
@@ -47,12 +47,17 @@ class Product(ProductDB, HasMetadata):
     
         self.specification = None
         self.__specification_list = list()
+
+        self.name = "No Product Selected"
+        self.metadata_version = ""
+        self.specification_name = ""
     
         self.config = None
 
-    def select(self, name):
-        self.repo.checkout(name)
+    def select(self, version):
+        self.repo.checkout(version)
         self.configure()
+        self.metadata_version = version
 
     def configure(self):
         config_file = os.path.join(self.local_path, "config.yaml")
@@ -63,11 +68,11 @@ class Product(ProductDB, HasMetadata):
         self.__specification_list = list()
         return self.repo.get_refs()
 
-    def set_specification(self, name):
+    def set_specification(self, specification_name):
         if len(self.__specification_list) == 0:
             self.__load_specs()
-        self.specification = self.__get_specification_by_name(name)
-        self.name = name
+        self.specification = self.__get_specification_by_name(specification_name)
+        self.specification_name = specification_name
         return self.specification
 
     def __get_specification_by_name(self, name):

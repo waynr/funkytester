@@ -28,6 +28,7 @@ class PlatformSlotDB(Base):
 
     class Status:
         INIT = "Initialized"
+        POPULATED = "Populated"
         BUSY = "Busy"
         EMPTY = "Empty"
 
@@ -75,23 +76,27 @@ class PlatformSlot(PlatformSlotDB, Commandable):
 
     ## Adds a UUT to the FTPlatform
     #
-    #  @param serial_number The new unit under test's serial number. 
+    #  @param data A structure containing data about the UUT passed in from the
+    #  UI.
     #
     #  @param slot This represents the physical slot on the test where the
     #  device resides. This is associated directly with a list of configuration
     #  directives found in the platform configuration whenever FTPlatform is set
     #  up.
     #
-    def _create_uut(self, serial_number):
-        self.uut = UnitUnderTest(self.config, self)
+    def _create_uut(self, data):
+        serial_number = data["serialnum"]
+        self.uut = UnitUnderTest(self.config, self, serial_number)
         self.uut.set_address(serial_number)
         self.uut.configure(serial_number, self.product)
+        self.status = PlatformSlot.Status.POPULATED
         self.fire( ft.event.PlatformSlotEvent,
                 obj = self,
                 status = self.status,
                 current_uut = serial_number,
                 product_type = self.product.name,
-                metadata_repo_rev = self.product.metadata_rev
+                metadata_version = self.product.metadata_version,
+                specification_name = self.product.specification_name,
                 )
 
     # - - - - - - - - - - - - - - - - -
@@ -146,8 +151,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             pass
 
         @staticmethod
-        def set_uut_serialnum(platform_slot, serialnum):
-            platform_slot._create_uut(serialnum)
+        def set_uut(platform_slot, data):
+            platform_slot._create_uut(data)
             return None, ""
 
         @staticmethod

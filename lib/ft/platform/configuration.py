@@ -87,7 +87,7 @@ class HasMetadata(object):
 
     def __init__(self):
         self.metadata_repo = ""
-        self.metadata_rev = ""
+        self.metadata_version = ""
         self.relative_path = ""
         self.name = ""
 
@@ -103,7 +103,7 @@ class HasMetadata(object):
                 self.relative_path, self.__metadata_type__)
         self.local_path = self.repo.local_path
         self.metadata_repo = self.repo.url
-        self.metadata_rev = self.repo.version
+        self.metadata_version = self.repo.version
         self.repo.update()
 
 class MetaDataDir(object):

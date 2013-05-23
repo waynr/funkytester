@@ -35,14 +35,14 @@ class PlatformDB(Base):
     name = Column(String(20))
     hardware_rev = Column(String(50))
     metadata_repo = Column(String(100))
-    metadata_rev = Column(String(100))
+    metadata_version = Column(String(100))
 
     platform_slots = relationship("PlatformSlot")
         
     def __repr__(self,):
         rstring = "<Platform('%s','%s','%s':'%s')>" 
         rtuple = ( self.name, self.hardware_rev, self.metadata_repo, 
-                self.metadata_rev, )
+                self.metadata_version, )
         return rstring % rtuple
 
 class Platform(PlatformDB, HasMetadata, Commandable):
