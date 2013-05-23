@@ -170,7 +170,7 @@ class FunctionalTestWindow(gtk.Window):
         self.testmanagermodel.add(uut)
 
     def __uut_update_cb(self, handler, event):
-        uut = UnitUnderTestAdapter(
+        uut = UnitUnderTestAdapter.get(
                 address = event.address,
                 )
         uut.update(event)
@@ -179,7 +179,7 @@ class FunctionalTestWindow(gtk.Window):
         pass
 
     def __platformslot_update_cb(self, handler, event):
-        platformslot = PlatformSlotAdapter(
+        platformslot = PlatformSlotAdapter.get(
                 address = event.address,
                 )
         platformslot.update(event)

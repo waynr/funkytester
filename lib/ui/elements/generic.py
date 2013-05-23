@@ -40,7 +40,7 @@ class FunctTreeStore(gtk.TreeStore):
         parent_iter = None
         if adapter.parent_address:
             parent_address = adapter.parent_address
-            parent = GenericAdapter(address = parent_address)
+            parent = GenericAdapter.get(address = parent_address)
             parent_iter = parent.get_iter("testmodel")
 
         row_iter = self._add(parent_iter, adapter)
@@ -81,14 +81,6 @@ class GenericAdapter(gobject.GObject):
     #
     __registry = dict()
 
-    def __new__(cls, **kwargs):
-        address = kwargs["address"]
-        if cls.__registry.has_key(address):
-            adapter = cls.__registry[address]
-            adapter.__update(kwargs)
-            return adapter
-        return super(GenericAdapter, cls).__new__(cls)
-
     def __setattr__(self, name, value):
         super(GenericAdapter, self).__setattr__(name, value)
         if not name.startswith("_"):
@@ -127,9 +119,10 @@ class GenericAdapter(gobject.GObject):
         return self.handler.run_command( (command[0], self.recipient_type,
                 self.address, command[1], command[2]) )
 
-    def get(self, address):
-        if self.__registry.has_key(address):
-            return self.__registry[address]
+    @staticmethod
+    def get(address=None): 
+        if GenericAdapter.__registry.has_key(address):
+            return GenericAdapter.__registry[address]
         return None
     
     def get_iter(self, context):
