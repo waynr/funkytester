@@ -28,6 +28,10 @@ from ft.platform.configuration import HasMetadata, GenConfig
 from ft.command import Commandable, Command
 from ft.util.yaml_util import load_manifest
 
+from interfaces import (
+        adam,
+        )
+
 class PlatformDB(Base):
     
     __tablename__ = "pyft_platform"
@@ -77,8 +81,9 @@ class Platform(PlatformDB, HasMetadata, Commandable):
 
     def configure(self):
         config_file = path.join(self.repo.local_path, "config.yaml")
-        self._configure(config_file)
-        self._slots_setup()
+        self.__configure(config_file)
+        self.__slots_setup()
+        self.__adam_setup()
 
         self.fire(ft.event.UpdateStatus, 
             obj = self, 
@@ -98,12 +103,12 @@ class Platform(PlatformDB, HasMetadata, Commandable):
     def cleanup(self):
         pass
 
-    def _configure(self, config_file):
+    def __configure(self, config_file):
         self.config = GenConfig(config_file)
         product_manifest_file = path.join(self.repo.local_path, "manifest.yaml")
         self.product_manifest = load_manifest(product_manifest_file)
 
-    def _slots_setup(self):
+    def __slots_setup(self):
         self.slots = [None] * len(self.config.slots)
         for i, config in enumerate(self.config.slots):
             config["product_manifest_filename"] = path.join(self.repo.local_path,
@@ -111,6 +116,13 @@ class Platform(PlatformDB, HasMetadata, Commandable):
             self.slots[i] = PlatformSlot(config, self)
             self.slots[i].set_address(i)
             self.slots[i].product_manifest = self.product_manifest
+
+    ## Configure ADAM Modules' serial ports
+    #
+    def __adam_setup(self):
+        serial = self.config.adam[0]["serial"]
+        baud = self.config.adam[0]["baud"]
+        adam.get_adam_interface(serial, baud)
 
     def __native_setup(self):
         pass

@@ -5,7 +5,7 @@ import sys
 import logging
 
 from interfaces.adam import (
-        adam_interface,
+        get_adam_interface,
         ADAM_4017P,
         ADAM_4024,
         ADAM_4050,
@@ -16,7 +16,7 @@ from interfaces.adam import (
 class ADAM_4024_action(ADAM_4024):
     def __init__(self, kwargs):
         address = kwargs["address"]
-        adam_interface = adam_interface()
+        adam_interface = get_adam_interface()
         ADAM_4024.__init__(self, adam_interface, address)
 
     def set_analog(self, kwargs):
@@ -31,7 +31,7 @@ class ADAM_4024_action(ADAM_4024):
 class ADAM_4050_action(ADAM_4050):
     def __init__(self, kwargs):
         address = kwargs["address"]
-        adam_interface = adam_interface()
+        adam_interface = get_adam_interface()
         ADAM_4050.__init__(self, adam_interface, address)
 
     def get_hexval(self, kwargs):
@@ -68,7 +68,7 @@ class ADAM_4050_action(ADAM_4050):
 class ADAM_4051_action(ADAM_4051):
     def __init__(self, kwargs):
         address = kwargs["address"]
-        adam_interface = adam_interface()
+        adam_interface = get_adam_interface()
         ADAM_4051.__init__(self, adam_interface, address)
         
     def get_digital(self, kwargs):
@@ -102,7 +102,7 @@ class ADAM_4051_action(ADAM_4051):
 class ADAM_4068_action(ADAM_4068):
     def __init__(self, kwargs):
         address = kwargs["address"]
-        adam_interface = adam_interface()
+        adam_interface = get_adam_interface()
         ADAM_4068.__init__(self, adam_interface, address)
 
     def set_digital(self, kwargs):

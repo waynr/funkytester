@@ -59,6 +59,7 @@ class Specification(object,):
         try:
             with file(file_name, 'r+') as f:
                 tmp = yaml.load(f, Loader=Loader)
+            return tmp
         except yaml.YAMLError as exc:
             # This file is not a yaml file, move on to the next file
             if hasattr(exc, "problem_mark"):
@@ -70,7 +71,6 @@ class Specification(object,):
                 file_name, loc))
         except:
             raise
-        return tmp
 
     ## Checks that the given member exists in the dictionary
     #
