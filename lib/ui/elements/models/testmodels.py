@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import gtk
+import gtk, gobject
 
 from ui.elements import adapters
 from ui.elements.generic import FunctTreeStore
@@ -24,11 +24,12 @@ class TestManagerModel(FunctTreeStore):
                 adapters.test.TestAdapter,
                 adapters.action.ActionAdapter,
                 ]
-        super(TestManagerModel, self).__init__(str, str, str, str)
+        super(TestManagerModel, self).__init__(str, str, str, str,
+                gobject.TYPE_PYOBJECT)
 
     def _add(self, parent_iter, adapter):
         row_iter = self.append( parent_iter, ( adapter.name, adapter.status,
-            adapter.datetime, adapter.additional_info ))
+            adapter.datetime, adapter.additional_info, adapter ))
 
     def __name_data(self, treeview_column, cell, model, iter, 
             user_data):
