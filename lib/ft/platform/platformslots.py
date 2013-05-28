@@ -47,11 +47,11 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.__serial = None
         self.__control = {}
 
-        self.parent = parent
+        self.platform = parent
         self.lock = threading.RLock()
 
     def set_address(self, address):
-        self.address = (self.parent.address, address)
+        self.address = (self.platform.address, address)
         self.fire(ft.event.PlatformSlotInit,
                 obj = self,
                 name = self.name,
@@ -62,7 +62,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         return weakref.ref(self.__serial)
 
     def fire(self, event, **kwargs):
-        self.parent.fire(event, **kwargs)
+        self.platform.fire(event, **kwargs)
 
     def configure(self, specification_name):
         self.product.set_specification(specification_name)
@@ -139,9 +139,18 @@ class PlatformSlot(PlatformSlotDB, Commandable):
     #
     def _create_uut(self, data):
         serial_number = data["serialnum"]
+
+        if self.status == PlatformSlot.Status.POPULATED:
+            self.fire( ft.event.UpdateStatus,
+                    message = "WARNING: PlatformSlot currently populated.",
+                    )
+            return
+
         self.uut = UnitUnderTest(self.config, self, serial_number)
         self.uut.set_address(serial_number)
         self.uut.configure(serial_number, self.product)
+
+        self.platform.uuts[serial_number] = self.uut
         
         self.status = PlatformSlot.Status.POPULATED
         self.fire( ft.event.PlatformSlotEvent,
