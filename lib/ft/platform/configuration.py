@@ -125,7 +125,7 @@ class GitMetaDataRepo(MetaDataDir):
     def update(self,):
         if path.isdir( path.join(self.local_path, '.git')) and not self.repo:
             self.repo = git.Repo(self.local_path)
-            self.repo.remotes.origin.pull()
+            self.repo.remotes.origin.fetch()
         else:
             self.checkout()
 
