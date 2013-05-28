@@ -138,3 +138,11 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         def acknowledge(uut, data):
             pass
 
+        @staticmethod
+        def power_up(uut, data):
+            uut.control["power"].enable()
+
+        @staticmethod
+        def power_down(uut, data):
+            uut.control["power"].disable()
+

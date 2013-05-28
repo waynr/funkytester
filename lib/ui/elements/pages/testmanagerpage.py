@@ -1,9 +1,19 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import gtk
+import gtk, logging
 
 from ui.elements.pages.functpage import FunctPage
+from ui.elements.menus.testmanager import (
+        UUTManagerMenu, 
+        TestManagerMenu, 
+        ActionManagerMenu,
+        )
+from ui.elements.adapters import (
+        UnitUnderTestAdapter,
+        TestAdapter,
+        ActionAdapter,
+        )
 
 class TestManagerPage(FunctPage):
 
@@ -15,9 +25,10 @@ class TestManagerPage(FunctPage):
         self.testmanagermodel = functester.testmanagermodel
         self.slotsmanagermodel = functester.slotsmanagermodel
 
-        self.init_visuals()
+        self.__init_visuals()
+        self.__connect_signals()
 
-    def init_visuals(self):
+    def __init_visuals(self):
         self.box = {}
         self.button = {}
 
@@ -74,3 +85,36 @@ class TestManagerPage(FunctPage):
         self.box["right"].pack_start(self.scrolledwindow_tests)
 
         self.pack_start(self.box["main"])
+        
+        # - - - - - - - - - - - - - - -
+        # create context menus
+        #
+        self.uutmanager_menu = UUTManagerMenu()
+        self.testmanager_menu = TestManagerMenu()
+        self.actionmanager_menu = ActionManagerMenu()
+
+    def __connect_signals(self):
+        self.treeview_tests.connect('button-release-event',
+                self.__popup_menu_tests_cb )
+    
+    def __popup_menu_tests_cb(self, treeview, event):
+        if event.button == 3:  # right-click
+            path, focus_column = treeview.get_cursor()
+            model = treeview.get_model()
+            row = model[path]
+            adapter = row[4]
+            self.__dispatch_rightclick_tests(adapter, event.button, event.time)
+    
+    def __dispatch_rightclick_tests(self, adapter, button, time):
+        if isinstance(adapter, UnitUnderTestAdapter):
+            logging.debug(adapter)
+            self.uutmanager_menu.popup(adapter, button, time)
+        elif isinstance(adapter, TestAdapter):
+            logging.debug(adapter)
+            self.testmanager_menu.popup(adapter, button, time)
+        elif isinstance(adapter, ActionAdapter):
+            logging.debug(adapter)
+            self.actionmanager_menu.popup(adapter, button, time)
+        else:
+            raise TypeError("Invalid Adapter: {0}".format(adapter))
+
