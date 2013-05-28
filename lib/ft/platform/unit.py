@@ -39,7 +39,7 @@ class UnitUnderTestDB(Base):
 
     __tablename__ = "pyft_unit_under_test"
     id = Column(Integer, primary_key=True)
-    serial_num = Column(String(20))
+    serial_number = Column(String(20))
     datetime_tested = Column(DateTime)
     fail = Column(Boolean)
     comment = Column(Text)
@@ -71,9 +71,9 @@ class UnitUnderTestDB(Base):
 class UnitUnderTest(UnitUnderTestDB, Commandable):
 
     def __init__(self, config, parent=None, serial_number="0000000000"):
-        self.serial_num = serial_number
+        self.serial_number = serial_number
         self.product = None
-        self.macaddr = None
+        self.mac_address = None
         self.ip_address = None
         self.status = self.Status.INIT
 
@@ -84,21 +84,21 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         self.lock = threading.RLock()
 
-    def set_address(self, address):
-        self.address = (self.parent.address, address)
+    def set_address(self, serial_number):
+        self.address = (self.parent.address, serial_number)
         self.fire( ft.event.UUTInit,
                 obj = self,
-                name = self.serial_num,
+                name = self.serial_number,
                 status = self.status,
                 )
 
     def fire(self, event, **kwargs):
         self.parent.fire(event, **kwargs)
 
-    def configure(self, serial_num, product, macaddr=None):
-        self.serial_num = serial_num
+    def configure(self, serial_number, product, mac_address=None):
+        self.serial_number = serial_number
         self.product = product
-        self.macaddr = macaddr
+        self.mac_address = mac_address
 
         self.serial = self.parent.get_serialport()
         self.interfaces = { 
@@ -118,7 +118,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         self.fire( ft.event.UUTReady,
                 obj = self,
-                name = self.serial_num,
+                name = self.serial_number,
                 status = self.status,
                 )
 

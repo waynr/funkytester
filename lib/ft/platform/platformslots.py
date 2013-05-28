@@ -89,6 +89,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.uut = UnitUnderTest(self.config, self, serial_number)
         self.uut.set_address(serial_number)
         self.uut.configure(serial_number, self.product)
+        
         self.status = PlatformSlot.Status.POPULATED
         self.fire( ft.event.PlatformSlotEvent,
                 obj = self,
