@@ -11,9 +11,11 @@ from ft import Base
 import ft.event
 from ft.platform.unit import UnitUnderTest
 from ft.platform.product import Product
+from ft.platform.controller import Relay, UUTState
 from ft.command import Commandable
 
 from eserial import EnhancedSerial
+from interfaces import adam, ADAM_4068
 
 class PlatformSlotDB(Base):
 
@@ -43,6 +45,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.status = PlatformSlot.Status.INIT
 
         self.__serial = None
+        self.__control = {}
 
         self.parent = parent
         self.lock = threading.RLock()
@@ -69,10 +72,60 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                 self.config["control"]["com"]["serial"],
                 self.product.config.serial["baud"],
                 )
+
+        # Hard-code adam module initialization for now, but keep modularity in
+        # mind for later feature implementation.
+        #
+        self.__init_adam()
+        #try:
+            #self.__init_adam()
+        #except:
+            #message = "ADAM Module initialization failed!"
+            #self.fire(ft.event.UpdateStatus,
+                    #obj = self,
+                    #message = message,
+                    #)
+
         self.fire(ft.event.PlatformSlotReady,
             obj = self,
             status = self.status,
             )
+
+    def __init_adam(self):
+        adam_dict = self.config["control"]["adam"]
+        adam_4068_address = adam_dict["address"]
+        adam_4068_available = True
+        try:
+            adam_interface = adam.get_adam_interface()
+            adam_4068 = ADAM_4068(adam_interface, adam_4068_address)
+            logging.info("ADAM Modules detected")
+            self.__init_control(adam_4068, adam_dict["pins"])
+        except NameError:
+            adam_4068_available = False
+            raise
+
+    ## Initialize the control interface for this PlatformSlot.
+    #
+    #  @interface Some kind of controller interface accepted by the "Relay"
+    #  class that can toggle values to "on" or "off" states, for instance
+    #  switching a relay to 'on' would toggle the power of some embedded system
+    #  to activate it.
+    #
+    #  @control_config A dictionary with keys whose names indicate the
+    #  funtionality of the control function being performed and whose values are
+    #  lists of integers indicating which values/indices on the given interface
+    #  are of interest.
+    #
+    def __init_control(self, interface, control_config):
+        for key, pinlist in control_config.items():
+            self.__control[key] = Relay(interface, pinlist)
+
+    def get_control(self):
+        return self.__control
+
+    def powerdown(self):
+        if self.control.has_key("power"):
+            self.control["power"].disable()
 
     ## Adds a UUT to the FTPlatform
     #

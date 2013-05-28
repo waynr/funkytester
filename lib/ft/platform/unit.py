@@ -9,19 +9,14 @@
 
 import logging, threading
 
-import fysom
-
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
         ForeignKey )
 from sqlalchemy.orm import relationship
 
 from interfaces import (
         xmlrpc,
-        ADAMInterface, 
-        ADAM_4068, 
         UBootTerminalInterface, 
         LinuxTerminalInterface,
-        adam,
         )
 
 import ft.event
@@ -101,6 +96,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.mac_address = mac_address
 
         self.serial = self.parent.get_serialport()
+        self.control = self.parent.get_control()
         self.interfaces = { 
                 "linux" : LinuxTerminalInterface(
                     prompt = self.product.config.prompt["linux"]["standard"],
@@ -111,8 +107,6 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                     enhanced_serial = self.serial,
                     )
                 }
-
-        self.__init_adam()
 
         self.specification = self.product.specification
 
@@ -129,32 +123,6 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             newtest = Test(test_dict, self, None)
             self.testlist.append(newtest)
 
-    def __init_adam(self):
-
-        # --------------------
-        # Check Available Tools
-        # 
-        adam_4068_address = self.adam["address"]
-        adam_4068_available = True
-        try:
-            adam_interface = adam.get_adam_interface()
-            adam_4068 = ADAM_4068(adam_interface, adam_4068_address)
-            logging.info("ADAM Modules detected")
-        except NameError:
-            adam_4068_available = False
-            raise
-         
-        # --------------------
-        # Set up state
-        # 
-        boot_pin = self.adam["pins"]["boot"]
-        pwr_pin = self.adam["pins"]["power"]
-
-        self.state = UUTState()
-        self.bootpin = BootPin(adam_4068, boot_pin)
-        self.power = PowerPin(adam_4068, pwr_pin)
-        self.backlight = PowerPin(adam_4068, 0)
-
     ## Check UUT's current operational state.
     #
     def query(self,):
@@ -169,103 +137,4 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         @staticmethod
         def acknowledge(uut, data):
             pass
-
-## Default action on statechange.
-#
-def onchangestate(e):
-    logging.debug("\'{0}\': \'{1}\' to \'{2}\'.".format( e.event, e.src, 
-        e.dst ))
-
-class PowerPin(fysom.Fysom,):
-
-    def __init__(self, adam_4068, relay_pin):
-        self.relay = adam_4068
-        self.relay_pin_list = [relay_pin]
-    
-        fysom.Fysom.__init__(self, {
-            'initial' : 'off',
-            'events' : [
-
-                { 'name' : 'poweroff', 
-                    'src' : [ 'on', ],
-                    'dst' : 'off' },
-
-                { 'name' : 'poweron', 
-                    'src' : 'off', 
-                    'dst' : 'on' },
-
-                ],
-            'callbacks' : {
-                'onchangestate' : onchangestate,
-                'onenteron' : self.__power_up,
-                'onenteroff' : self.__power_down,
-                },
-            } )
-
-    def __power_up(self, e):
-        self.relay.set_digital(self.relay_pin_list, 1)
-
-    def __power_down(self, e):
-        self.relay.set_digital(self.relay_pin_list, 0)
-
-class BootPin(fysom.Fysom,):
-
-    def __init__(self, adam_4068, relay_pin):
-        self.relay      = adam_4068
-        self.relay_pin_list  = [relay_pin]
-    
-        fysom.Fysom.__init__(self, {
-            'initial' : 'nfe',
-            'events' : [
-
-                { 'name' : 'enable', 
-                    'src' : [ 'nfd', ],
-                    'dst' : 'nfe' },
-
-                { 'name' : 'disable', 
-                    'src' : 'nfe', 
-                    'dst' : 'nfd' },
-
-                ],
-            'callbacks' : {
-                'onchangestate' : onchangestate,
-                'onenternfd' : self.__disable,
-                'onenternfe' : self.__enable,
-                },
-            } )
-     
-    def __enable(self, e):
-        self.relay.set_digital(self.relay_pin_list, 1)
-
-    def __disable(self, e):
-        self.relay.set_digital(self.relay_pin_list, 0)
-
-class UUTState(fysom.Fysom,):
-
-    def __init__(self,):
-        fysom.Fysom.__init__(self, {
-            'initial' : 'poweroff',
-            'events' : [
-
-                { 'name' : 'powerdown', 
-                    'src' : [ 'linux', 'uboot', 'null', 'sambam', ],
-                    'dst' : 'poweroff' },
-
-                { 'name' : 'pusambam', 
-                    'src' : 'poweroff', 
-                    'dst' : 'sambam' },
-
-                { 'name' : 'puuboot', 
-                    'src' : 'poweroff', 
-                    'dst' : 'uboot' },
-
-                { 'name' : 'btlinux', 
-                    'src' : 'uboot', 
-                    'dst' : 'linux' },
-
-                ],
-            'callbacks' : {
-                'onchangestate' : onchangestate,
-                },
-            } )
 
