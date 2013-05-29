@@ -106,8 +106,8 @@ class Test(TestDB):
         self.status = Status.init
         logging.debug(pprint.pformat(self.debug))
 
-    def set_address(self, address):
-        self.address = (self.parent.address, address)
+    def set_address(self, index):
+        self.address = (self.parent.address, index)
         self.set_status(Test.Status.INIT)
         ft.event.fire( ft.event.TestInit,
                 obj = self,
