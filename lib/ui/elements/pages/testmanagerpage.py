@@ -4,6 +4,7 @@
 import gtk, logging
 
 from ui.elements.pages.functpage import FunctPage
+from ui.elements.menus.slotmanager import SlotManagerMenu
 from ui.elements.menus.testmanager import (
         UUTManagerMenu, 
         TestManagerMenu, 
@@ -93,7 +94,11 @@ class TestManagerPage(FunctPage):
         self.testmanager_menu = TestManagerMenu()
         self.actionmanager_menu = ActionManagerMenu()
 
+        self.slotmanager_menu = SlotManagerMenu()
+
     def __connect_signals(self):
+        self.treeview_slots.connect('button-release-event',
+                self.__popup_menu_slots_cb )
         self.treeview_tests.connect('button-release-event',
                 self.__popup_menu_tests_cb )
     
@@ -104,6 +109,14 @@ class TestManagerPage(FunctPage):
             row = model[path]
             adapter = row[4]
             self.__dispatch_rightclick_tests(adapter, event.button, event.time)
+    
+    def __popup_menu_slots_cb(self, treeview, event):
+        if event.button == 3:  # right-click
+            path, focus_column = treeview.get_cursor()
+            model = treeview.get_model()
+            row = model[path]
+            adapter = row[3]
+            self.slotmanager_menu.popup(adapter, event.button, event.time)
     
     def __dispatch_rightclick_tests(self, adapter, button, time):
         if isinstance(adapter, UnitUnderTestAdapter):

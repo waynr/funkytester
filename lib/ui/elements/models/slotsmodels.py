@@ -40,11 +40,11 @@ class SlotsManagerModel(FunctTreeStore):
         cell.set_property('text', str(obj))
         cell.set_property('xalign', 0.5)
         cell.set_property('width-chars', 15)
-        if str(obj) == PlatformSlot.Status.POPULATED:
+        if str(obj) == PlatformSlot.Status.POWERUP:
             cell.set_property('cell-background', gtk.gdk.Color('#00FF33'))
         elif str(obj) == PlatformSlot.Status.EMPTY:
             cell.set_property('cell-background', gtk.gdk.Color('#FFFFFF'))
-        elif str(obj) == PlatformSlot.Status.BUSY:
+        elif str(obj) == PlatformSlot.Status.POWERDOWN:
             cell.set_property('cell-background', gtk.gdk.Color('#FF3300'))
         else:
             cell.set_property('cell-background', gtk.gdk.Color('#FF0033'))
@@ -61,3 +61,4 @@ class SlotsManagerModel(FunctTreeStore):
         obj = model.get_value(iter, 2)
         cell.set_property('text', str(obj))
         return
+

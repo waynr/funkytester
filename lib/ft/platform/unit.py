@@ -48,7 +48,16 @@ class UnitUnderTestDB(Base):
 
     class Status:
         INIT = "Initialized"
+
         BUSY = "Busy"
+        BOOTING_NFS = "Booting NFS Test"
+        TEST_NFS = "Testing"
+
+        LOAD_KFS = "Loading Kernel & Filesystem"
+        LOAD_BOOTLOADER = "Loading Bootloader"
+
+        BOOTING_LOCAL = "Booting Local FS"
+        TEST_FIRSTBOOT = "First Boot"
 
     def __repr__(self,):
         rstring = "<UnitUnderTest('%s','%s','%s')>" 
@@ -73,7 +82,6 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.status = self.Status.INIT
 
         self.com = config["control"]["com"]
-        self.adam = config["control"]["adam"]
 
         self.parent = parent
 
@@ -96,7 +104,6 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.mac_address = mac_address
 
         self.serial = self.parent.get_serialport()
-        self.control = self.parent.get_control()
         self.interfaces = { 
                 "linux" : LinuxTerminalInterface(
                     prompt = self.product.config.prompt["linux"]["standard"],
@@ -139,10 +146,6 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             pass
 
         @staticmethod
-        def power_up(uut, data):
-            uut.control["power"].enable()
-
-        @staticmethod
-        def power_down(uut, data):
-            uut.control["power"].disable()
+        def run_test(uut, data):
+            pass
 

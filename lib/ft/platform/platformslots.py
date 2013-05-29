@@ -30,9 +30,10 @@ class PlatformSlotDB(Base):
 
     class Status:
         INIT = "Initialized"
-        POPULATED = "Populated"
-        BUSY = "Busy"
         EMPTY = "Empty"
+
+        POWERUP = "Powered Up"
+        POWERDOWN = "Powered Down"
 
 class PlatformSlot(PlatformSlotDB, Commandable):
 
@@ -124,8 +125,46 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         return self.__control
 
     def powerdown(self):
-        if self.control.has_key("power"):
-            self.control["power"].disable()
+        self.lock.acquire()
+        if self.__control.has_key("power"):
+            if self.__control["power"].isstate("off"):
+                self.fire( ft.event.UpdateStatus, 
+                        message = "INFO: Unit already powered down.",
+                        )
+            else:
+                self.__control["power"].disable()
+                self.status = PlatformSlot.Status.POWERDOWN
+                self.fire( ft.event.PlatformSlotEvent,
+                        obj = self,
+                        status = self.status,
+                        )
+        else:
+            self.fire( ft.event.UpdateStatus,
+                    message = "WARNING: Automated powerdown not available.",
+                    )
+
+        self.lock.release()
+
+    def powerup(self):
+        self.lock.acquire()
+        if self.__control.has_key("power"):
+            if self.__control["power"].isstate("on"):
+                self.fire( ft.event.UpdateStatus, 
+                        message = "INFO: Unit already powered up.",
+                        )
+            else:
+                self.__control["power"].enable()
+                self.status = PlatformSlot.Status.POWERUP
+                self.fire( ft.event.PlatformSlotEvent, 
+                        obj = self, 
+                        status = self.status,
+                        )
+        else:
+            self.fire( ft.event.UpdateStatus, 
+                    message = "WARNING: Automated powerup not available.",
+                    )
+
+        self.lock.release()
 
     ## Adds a UUT to the FTPlatform
     #
@@ -138,9 +177,15 @@ class PlatformSlot(PlatformSlotDB, Commandable):
     #  up.
     #
     def _create_uut(self, data):
+        self.lock.acquire()
         serial_number = data["serialnum"]
 
-        if self.status == PlatformSlot.Status.POPULATED:
+        if ( self.status == PlatformSlot.Status.POWERUP or
+                self.status == PlatformSlot.Status.POWERDOWN ):
+            self.fire( ft.event.PlatformSlotEvent,
+                    obj = self,
+                    status = self.status,
+                    )
             self.fire( ft.event.UpdateStatus,
                     message = "WARNING: PlatformSlot currently populated.",
                     )
@@ -152,8 +197,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
 
         self.platform.uuts[serial_number] = self.uut
         
-        self.status = PlatformSlot.Status.POPULATED
-        self.fire( ft.event.PlatformSlotEvent,
+        self.status = PlatformSlot.Status.POWERDOWN
+        self.fire( ft.event.PlatformSlotEvent, 
                 obj = self,
                 status = self.status,
                 current_uut = serial_number,
@@ -161,6 +206,9 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                 metadata_version = self.product.metadata_version,
                 specification_name = self.product.specification_name,
                 )
+        self.powerdown()
+
+        self.lock.release()
 
     # - - - - - - - - - - - - - - - - -
     # PlatformSlot commands
@@ -222,4 +270,11 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         def configure(platform_slot, data):
             platform_slot.configure(data)
             return None, ""
+    
+        @staticmethod
+        def power_up(platform_slot, data):
+            platform_slot.powerup()
 
+        @staticmethod
+        def power_down(platform_slot, data):
+            platform_slot.powerdown()

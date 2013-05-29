@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import gtk, logging
+import logging
+
+import gtk
 
 from ft.platform import UnitUnderTest
 from ft.test import Test, Action
@@ -30,36 +32,23 @@ class UUTManagerMenu(ManagerMenu):
         self.run_all = gtk.MenuItem("Run All")
         self.run_all.connect('activate', self.__runall_cb)
 
+        self.load_kfs = gtk.MenuItem("Load KFS")
+        self.load_kfs.connect('activate', self.__logdata_cb)
+
+        self.load_bootloader = gtk.MenuItem("Load Bootloader")
+        self.load_bootloader.connect('activate', self.__logdata_cb)
+
         self.log_data = gtk.MenuItem("Log Data")
         self.log_data.connect('activate', self.__logdata_cb)
 
-        self.power_up = gtk.MenuItem("Power Up")
-        self.power_up.connect('activate', self.__powerup_cb)
-        self.power_up.show()
-
-        self.power_down = gtk.MenuItem("Power Down")
-        self.power_down.connect('activate', self.__powerdown_cb)
-
         self.append(self.run_all)
         self.append(self.log_data)
-        self.append(self.power_up)
-        self.append(self.power_down)
 
     def __runall_cb(self, menuitem):
         logging.debug("blah blah blah")
 
     def __logdata_cb(self, menuitem):
         pass
-
-    def __powerup_cb(self, menuitem):
-        self.adapter.run_command(('power_up', None, False))
-        self.power_down.show()
-        self.power_up.hide()
-
-    def __powerdown_cb(self, menuitem):
-        self.adapter.run_command(('power_down', None, False))
-        self.power_up.show()
-        self.power_down.hide()
 
 class TestManagerMenu(ManagerMenu):
 

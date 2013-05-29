@@ -34,4 +34,3 @@ class PlatformSlotSetupPage(FunctPage):
         position = self.child_get_property(widget, "position")
         self.platform_slot_widgets[platform_slot] = (widget, position)
 
-
