@@ -29,8 +29,9 @@ class UUTManagerMenu(ManagerMenu):
         super(UUTManagerMenu, self)._popup(adapter, *args, **kwargs)
 
     def __init_menuitems(self):
-        self.run_all = gtk.MenuItem("Run All")
+        self.run_all = gtk.MenuItem("NFS Test")
         self.run_all.connect('activate', self.__runall_cb)
+        self.run_all.show()
 
         self.load_kfs = gtk.MenuItem("Load KFS")
         self.load_kfs.connect('activate', self.__logdata_cb)
@@ -45,7 +46,7 @@ class UUTManagerMenu(ManagerMenu):
         self.append(self.log_data)
 
     def __runall_cb(self, menuitem):
-        logging.debug("blah blah blah")
+        self.adapter.run_command(('run_all', None, False))
 
     def __logdata_cb(self, menuitem):
         pass

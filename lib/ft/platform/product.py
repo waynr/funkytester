@@ -63,6 +63,13 @@ class Product(ProductDB, HasMetadata):
         config_file = os.path.join(self.local_path, "config.yaml")
         self.config = GenConfig2(config_file)
 
+    def get_template(self, template_name):
+        template_file = os.path.join(self.local_path, template_name)
+        with open(template_file, 'r') as f:
+            self.template_string = f.read()
+
+        return self.template_string
+
     def get_product_versions(self):
         self._setup_repo()
         self.__specification_list = list()

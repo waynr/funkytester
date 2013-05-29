@@ -8,6 +8,7 @@
 #
 
 import logging, threading
+from string import Template
 
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
         ForeignKey )
@@ -49,15 +50,22 @@ class UnitUnderTestDB(Base):
     class Status:
         INIT = "Initialized"
 
-        BUSY = "Busy"
-        BOOTING_NFS = "Booting NFS Test"
-        TEST_NFS = "Testing"
+        LISTENING = "Listening"
+        WAITING = "Waiting"
+
+        NFS_BOOTING = "Booting NFS Test"
+        NFS_WAITING = "NFS Waiting"
+        NFS_LOADING = "NFS Loading Tests"
+        NFS_TESTING = "Testing"
 
         LOAD_KFS = "Loading Kernel & Filesystem"
         LOAD_BOOTLOADER = "Loading Bootloader"
 
         BOOTING_LOCAL = "Booting Local FS"
         TEST_FIRSTBOOT = "First Boot"
+
+        PASS = "Pass"
+        FAIL = "Fail"
 
     def __repr__(self,):
         rstring = "<UnitUnderTest('%s','%s','%s')>" 
@@ -130,9 +138,115 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             newtest = Test(test_dict, self, None)
             self.testlist.append(newtest)
 
-    ## Check UUT's current operational state.
+    ## Run all selected test modes.
     #
-    def query(self,):
+    def run_all(self):
+        self._load_bootloader()
+        self._run_nfs_test()
+        self._load_kfs()
+        self._run_firstboot()
+
+    def _load_bootloader(self):
+        pass
+
+    def _run_nfs_test(self):
+        self.status = UnitUnderTest.Status.NFS_BOOTING
+        self.fire( ft.event.UnitUnderTestEvent,
+                obj = self,
+                status = self.status,
+                )
+        # get nfs_test.template from product
+        template_string = self.product.get_template("nfs_test.template")
+        
+        # initialize template object 
+        template = Template(template_string)
+        
+        # get 'uboot' portion of product config as mapping
+        mapping_dict = self.product.config.uboot
+        platform = self.platform_slot.platform
+        mapping_dict["server_ip"] = platform.config.server_ip
+        mapping_dict["gateway_ip"] = platform.config.gateway_ip
+        mapping_dict["baud"] = self.product.config.serial["baud"]
+
+        # substitute mapping into template
+        script = template.substitute(mapping_dict)
+
+        # split template into list of commands
+        commands = script.split("\n")
+        
+        # poweron the slot
+        interface = self.interfaces["uboot"]
+        self.platform_slot.powerup()
+
+        # listen for U-Boot prompt
+        if not interface.chk(10):
+            raise Exception("U-Boot prompt not found!")
+
+        # run list of commands at U-Boot prompt
+        for command in commands:
+            interface.cmd(command)
+
+        # run list of commands at U-Boot prompt
+        self.ip_addr = interface.get_var("ip_addr")
+
+        # run boot command
+        interface.cmd("run boot-test")
+
+        interface = self.interface["linux"]
+        interface.login()
+
+        self.status = UnitUnderTest.Status.NFS_WAITING
+        self.fire( ft.event.UUTEvent,
+                obj = self,
+                status = self.status,
+                )
+        # run xmlrpc server on remote machine
+        interface.cmd("./bin/xmlrpcserver.py {0}".format(uut_ip_addr))
+        
+        # initialize xmlrpc client
+        def load_xmlrpc_client():
+            try:
+                xmlrpc_client = xmlrpclib.ServerProxy("http://{0}:{1}".format(
+                    uut_ip, "8000"), allow_none=True)
+            except Exception:
+                logging.warning("XML RPC Client Failed to connect, "\
+                        "waiting 2 then trying again.")
+                time.sleep(2)
+                xmlrpc_client = load_xmlrpc_client()
+            return xmlrpc_client
+
+        xmlrpc_client = load_xmlrpc_client()
+
+        # initialize Tests from Product's Specification and xmlrpc client
+        specification_dict = self.product.specification.test_spec
+        self.tests = []
+
+        self.status = UnitUnderTest.Status.NFS_LOADING
+        self.fire( ft.event.UUTEvent,
+                obj = self,
+                status = self.status,
+                )
+        for i, test_dict in enumerate(specification_dict["testlist"]):
+            self.tests.append(Test(test_dict, self, xmlrpc_client))
+            self.tests[i].set_address(i)
+
+        self.status = UnitUnderTest.Status.NFS_TESTING
+        self.fire( ft.event.UUTEvent,
+                obj = self,
+                status = self.status,
+                )
+        for test in self.tests:
+            test.run()
+
+    def _load_kfs(self):
+        pass
+
+    def _run_firstboot(self):
+        pass
+
+    ## Boot into NFS Filesystem.
+    #
+    def _nfs_boot(self):
         pass
     
     class CommandsSync:
@@ -146,6 +260,6 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             pass
 
         @staticmethod
-        def run_test(uut, data):
-            pass
+        def run_all(uut, data):
+            uut.run_all()
 

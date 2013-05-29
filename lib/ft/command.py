@@ -76,8 +76,12 @@ class Command(object):
                 recipient_address = command[2][1]
                 if recipient_type == RecipientType.SLOT:
                     recipient = self.platform.slots[recipient_address]
-                if recipient_type == RecipientType.UUT:
+                elif recipient_type == RecipientType.UUT:
                     recipient = self.platform.uuts[recipient_address]
+                elif recipient_type == RecipientType.TEST:
+                    recipient = self.platform.uuts[recipient_address[0]].tests[recipient_address[1]]
+                elif recipient_type == RecipientType.ACTION:
+                    recipient = self.platform.uuts[recipient_address[0][0]].tests[recipient_address[0][1]].actions[1]
             return True, recipient
         except IndexError, KeyError:
             msg = "ERROR: recipient '{0}:{1}' does not exist".format(
