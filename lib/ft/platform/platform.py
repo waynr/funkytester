@@ -13,7 +13,7 @@
 #   * Individual Product
 #
 
-import threading, sys, logging, os.path as path
+import threading, sys, logging, os.path as path, subprocess, shlex, os, shutil
 
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
         ForeignKey )
@@ -95,6 +95,58 @@ class Platform(PlatformDB, HasMetadata, Commandable):
                 obj = self, 
                 name = self.name,
                 )
+
+    def deploy_nfs(self, product):
+        self.fire(ft.event.UpdateStatus,
+                obj = self,
+                message = "INFO: Deploying NFS archive . . .",
+                )
+        filesystem_archive = os.path.join(product.local_path,
+                product.config.uboot["test_filesystem"])
+        dest_dir = os.path.join(self.config.nfs_base_dir,
+                product.config.uboot["nfs_dir"])
+
+        cleanup_string = 'sudo -S rm -rf {0}'.format(dest_dir)
+        mkdir_string = 'sudo -S mkdir -p {0}'.format(dest_dir)
+        tar_string = 'sudo -S tar -pxzf {0} -C {1}'.format(filesystem_archive,
+                dest_dir)
+        make_string = 'sudo -S make install-nfs'
+
+        for command_string in [cleanup_string, mkdir_string, tar_string,
+                make_string]:
+            p = subprocess.Popen(shlex.split(command_string), stdin=subprocess.PIPE)
+            p.communicate(input=self.config.password)
+            p.wait()
+            if not p.returncode == 0:
+                raise Exception("Command failed: {0}".format(command_string))
+
+        self.fire(ft.event.UpdateStatus,
+                obj = self,
+                message = "INFO: NFS Achive Deployed . . .",
+                )
+
+    def deploy_tftp(self, product, file_path):
+        self.fire(ft.event.UpdateStatus,
+                obj = self,
+                message = "INFO: Deploying TFTP File: {0}".format(file_path),
+                )
+        dest_dir = os.path.join(self.config.tftp_base_dir,
+                product.config.uboot["tftp_dir"])
+        try:
+            os.makedirs(dest_dir)
+        except OSError:
+            pass
+
+        try:
+            shutil.copy2(file_path, dest_dir)
+        except:
+            raise
+        else:
+            self.fire(ft.event.UpdateStatus,
+                    obj = self,
+                    message = "INFO: TFTP Deploy successful: {0}".format(
+                        file_path),
+                    )
 
     def get_platform_versions(self):
         self._setup_repo()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import threading, sys, logging, os.path as path, weakref
+import threading, sys, logging, os.path as path, weakref, os
 
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
         ForeignKey )
@@ -68,7 +68,18 @@ class PlatformSlot(PlatformSlotDB, Commandable):
     def configure(self, specification_name):
         self.product.set_specification(specification_name)
         self.product.configure()
-        self.status = PlatformSlot.Status.EMPTY
+
+        if self.product.config.uboot.has_key("test_si5351a"):
+            test_si5351a = os.path.join(self.product.local_path,
+                    self.product.config.uboot["test_si5351a"])
+            self.platform.deploy_tftp(self.product, test_si5351a)
+
+        kernel_image = os.path.join(self.product.local_path,
+                self.product.config.uboot["test_kernel"])
+        self.platform.deploy_tftp(self.product, kernel_image)
+
+        self.platform.deploy_nfs(self.product)
+
         self.__serial = EnhancedSerial(
                 self.config["control"]["com"]["serial"],
                 self.product.config.serial["baud"],
@@ -88,6 +99,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                     #message = message,
                     #)
 
+        self.status = PlatformSlot.Status.EMPTY
         self.fire(ft.event.PlatformSlotReady,
             obj = self,
             status = self.status,

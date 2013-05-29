@@ -3,12 +3,12 @@
 
 ## @package product
 #
-#  Abstracts the testset metadata stored in a git repository and provideds
-#  capability-querying utilities to facilitate run-time enabled or disabling of
-#  UI widgets.
+#  Abstracts the testset metadata stored in a git repository. Provides access to
+#  the objects in that repository and methods to manipulate them to prepare for
+#  running an NFS test.
 #
 
-import sys, os
+import sys, os, shutil, tarfile
 
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
@@ -39,6 +39,8 @@ class Product(ProductDB, HasMetadata):
 
     __metadata_type__ = "products"
 
+    __deployed_files = []
+
     def __init__(self, manifest_file):
         self.manifest = load_manifest(manifest_file)
         self.metadata_repo_dict = self.manifest["metadata_repo"]
@@ -62,6 +64,9 @@ class Product(ProductDB, HasMetadata):
     def configure(self):
         config_file = os.path.join(self.local_path, "config.yaml")
         self.config = GenConfig2(config_file)
+
+        os.unlink("./current_test")
+        os.symlink(self.local_path, "./current_test")
 
     def get_template(self, template_name):
         template_file = os.path.join(self.local_path, template_name)

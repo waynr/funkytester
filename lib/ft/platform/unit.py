@@ -7,7 +7,7 @@
 #  various interfaces.
 #
 
-import logging, threading
+import logging, threading, time
 from string import Template
 
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
@@ -114,7 +114,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.serial = self.platform_slot.get_serialport()
         self.interfaces = { 
                 "linux" : LinuxTerminalInterface(
-                    prompt = self.product.config.prompt["linux"]["standard"],
+                    prompt = self.product.config.prompt["linux"]["test"],
                     enhanced_serial = self.serial(),
                     ),
                 "uboot" : UBootTerminalInterface(
@@ -164,8 +164,13 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         # get 'uboot' portion of product config as mapping
         mapping_dict = self.product.config.uboot
         platform = self.platform_slot.platform
+
+        # augment the mapping dict with additional values that are set
+        # elsewhere, mostly probably in the platform config or product config
         mapping_dict["server_ip"] = platform.config.server_ip
         mapping_dict["gateway_ip"] = platform.config.gateway_ip
+        mapping_dict["nfs_base_dir"] = platform.config.nfs_base_dir
+
         mapping_dict["baud"] = self.product.config.serial["baud"]
 
         # substitute mapping into template
@@ -184,30 +189,32 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         # run list of commands at U-Boot prompt
         for command in commands:
-            interface.cmd(command)
+            if len(command) > 0:
+                interface.cmd(command)
 
         # run list of commands at U-Boot prompt
-        self.ip_addr = interface.get_var("ip_addr")
+        self.ip_address = interface.get_var("ipaddr")
+        logging.debug(self.ip_address)
 
         # run boot command
-        interface.cmd("run boot-test")
+        interface.cmd("run boot-test", prompt="sh-3.2#", timeout=30)
 
-        interface = self.interface["linux"]
-        interface.login()
+        interface = self.interfaces["linux"]
+        #interface.login()
 
         self.status = UnitUnderTest.Status.NFS_WAITING
-        self.fire( ft.event.UUTEvent,
+        self.fire( ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,
                 )
         # run xmlrpc server on remote machine
-        interface.cmd("./bin/xmlrpcserver.py {0}".format(uut_ip_addr))
+        interface.cmd("./bin/xmlrpcserver.py {0}".format(self.ip_address))
         
         # initialize xmlrpc client
         def load_xmlrpc_client():
             try:
                 xmlrpc_client = xmlrpclib.ServerProxy("http://{0}:{1}".format(
-                    uut_ip, "8000"), allow_none=True)
+                    self.ip_address, "8000"), allow_none=True)
             except Exception:
                 logging.warning("XML RPC Client Failed to connect, "\
                         "waiting 2 then trying again.")
@@ -222,7 +229,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.tests = []
 
         self.status = UnitUnderTest.Status.NFS_LOADING
-        self.fire( ft.event.UUTEvent,
+        self.fire( ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,
                 )
