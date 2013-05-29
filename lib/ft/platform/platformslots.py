@@ -73,6 +73,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                 self.config["control"]["com"]["serial"],
                 self.product.config.serial["baud"],
                 )
+        self.__serial.start()
 
         # Hard-code adam module initialization for now, but keep modularity in
         # mind for later feature implementation.

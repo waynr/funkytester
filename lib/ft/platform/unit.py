@@ -83,12 +83,12 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         self.com = config["control"]["com"]
 
-        self.parent = parent
+        self.platform_slot = parent
 
         self.lock = threading.RLock()
 
     def set_address(self, serial_number):
-        self.address = (self.parent.address, serial_number)
+        self.address = (self.platform_slot.address, serial_number)
         self.fire( ft.event.UUTInit,
                 obj = self,
                 name = self.serial_number,
@@ -96,22 +96,22 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 )
 
     def fire(self, event, **kwargs):
-        self.parent.fire(event, **kwargs)
+        self.platform_slot.fire(event, **kwargs)
 
     def configure(self, serial_number, product, mac_address=None):
         self.serial_number = serial_number
         self.product = product
         self.mac_address = mac_address
 
-        self.serial = self.parent.get_serialport()
+        self.serial = self.platform_slot.get_serialport()
         self.interfaces = { 
                 "linux" : LinuxTerminalInterface(
                     prompt = self.product.config.prompt["linux"]["standard"],
-                    enhanced_serial = self.serial,
+                    enhanced_serial = self.serial(),
                     ),
                 "uboot" : UBootTerminalInterface(
                     prompt = self.product.config.prompt["uboot"],
-                    enhanced_serial = self.serial,
+                    enhanced_serial = self.serial(),
                     )
                 }
 
