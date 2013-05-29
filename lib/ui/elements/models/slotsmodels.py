@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import gtk
+import gtk, gobject
 
 from ui.elements import adapters
 from ui.elements.generic import FunctTreeStore
@@ -20,11 +20,11 @@ class SlotsManagerModel(FunctTreeStore):
                 adapters.platform.PlatformAdapter,
                 adapters.platformslot.PlatformSlotAdapter,
                 ]
-        super(SlotsManagerModel, self).__init__(str, str, str)
+        super(SlotsManagerModel, self).__init__(str, str, str, gobject.TYPE_PYOBJECT)
 
     def _add(self, parent_iter, adapter):
         row_iter = self.append( parent_iter, ( adapter.status,
-            adapter.current_uut, adapter.product_type ))
+            adapter.current_uut, adapter.product_type, adapter))
         adapter.connect('on-changed', self.__update, row_iter)
         return row_iter
 
@@ -32,7 +32,7 @@ class SlotsManagerModel(FunctTreeStore):
         product_data = "{0} | {1} | {2}".format(adapter.product_type,
                 adapter.metadata_version, adapter.specification_name)
         self[row_iter] = (adapter.status, adapter.current_uut,
-                product_data)
+                product_data, adapter)
 
     def __status_data(self, treeview_column, cell, model, iter, 
             user_data):
