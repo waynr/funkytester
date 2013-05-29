@@ -37,6 +37,10 @@ class FunctTreeStore(gtk.TreeStore):
         if not check:
             return False
 
+        # check if adapter is already in this testmodel
+        if adapter.get_iter("testmodel"):
+            return True
+
         parent_iter = None
         if adapter.parent_address:
             parent_address = adapter.parent_address
