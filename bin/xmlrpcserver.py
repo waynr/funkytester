@@ -27,7 +27,7 @@ from SimpleXMLRPCServer import (
         SimpleXMLRPCRequestHandler,
         )
 
-from interfaces.xmlrpc_interface import (
+from interfaces.xmlrpc import (
         EMACXMLRPCInterface,
         ServerInterface,
         )
