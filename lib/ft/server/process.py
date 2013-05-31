@@ -204,7 +204,7 @@ class PlatformServer(object):
 
     ## Initiate and return connection to a remote PlatformServer.
     #
-    def establish_connection(self):
+    def establish_connection(self, serverinfo=None):
         self.connection = PlatformServerConnection(self.serverinfo)
         return self.connection
 

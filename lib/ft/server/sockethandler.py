@@ -50,9 +50,24 @@ for field in __HEADER_FORMAT_LIST:
     __HEADER_SIZE += field[1] 
 __HEADER_SIZE += len(__HEADER_FORMAT_LIST) - 1
 
+class PlatformSocketError(Exception)
+
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return repr(self.message)
+
 ## Implement static length header to provide actual message size to receiver.
 #
 class SocketDataHandler(object):
+    
+    def __init__(self, socket, address=None):
+        self.__socket = socket
+        self.address = address
+
+    def fileno(self):
+        return self.__socket.fileno()
 
     def send(self, message):
         self.__check_socket()
@@ -71,7 +86,7 @@ class SocketDataHandler(object):
         return message
 
     def __check_socket(self):
-        if not isinstance(self.socket, socket.Socket):
+        if not isinstance(self.__socket, socket.Socket):
             raise AttributeError("Socket object not available.")
 
     def __send_header(self, message):
@@ -86,7 +101,7 @@ class SocketDataHandler(object):
         message_size = len(message)
         sent_bytes = 0
         while sent_bytes < message_size:
-            tmp = self.socket.send(message[sent_bytes:])
+            tmp = self.__socket.send(message[sent_bytes:])
             if tmp == 0:
                 raise RuntimeError("Socket connection lost!")
             sent_bytes += tmp
@@ -95,7 +110,7 @@ class SocketDataHandler(object):
         msg = ''
         msglen = len(msg)
         while msglen < size:
-            chunk = self.socket.recv(size - msglen)
+            chunk = self.__socket.recv(size - msglen)
             if chunk == '':
                 raise RuntimeError("Socket connection lost!")
             msg += chunk
@@ -105,6 +120,9 @@ class SocketDataHandler(object):
 ## Pickles object before using SocketDataHandler send/recv
 #
 class SocketObjectHandler(SocketDataHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(SocketObjectHandler, self).__init__(*args, **kwargs)
 
     def send(self, obj):
         message = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
