@@ -83,7 +83,7 @@ class Action(ActionDB):
     def set_address(self, address):
         self.address = (self.parent.address, address)
         self.set_status(Action.Status.INIT)
-        ft.event.fire( ft.event.ActionInit,
+        self.fire( ft.event.ActionInit,
                 obj = self,
                 status = self.status,
                 )
@@ -113,15 +113,21 @@ class Action(ActionDB):
     # @param value Value of the keyword arguments, defaulted to None
     #
     def call(self, value=None):
-        ft.event.fire(ft.event.ActionStart(self))
+        self.fire(ft.event.ActionStart,
+                obj = self
+                )
         if not value == None:
             self.kwargs[self.kwargs_value_key] = value
         try:
             result = self._call()
         except:
             print( "Unexpected error:" + str(sys.exc_info()[0]) )
-            ft.event.fire(ft.event.ActionFatal(self))
-        ft.event.fire(ft.event.ActionFinish(self))
+            self.fire(ft.event.ActionFatal,
+                    obj = self
+                    )
+        self.fire(ft.event.ActionFinish,
+                obj = self
+                )
         return result
 
     def _call(self,):

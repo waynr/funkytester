@@ -7,7 +7,7 @@
 #  various interfaces.
 #
 
-import logging, threading, time
+import logging, threading, time, xmlrpclib
 from string import Template
 
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
@@ -208,16 +208,19 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 status = self.status,
                 )
         # run xmlrpc server on remote machine
-        interface.cmd("./bin/xmlrpcserver.py {0}".format(self.ip_address))
+        interface.cmd("./bin/xmlrpcserver.py {0} &".format(self.ip_address))
         
         # initialize xmlrpc client
+        xmlrpc_server_address = "http://{0}:{1}".format(self.ip_address, "8000")
         def load_xmlrpc_client():
             try:
-                xmlrpc_client = xmlrpclib.ServerProxy("http://{0}:{1}".format(
-                    self.ip_address, "8000"), allow_none=True)
+                xmlrpc_client = xmlrpclib.ServerProxy(xmlrpc_server_address,
+                        allow_none=True)
             except Exception:
-                logging.warning("XML RPC Client Failed to connect, "\
-                        "waiting 2 then trying again.")
+                import traceback
+                logging.warning("XML RPC Client Connection Failure: {0}".format(
+                    xmlrpc_server_address))
+                logging.warning(traceback.format_exc())
                 time.sleep(2)
                 xmlrpc_client = load_xmlrpc_client()
             return xmlrpc_client
@@ -225,7 +228,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         xmlrpc_client = load_xmlrpc_client()
 
         # initialize Tests from Product's Specification and xmlrpc client
-        specification_dict = self.product.specification.test_spec
+        specification_dict = self.product.specification
         self.tests = []
 
         self.status = UnitUnderTest.Status.NFS_LOADING
@@ -238,12 +241,12 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             self.tests[i].set_address(i)
 
         self.status = UnitUnderTest.Status.NFS_TESTING
-        self.fire( ft.event.UUTEvent,
+        self.fire( ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,
                 )
-        for test in self.tests:
-            test.run()
+        #for test in self.tests:
+            #test.run()
 
     def _load_kfs(self):
         pass

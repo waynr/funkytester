@@ -139,6 +139,11 @@ class TestFinish(TestEvent):
 class TestLogged(TestEvent):
     """ Test Logged """
 
+## Event indicates that the given test's data has been logged.
+#
+class TestInteract(TestEvent):
+    """ Test Logged """
+
 #-------------------------------------------------------------------------------
 # Action Events
 

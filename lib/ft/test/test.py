@@ -61,7 +61,7 @@ class Test(TestDB):
     # @param uut_id Serial number of the UUT
     # @param test_dict Dictionary 
     #
-    def __new__(cls, test_dict, parent):
+    def __new__(cls, test_dict, *args, **kwargs):
         if cls is Test:
             test_type = test_dict["type"]
             if test_type == "single":
@@ -87,9 +87,11 @@ class Test(TestDB):
     # @param test_dict Dictionary 
     #
     def __init__(self, test_dict, parent, xmlrpc_client=None):
-        self.uut_id = parent.serial_num
+        self.uut_id = parent.serial_number
         self.parent = parent
         self.test_dict  = test_dict
+
+        self.xmlrpc_client = xmlrpc_client
 
         self.name   = test_dict["name"]
         self.type   = test_dict["type"]
@@ -101,15 +103,12 @@ class Test(TestDB):
         if test_dict.has_key("max_retry"):
             self.max_retry  = test_dict["max_retry"]
 
-        self.debug["count"] = self.debug["count"] + 1
-
-        self.status = Status.init
-        logging.debug(pprint.pformat(self.debug))
+        self.status = Test.Status.INIT
 
     def set_address(self, index):
         self.address = (self.parent.address, index)
-        self.set_status(Test.Status.INIT)
-        ft.event.fire( ft.event.TestInit,
+        self.status = Test.Status.INIT
+        self.fire( ft.event.TestInit,
                 obj = self,
                 status = self.status,
                 )
@@ -126,18 +125,24 @@ class Test(TestDB):
     # @param self The object pointer
     #
     def run(self,):
-        ft.event.fire(ft.event.TestStart(self))
+        self.fire(ft.event.TestStart,
+                obj = self
+                )
         count   = 0
         while count < self.max_retry:
             try:
                 self._run()
             except:
                 self.status = Status.broken_test
-                ft.event.fire(ft.event.TestFatal(self))
+                self.fire(ft.event.TestFatal,
+                        obj = self
+                        )
             count += 1
             time.sleep(.1)
         self.status = self.check_actions()
-        ft.event.fire(ft.event.TestFinish(self))
+        self.fire(ft.event.TestFinish,
+                obj = self
+                )
 
     ## Checks the status of the test's actions and updates the test's
     # status appropriately.
@@ -207,15 +212,19 @@ class SingleTest(Test,):
     #
     def __init__(self, *args, **kwargs):
         super(SingleTest, self).__init__(*args, **kwargs)
-        ft.event.fire(ft.event.TestInit(self))
+        self.fire(ft.event.TestInit,
+                obj = self
+                )
 
         self.actions    = []
         
         for action_dict in self.test_dict["actionlist"]:
-            set_remote(action_dict, xmlrpc_client)
+            set_remote(action_dict, self.xmlrpc_client)
             self.actions.append( Action(action_dict, self) )
 
-        ft.event.fire(ft.event.TestReady(self))
+        self.fire(ft.event.TestReady,
+                obj = self
+                )
     
     ## Runs the SingleTest
     #
@@ -275,7 +284,7 @@ class ExpectTest(Test,):
         self.statecheckers  = list( dict() )
 
         for action_dict in test_dict["statechangers"]:
-            set_remote(action_dict, xmlrpc_client)
+            set_remote(action_dict, self.xmlrpc_client)
             self.statechangers.append( 
                     { 
                         "action" : Action(action_dict, self), 
@@ -394,5 +403,7 @@ class InteractTest(Test,):
     # Fires an InteractTest event 
     #
     def _run(self):
-        pass
+        self.fire( ft.event.TestInteract,
+                obj = self,
+                )
 
