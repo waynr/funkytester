@@ -67,7 +67,7 @@ class PlatformServerConnection(threading.Thread):
         if command == "TERMINATE":
             return None, ""
         try:
-            response =  self.incoming_queue.get(True, 10)
+            response =  self.incoming_queue.get(True, 20)
             if response:
                 return response
             else:
