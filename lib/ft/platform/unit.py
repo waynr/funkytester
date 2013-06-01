@@ -92,6 +92,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.com = config["control"]["com"]
 
         self.platform_slot = parent
+        self.event_handler = parent.event_handler
 
         self.lock = threading.RLock()
 
@@ -104,7 +105,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 )
 
     def fire(self, event, **kwargs):
-        self.platform_slot.fire(event, **kwargs)
+        self.event_handler.fire(event, **kwargs)
 
     def configure(self, serial_number, product, mac_address=None):
         self.serial_number = serial_number

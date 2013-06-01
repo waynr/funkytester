@@ -88,8 +88,10 @@ class Test(TestDB):
     #
     def __init__(self, test_dict, parent, xmlrpc_client=None):
         self.uut_id = parent.serial_number
-        self.parent = parent
         self.test_dict  = test_dict
+
+        self.unit_under_test = parent
+        self.event_handler = parent.event_handler
 
         self.xmlrpc_client = xmlrpc_client
 
@@ -106,7 +108,7 @@ class Test(TestDB):
         self.status = Test.Status.INIT
 
     def set_address(self, index):
-        self.address = (self.parent.address, index)
+        self.address = (self.unit_under_test.address, index)
         self.status = Test.Status.INIT
         self.fire( ft.event.TestInit,
                 obj = self,
@@ -115,7 +117,7 @@ class Test(TestDB):
                 )
 
     def fire(self, event, **kwargs):
-        self.parent.fire(event, **kwargs)
+        self.event_handler.fire(event, **kwargs)
 
     ## Runs the test, fires events to signal that the test begins and ends
     #

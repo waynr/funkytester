@@ -49,6 +49,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.__control = {}
 
         self.platform = parent
+        self.event_handler = parent.event_handler
+
         self.lock = threading.RLock()
 
     def set_address(self, address):
@@ -63,7 +65,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         return weakref.ref(self.__serial)
 
     def fire(self, event, **kwargs):
-        self.platform.fire(event, **kwargs)
+        self.event_handler.fire(event, **kwargs)
 
     def configure(self, specification_name):
         self.product.set_specification(specification_name)
