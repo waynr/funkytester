@@ -60,12 +60,16 @@ class TestManagerMenu(ManagerMenu):
 
     def popup(self, adapter, *args, **kwargs):
 
-        super(UUTManagerMenu, self)._popup(adapter, *args, **kwargs)
+        super(TestManagerMenu, self)._popup(adapter, *args, **kwargs)
 
     def __init_menuitems(self):
         self.run = gtk.MenuItem("Run")
+        self.run.connect('activate', self.__run_cb)
 
         self.append(self.run)
+
+    def __run_cb(self, menuitem):
+        pass
         
 class ActionManagerMenu(ManagerMenu):
 
@@ -74,5 +78,5 @@ class ActionManagerMenu(ManagerMenu):
     
     def popup(self, adapter, *args, **kwargs):
 
-        super(UUTManagerMenu, self)._popup(adapter, *args, **kwargs)
+        super(ActionManagerMenu, self)._popup(adapter, *args, **kwargs)
 

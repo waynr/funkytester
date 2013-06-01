@@ -125,6 +125,7 @@ class FunctionalTestWindow(gtk.Window):
         self.handler.connect('test-ready', self.__test_ready_cb)
         self.handler.connect('test-update', self.__test_update_cb)
 
+        self.handler.connect('action-init', self.__action_init_cb)
         self.handler.connect('action-update', self.__action_update_cb)
 
         self.handler.connect('update-status', self.__update_statusbar_cb)
@@ -167,9 +168,6 @@ class FunctionalTestWindow(gtk.Window):
     # Unit Under Test Callbacks
     #
    
-    def __uut_ready_cb(self, handler):
-        pass
-
     def __uut_init_cb(self, handler, event):
         uut = UnitUnderTestAdapter(
                 handler = self.handler,
@@ -179,6 +177,9 @@ class FunctionalTestWindow(gtk.Window):
                 name = event.name,
                 )
         self.testmanagermodel.add(uut)
+
+    def __uut_ready_cb(self, handler):
+        pass
 
     def __uut_update_cb(self, handler, event):
         uut = UnitUnderTestAdapter.get(
@@ -291,18 +292,43 @@ class FunctionalTestWindow(gtk.Window):
     #
    
     def __test_init_cb(self, handler, event):
-        pass
+        logging.debug(event.address)
+        test = TestAdapter(
+                handler = self.handler,
+                parent_address = event.address[0],
+                address = event.address,
+                status = event.status,
+                name = event.name,
+                )
+        self.testmanagermodel.add(test)
 
     def __test_ready_cb(self, handler, event):
         pass
 
     def __test_update_cb(self, handler, event):
-        raise NotImplementedError
+        test = TestAdapter.get(
+                address = event.address,
+                )
+        test.update(event)
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Action Callbacks
     #
    
+    def __action_init_cb(self, handler, event):
+        logging.debug(event.address)
+        action = ActionAdapter(
+                handler = self.handler,
+                parent_address = event.address[0],
+                address = event.address,
+                status = event.status,
+                name = event.name,
+                )
+        self.testmanagermodel.add(action)
+
     def __action_update_cb(self, handler, event):
-        raise NotImplementedError
+        action = ActionAdapter.get(
+                address = event.address,
+                )
+        action.update(event)
 

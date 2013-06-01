@@ -110,6 +110,7 @@ class Test(TestDB):
         self.status = Test.Status.INIT
         self.fire( ft.event.TestInit,
                 obj = self,
+                name = self.name,
                 status = self.status,
                 )
 
@@ -212,20 +213,12 @@ class SingleTest(Test,):
     #
     def __init__(self, *args, **kwargs):
         super(SingleTest, self).__init__(*args, **kwargs)
-        self.fire(ft.event.TestInit,
-                obj = self
-                )
-
         self.actions    = []
         
         for action_dict in self.test_dict["actionlist"]:
             set_remote(action_dict, self.xmlrpc_client)
             self.actions.append( Action(action_dict, self) )
 
-        self.fire(ft.event.TestReady,
-                obj = self
-                )
-    
     ## Runs the SingleTest
     #
     # Updates status of each action
