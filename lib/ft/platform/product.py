@@ -68,12 +68,14 @@ class Product(ProductDB, HasMetadata):
         os.unlink("./current_test")
         os.symlink(self.local_path, "./current_test")
 
-    def get_template(self, template_name):
-        template_file = os.path.join(self.local_path, template_name)
-        with open(template_file, 'r') as f:
-            self.template_string = f.read()
+    def get_file_path(self, file_name):
+        return os.path.join(self.local_path, file_name)
 
-        return self.template_string
+    def get_file(self, file_name):
+        product_file = self.get_file_path(file_name)
+        with open(product_file, 'r') as f:
+            file_string = f.read()
+        return file_string
 
     def get_product_versions(self):
         self._setup_repo()

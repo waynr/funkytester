@@ -141,7 +141,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
     ## Run all selected test modes.
     #
-    def run_all(self):
+    def run_all_modes(self):
         self._load_bootloader()
         self._run_nfs_test()
         self._load_kfs()
@@ -151,35 +151,31 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         pass
 
     def _run_nfs_test(self):
-        self.status = UnitUnderTest.Status.NFS_BOOTING
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
-        # get nfs_test.template from product
-        template_string = self.product.get_template("nfs_test.template")
-        
+        self._boot_nfs_test()
+        self._initialize_tests()
+        self._run_all_tests()
+
+    ## Power on the UUT and prepare the U-Boot environment using template script.
+    #
+    # @param template_string Python Template string.
+    # @param mapping Dictionary object whose keys correspond to variables to be
+    # interpolated in the "template_string".
+    # @param kwargs Contains additional key-value pairs to be added to the
+    # "mapping" object.
+    #
+    def __uboot_prep(self, template_string, mapping, **kwargs):
+        for key, value in kwargs.items():
+            mapping[key] = value
+
         # initialize template object 
         template = Template(template_string)
         
-        # get 'uboot' portion of product config as mapping
-        mapping_dict = self.product.config.uboot
-        platform = self.platform_slot.platform
-
-        # augment the mapping dict with additional values that are set
-        # elsewhere, mostly probably in the platform config or product config
-        mapping_dict["server_ip"] = platform.config.server_ip
-        mapping_dict["gateway_ip"] = platform.config.gateway_ip
-        mapping_dict["nfs_base_dir"] = platform.config.nfs_base_dir
-
-        mapping_dict["baud"] = self.product.config.serial["baud"]
-
         # substitute mapping into template
         script = template.substitute(mapping_dict)
 
         # split template into list of commands
         commands = script.split("\n")
-        
+
         # poweron the slot
         interface = self.interfaces["uboot"]
         self.platform_slot.powerup()
@@ -188,20 +184,49 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         if not interface.chk(10):
             raise Exception("U-Boot prompt not found!")
 
-        # run list of commands at U-Boot prompt
+        # run given uboot template line-by-line at uboot prompt
         for command in commands:
             if len(command) > 0:
                 interface.cmd(command)
 
-        # run list of commands at U-Boot prompt
+        # set UUT's IP address
         self.ip_address = interface.get_var("ipaddr")
         logging.debug(self.ip_address)
 
+    def _nfs_test_boot(self):
+        self.status = UnitUnderTest.Status.NFS_BOOTING
+        self.fire( ft.event.UnitUnderTestEvent,
+                obj = self,
+                status = self.status,
+                )
+
+        # get nfs_test.template from product
+        template_string = self.product.get_file_string("nfs_test.template")
+        
+        # get 'uboot' portion of product config as mapping
+        mapping_dict = self.product.config.uboot
+        platform = self.platform_slot.platform
+
+        # pass in template string, mapping dict, and additional values to be
+        # added to the mapping dict, get interface object back
+        self.__uboot_prep(template_string, mapping_dict, 
+            server_ip = platform.config.server_ip,
+            gateway_ip = platform.config.gateway_ip,
+            nfs_base_dir = platform.config.nfs_base_dir,
+            baud = self.product.config.serial["baud"],
+            )
+        
         # run boot command
+        interface = self.interfaces["uboot"]
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=30)
 
+    ## Initialize UUT's Test objects.
+    #
+    #  Assumes that the system is already booted and logged in using the minimal
+    #  test boot interface.
+    #
+    def _initialize_tests(self):
         interface = self.interfaces["linux"]
-        #interface.login()
 
         self.status = UnitUnderTest.Status.NFS_WAITING
         self.fire( ft.event.UnitUnderTestEvent,
@@ -246,8 +271,17 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 obj = self,
                 status = self.status,
                 )
-        #for test in self.tests:
-            #test.run()
+
+    ## Run all initialized tests.
+    #
+    def _run_all_tests(self):
+        if len(self.tests) == 0:
+            self.fire( ft.event.UpdateStatus,
+                    obj = self,
+                    message = "WARNING: No tests available!",
+                    )
+        for test in self.tests:
+            test.run()
 
     def _load_kfs(self):
         pass
@@ -271,6 +305,35 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             pass
 
         @staticmethod
-        def run_all(uut, data):
-            uut.run_all()
+        def nfs_test_boot(uut, data):
+            uut._nfs_test_boot()
+
+        @staticmethod
+        def nfs_full_boot(uut, data):
+            pass
+
+        @staticmethod
+        def onboard_flash_boot(uut, data):
+            pass
+
+        @staticmethod
+        def run_all_tests(uut, data):
+            uut.run_all_tests()
+
+        @staticmethod
+        def load_bootloader(uut, data):
+            pass
+
+        @staticmethod
+        def load_kfs(uut, data):
+            pass
+
+        @staticmethod
+        def log_data(uut, data):
+            pass
+
+        @staticmethod
+        def run_all_modes(uut, data):
+            pass
+            #uut.run_all()
 

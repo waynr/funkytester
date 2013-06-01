@@ -125,13 +125,7 @@ class Platform(PlatformDB, HasMetadata, Commandable):
                 message = "INFO: NFS Achive Deployed . . .",
                 )
 
-    def deploy_tftp(self, product, file_path):
-        self.fire(ft.event.UpdateStatus,
-                obj = self,
-                message = "INFO: Deploying TFTP File: {0}".format(file_path),
-                )
-        dest_dir = os.path.join(self.config.tftp_base_dir,
-                product.config.uboot["tftp_dir"])
+    def deploy_tftp(self, dest_dir, file_path):
         try:
             os.makedirs(dest_dir)
         except OSError:

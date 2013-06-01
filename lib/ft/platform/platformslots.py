@@ -100,14 +100,13 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             )
 
     def _deploy_files(self):
-        if self.product.config.uboot.has_key("test_si5351a"):
-            test_si5351a = os.path.join(self.product.local_path,
-                    self.product.config.uboot["test_si5351a"])
-            self.platform.deploy_tftp(self.product, test_si5351a)
-
-        kernel_image = os.path.join(self.product.local_path,
-                self.product.config.uboot["test_kernel"])
-        self.platform.deploy_tftp(self.product, kernel_image)
+        product_tftp_dir = os.path.join(self.product.local_path, "tftp_files")
+        platform_tftp_dir = os.path.join(self.platform.config.tftp_base_dir,
+                self.product.config.uboot["tftp_dir"])
+        for dirpath, dirnames, filenames in os.walk(tftp_filedir):
+            for filename in filenames:
+                filename = os.path.join(dirpath, filename)
+                self.platform.deploy_tftp(platform_tftp_dir, filename)
 
         self.platform.deploy_nfs(self.product)
 
