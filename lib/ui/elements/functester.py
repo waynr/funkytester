@@ -112,14 +112,21 @@ class FunctionalTestWindow(gtk.Window):
         self.handler.connect('platform-init', self.__setup_platform_cb)
         self.handler.connect('platform-ready', self.__platform_ready_cb)
         self.handler.connect('platform-update', self.__platform_update_cb)
+
         self.handler.connect('platformslot-ready', self.__platformslot_ready_cb)
         self.handler.connect('platformslot-update', self.__platformslot_update_cb)
         self.handler.connect('platformslot-init', self.__platformslot_init_cb)
-        self.handler.connect('uut-ready', self.__uut_ready_cb)
+
         self.handler.connect('uut-init', self.__uut_init_cb)
+        self.handler.connect('uut-ready', self.__uut_ready_cb)
         self.handler.connect('uut-update', self.__uut_update_cb)
+
+        self.handler.connect('test-init', self.__test_init_cb)
+        self.handler.connect('test-ready', self.__test_ready_cb)
         self.handler.connect('test-update', self.__test_update_cb)
+
         self.handler.connect('action-update', self.__action_update_cb)
+
         self.handler.connect('update-status', self.__update_statusbar_cb)
         self.handler.connect('error', self.__error_cb)
 
@@ -142,7 +149,7 @@ class FunctionalTestWindow(gtk.Window):
         error.show()
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # Callbacks
+    # General Callbacks
     #
 
     def __error_cb(self, handler, event):
@@ -156,6 +163,10 @@ class FunctionalTestWindow(gtk.Window):
         self.context_id = self.statusbar.get_context_id("update-event")
         self.statusbar.push(self.context_id, message)
 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Unit Under Test Callbacks
+    #
+   
     def __uut_ready_cb(self, handler):
         pass
 
@@ -175,6 +186,10 @@ class FunctionalTestWindow(gtk.Window):
                 )
         uut.update(event)
 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # PlatformSlot Callbacks
+    #
+   
     def __platformslot_ready_cb(self, handler):
         pass
 
@@ -199,16 +214,33 @@ class FunctionalTestWindow(gtk.Window):
         self.slot_setup_page.add_slot(platformslot, ("Product", manifest),
             self.__get_product_version_cb,)
 
+    def __get_product_version_cb(self, name, adapter):
+        version_list, message = self.__run_command(
+                ("select_product", RecipientType.SLOT, adapter.address, name, True) )
+        return ("Version", version_list), self.__set_product_version_cb
+
+    def __set_product_version_cb(self, name, adapter):
+        spec_list, message = self.__run_command(
+                ("set_product_version", RecipientType.SLOT, adapter.address, name,
+                    True) )
+        return ("Specification", spec_list), self.__set_product_specification_cb
+
+    def __set_product_specification_cb(self, name, adapter):
+        result = self.__run_command(
+                ("set_product_specification", RecipientType.SLOT,
+                    adapter.address, name, True) )
+        self.__run_command(
+                ("configure", RecipientType.SLOT,
+                    adapter.address, name, False) )
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Platform Callbacks
+    #
+   
     def __platform_ready_cb(self, handler):
         self.show()
 
     def __platform_update_cb(self, handler, event):
-        raise NotImplementedError
-
-    def __test_update_cb(self, handler, event):
-        raise NotImplementedError
-
-    def __action_update_cb(self, handler, event):
         raise NotImplementedError
 
     def __setup_platform_cb(self, handler, event):
@@ -243,25 +275,6 @@ class FunctionalTestWindow(gtk.Window):
                 self.show_all()
                 accept_callback()
 
-    def __get_product_version_cb(self, name, adapter):
-        version_list, message = self.__run_command(
-                ("select_product", RecipientType.SLOT, adapter.address, name, True) )
-        return ("Version", version_list), self.__set_product_version_cb
-
-    def __set_product_version_cb(self, name, adapter):
-        spec_list, message = self.__run_command(
-                ("set_product_version", RecipientType.SLOT, adapter.address, name,
-                    True) )
-        return ("Specification", spec_list), self.__set_product_specification_cb
-
-    def __set_product_specification_cb(self, name, adapter):
-        result = self.__run_command(
-                ("set_product_specification", RecipientType.SLOT,
-                    adapter.address, name, True) )
-        self.__run_command(
-                ("configure", RecipientType.SLOT,
-                    adapter.address, name, False) )
-
     def __get_platform_versions_cb(self, name, adapter):
         version_list, message = self.__run_command(
                 ("select_platform", RecipientType.PLATFORM, None, name, True) )
@@ -272,4 +285,24 @@ class FunctionalTestWindow(gtk.Window):
                 ("set_platform_version", RecipientType.PLATFORM, None, name,
                     True) )
         return None
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Test Callbacks
+    #
+   
+    def __test_init_cb(self, handler, event):
+        pass
+
+    def __test_ready_cb(self, handler, event):
+        pass
+
+    def __test_update_cb(self, handler, event):
+        raise NotImplementedError
+
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Action Callbacks
+    #
+   
+    def __action_update_cb(self, handler, event):
+        raise NotImplementedError
 

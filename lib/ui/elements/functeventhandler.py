@@ -33,7 +33,7 @@ class FuncTEventHandler(gobject.GObject):
                                 ()),
             'test-init'     : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
-                                ()),
+                                (gobject.TYPE_PYOBJECT,)),
 
             # - - - - - - - - - - - - -
             # action signals
@@ -49,7 +49,7 @@ class FuncTEventHandler(gobject.GObject):
                                 ()),
             'action-init'   : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
-                                ()),
+                                (gobject.TYPE_PYOBJECT,)),
             'action-ready'  : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
                                 ()),

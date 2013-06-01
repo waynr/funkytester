@@ -25,7 +25,7 @@ class UUTManagerMenu(ManagerMenu):
         self.__init_menuitems()
 
     def popup(self, adapter, *args, **kwargs):
-        #if adapter.status == 
+        #if adapter.status == UnitUnderTest.Status.
         super(UUTManagerMenu, self)._popup(adapter, *args, **kwargs)
 
     def __init_menuitems(self):
