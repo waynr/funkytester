@@ -171,7 +171,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         template = Template(template_string)
         
         # substitute mapping into template
-        script = template.substitute(mapping_dict)
+        script = template.substitute(mapping)
 
         # split template into list of commands
         commands = script.split("\n")
@@ -201,7 +201,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 )
 
         # get nfs_test.template from product
-        template_string = self.product.get_file_string("nfs_test.template")
+        template_string = self.product.get_file("nfs_test.template")
         
         # get 'uboot' portion of product config as mapping
         mapping_dict = self.product.config.uboot
@@ -218,7 +218,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         
         # run boot command
         interface = self.interfaces["uboot"]
-        interface.cmd("run boot-test", prompt="sh-3.2#", timeout=30)
+        interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
 
     ## Initialize UUT's Test objects.
     #
