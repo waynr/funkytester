@@ -39,8 +39,6 @@ class TestManagerModel(FunctTreeStore):
         return row_iter
 
     def __update(self, adapter, row_iter):
-        product_data = "{0} | {1} | {2}".format(adapter.product_type,
-                adapter.metadata_version, adapter.specification_name)
         self[row_iter] = (adapter.name, adapter.status, adapter.datetime,
                 adapter.additional_info, adapter)
 
