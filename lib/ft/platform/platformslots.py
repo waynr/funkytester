@@ -69,16 +69,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.product.set_specification(specification_name)
         self.product.configure()
 
-        if self.product.config.uboot.has_key("test_si5351a"):
-            test_si5351a = os.path.join(self.product.local_path,
-                    self.product.config.uboot["test_si5351a"])
-            self.platform.deploy_tftp(self.product, test_si5351a)
-
-        kernel_image = os.path.join(self.product.local_path,
-                self.product.config.uboot["test_kernel"])
-        self.platform.deploy_tftp(self.product, kernel_image)
-
-        self.platform.deploy_nfs(self.product)
+        if False:
+            self._deploy_files()
 
         self.__serial = EnhancedSerial(
                 self.config["control"]["com"]["serial"],
@@ -104,6 +96,18 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             obj = self,
             status = self.status,
             )
+
+    def _deploy_files(self):
+        if self.product.config.uboot.has_key("test_si5351a"):
+            test_si5351a = os.path.join(self.product.local_path,
+                    self.product.config.uboot["test_si5351a"])
+            self.platform.deploy_tftp(self.product, test_si5351a)
+
+        kernel_image = os.path.join(self.product.local_path,
+                self.product.config.uboot["test_kernel"])
+        self.platform.deploy_tftp(self.product, kernel_image)
+
+        self.platform.deploy_nfs(self.product)
 
     def __init_adam(self):
         adam_dict = self.config["control"]["adam"]
