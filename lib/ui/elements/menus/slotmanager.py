@@ -15,18 +15,19 @@ class SlotManagerMenu(ManagerMenu):
         self.__init_menuitems()
 
     def popup(self, adapter, *args, **kwargs):
-        if adapter.status == PlatformSlot.Status.POWERUP:
+        if not(adapter.status & PlatformSlot.State.OCCUPIED):
             self.power_up.hide()
+            self.power_down.hide()
+        else:
+            self.power_up.show()
             self.power_down.show()
 
-        if adapter.status == PlatformSlot.Status.POWERDOWN:
-            self.power_up.show()
-            self.power_down.hide()
-
-        if adapter.status == PlatformSlot.Status.EMPTY:
-            self.power_up.hide()
-            self.power_down.hide()
-            return
+        if adapter.status & PlatformSlot.State.POWER:
+            self.power_up.set_sensitive(False)
+            self.power_down.set_sensitive(True)
+        else:
+            self.power_up.set_sensitive(True)
+            self.power_down.set_sensitive(False)
 
         super(SlotManagerMenu, self)._popup(adapter, *args, **kwargs)
 

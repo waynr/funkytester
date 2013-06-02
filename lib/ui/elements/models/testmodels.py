@@ -11,6 +11,8 @@ from ui.elements.adapters import (
         ActionAdapter,
         )
 
+from ft.platform import UnitUnderTest
+
 class TestManagerModel(FunctTreeStore):
 
     (UUT,
@@ -81,8 +83,13 @@ class TestManagerModel(FunctTreeStore):
 
     def __status_data_uut_cb(self, treeview_column, cell, model, iter, 
             user_data):
-        obj = model.get_value(iter, 1)
-        cell.set_property('text', obj)
+        status = int(model.get_value(iter, 1), 16)
+        status_message = "nonsense"
+
+        if status & UnitUnderTest.State.POWER:
+            status_message = "powered up"
+
+        cell.set_property('text', status_message)
         
     ## Format the datetime column to give useful information to tester.
     #

@@ -38,11 +38,12 @@ class ActionDB(Base):
         rtuple = self.name, self.status, 
         return rstring % rtuple
 
-    class Status:
-        INIT = "Initialized"
-        SUCCESS = "Success"
-        FAIL = "Fail"
-        BROKEN = "Broken Test"
+    class State:
+        INIT        = 0x001
+        FAIL        = 0x100
+        BROKEN      = 0x200
+
+        SUCCESS     = 0x000
 
 ## Base class for actions that comprise a test run.
 #
@@ -82,7 +83,7 @@ class Action(ActionDB):
 
     def set_address(self, address):
         self.address = (self.parent.address, address)
-        self.set_status(Action.Status.INIT)
+        self.set_status(Action.State.INIT)
         self.fire( ft.event.ActionInit,
                 obj = self,
                 status = self.status,

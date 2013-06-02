@@ -47,25 +47,25 @@ class UnitUnderTestDB(Base):
 
     tests = relationship("Test")
 
-    class Status:
-        INIT = "Initialized"
+    class State:
+        INIT        = 0x0000
+        POWER       = 0x0002
 
-        LISTENING = "Listening"
-        WAITING = "Waiting"
+        UBOOT       = 0x0004
+        LINUX       = 0x0008
 
-        NFS_BOOTING = "Booting NFS Test"
-        NFS_WAITING = "NFS Waiting"
-        NFS_LOADING = "NFS Loading Tests"
-        NFS_TESTING = "Testing"
+        BOOT_NFS    = 0x0010
+        BOOT_FLASH  = 0x0020
 
-        LOAD_KFS = "Loading Kernel & Filesystem"
-        LOAD_BOOTLOADER = "Loading Bootloader"
+        BOOTING     = 0x0040
+        WAITING     = 0x0080
 
-        BOOTING_LOCAL = "Booting Local FS"
-        TEST_FIRSTBOOT = "First Boot"
+        LOAD_TESTS  = 0x0100
+        TESTING     = 0x0200
+        LOAD_BL     = 0x0400
+        LOAD_KFS    = 0x0800
 
-        PASS = "Pass"
-        FAIL = "Fail"
+        FAIL        = 0x8000
 
     def __repr__(self,):
         rstring = "<UnitUnderTest('%s','%s','%s')>" 
@@ -87,7 +87,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.product = None
         self.mac_address = None
         self.ip_address = None
-        self.status = self.Status.INIT
+        self.status = self.State.INIT
 
         self.com = config["control"]["com"]
 
@@ -194,7 +194,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         logging.debug(self.ip_address)
 
     def _nfs_test_boot(self):
-        self.status = UnitUnderTest.Status.NFS_BOOTING
+        self.status &= UnitUnderTest.State.BOOT_NFS
         self.fire( ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,
@@ -218,7 +218,21 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         
         # run boot command
         interface = self.interfaces["uboot"]
+        self.status &= UnitUnderTest.State.BOOTING
+        self.fire( ft.event.UnitUnderTestEvent,
+                obj = self,
+                status = self.status,
+                )
+
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
+
+        self.status &= UnitUnderTest.State.WAITING
+        self.status &= ~UnitUnderTest.State.UBOOT
+        self.status &= UnitUnderTest.State.LINUX
+        self.fire( ft.event.UnitUnderTestEvent,
+                obj = self,
+                status = self.status,
+                )
 
     ## Initialize UUT's Test objects.
     #
@@ -228,7 +242,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
     def _initialize_tests(self):
         interface = self.interfaces["linux"]
 
-        self.status = UnitUnderTest.Status.NFS_WAITING
+        self.status |= UnitUnderTest.State.LOAD_TESTS
         self.fire( ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,
@@ -257,16 +271,12 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         specification_dict = self.product.specification
         self.tests = []
 
-        self.status = UnitUnderTest.Status.NFS_LOADING
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
         for i, test_dict in enumerate(specification_dict["testlist"]):
             self.tests.append(Test(test_dict, self, xmlrpc_client))
             self.tests[i].set_address(i)
 
-        self.status = UnitUnderTest.Status.NFS_TESTING
+        self.status &= ~UnitUnderTest.State.LOAD_TESTS
+        self.status |= UnitUnderTest.State.WAITING
         self.fire( ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,

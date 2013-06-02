@@ -28,12 +28,10 @@ class PlatformSlotDB(Base):
 
     uuts = relationship("UnitUnderTest")
 
-    class Status:
-        INIT = "Initialized"
-        EMPTY = "Empty"
-
-        POWERUP = "Powered Up"
-        POWERDOWN = "Powered Down"
+    class State:
+        INIT        = 0x0000
+        OCCUPIED    = 0x0001
+        POWER       = 0x0002
 
 class PlatformSlot(PlatformSlotDB, Commandable):
 
@@ -43,7 +41,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.address = None
         self.product = Product( self.config["product_manifest_filename"] )
         self.hardware_rev = None
-        self.status = PlatformSlot.Status.INIT
+        self.status = PlatformSlot.State.INIT
 
         self.__serial = None
         self.__control = {}
@@ -93,7 +91,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                     #message = message,
                     #)
 
-        self.status = PlatformSlot.Status.EMPTY
+        self.status = PlatformSlot.State.INIT
         self.fire(ft.event.PlatformSlotReady,
             obj = self,
             status = self.status,
@@ -151,7 +149,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].disable()
-                self.status = PlatformSlot.Status.POWERDOWN
+                self.status &= ~PlatformSlot.State.POWER
                 self.fire( ft.event.PlatformSlotEvent,
                         obj = self,
                         status = self.status,
@@ -172,7 +170,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].enable()
-                self.status = PlatformSlot.Status.POWERUP
+                self.status |= PlatformSlot.State.POWER
                 self.fire( ft.event.PlatformSlotEvent, 
                         obj = self, 
                         status = self.status,
@@ -198,8 +196,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.lock.acquire()
         serial_number = data["serialnum"]
 
-        if ( self.status == PlatformSlot.Status.POWERUP or
-                self.status == PlatformSlot.Status.POWERDOWN ):
+        if self.status & PlatformSlot.State.OCCUPIED:
             self.fire( ft.event.PlatformSlotEvent,
                     obj = self,
                     status = self.status,
@@ -215,7 +212,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
 
         self.platform.uuts[serial_number] = self.uut
         
-        self.status = PlatformSlot.Status.POWERDOWN
+        self.status |= PlatformSlot.State.OCCUPIED
         self.fire( ft.event.PlatformSlotEvent, 
                 obj = self,
                 status = self.status,

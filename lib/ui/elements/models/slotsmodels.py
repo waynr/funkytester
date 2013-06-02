@@ -36,18 +36,21 @@ class SlotsManagerModel(FunctTreeStore):
 
     def __status_data(self, treeview_column, cell, model, iter, 
             user_data):
-        obj = model.get_value(iter, 0)
-        cell.set_property('text', str(obj))
+        status = int(model.get_value(iter, 0), 16)
         cell.set_property('xalign', 0.5)
         cell.set_property('width-chars', 15)
-        if str(obj) == PlatformSlot.Status.POWERUP:
+
+        if status & PlatformSlot.State.POWER:
+            message = "Power On"
             cell.set_property('cell-background', gtk.gdk.Color('#00FF33'))
-        elif str(obj) == PlatformSlot.Status.EMPTY:
-            cell.set_property('cell-background', gtk.gdk.Color('#FFFFFF'))
-        elif str(obj) == PlatformSlot.Status.POWERDOWN:
-            cell.set_property('cell-background', gtk.gdk.Color('#FF3300'))
+        elif status & PlatformSlot.State.OCCUPIED:
+            message = "Slot Occupied"
+            cell.set_property('cell-background', gtk.gdk.Color('#FFBF00'))
         else:
-            cell.set_property('cell-background', gtk.gdk.Color('#FF0033'))
+            message = "Slot Empty"
+            cell.set_property('cell-background', gtk.gdk.Color('#FFFFFF'))
+
+        cell.set_property('text', message)
         return
 
     def __currentuut_data(self, treeview_column, cell, model, iter, 

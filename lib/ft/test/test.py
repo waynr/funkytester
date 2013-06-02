@@ -39,11 +39,14 @@ class TestDB(Base):
         rtuple = self.name, self.status, self.refdes
         return rstring % rtuple
     
-    class Status:
-        INIT = "Initialized"
-        SUCCESS = "Success"
-        FAIL = "Fail"
-        BROKEN = "Broken Test"
+    class State:
+        INIT        = 0x000
+        SUCCESS     = 0x001
+
+        FAIL        = 0x100
+        BROKEN      = 0x200
+        INVALID_I   = 0x400
+
 
 ## Test class to provide common functionality among a broad category of test
 # types. Also acts as an abstract interface to specify functionality required of
@@ -105,11 +108,10 @@ class Test(TestDB):
         if test_dict.has_key("max_retry"):
             self.max_retry  = test_dict["max_retry"]
 
-        self.status = Test.Status.INIT
+        self.status = Test.State.INIT
 
     def set_address(self, index):
         self.address = (self.unit_under_test.address, index)
-        self.status = Test.Status.INIT
         self.fire( ft.event.TestInit,
                 obj = self,
                 name = self.name,
@@ -136,7 +138,7 @@ class Test(TestDB):
             try:
                 self._run()
             except:
-                self.status = Status.broken_test
+                self.status |= Test.State.BROKEN
                 self.fire(ft.event.TestFatal,
                         obj = self
                         )
@@ -157,14 +159,15 @@ class Test(TestDB):
     #
     def check_actions(self,):
         for action in self.actions:
-            if action.status == Status.fail:
-                self.status = Status.fail
+            if action.status & Action.State.FAIL:
+                self.status |= Test.State.FAIL
                 break
         if not self.is_valid:
-            if self.status == Status.success:
-                self.status = Status.success_invalid_interface
+            if self.status & Test.State.FAIL:
+                self.status &= ~(Test.State.FAIL | Test.State.BROKEN |
+                        Test.State.INVALID_I)
             else:
-                self.status = Status.success
+                self.status |= Test.State.INVALID_I
 
     ## Runs the test
     #
@@ -228,10 +231,11 @@ class SingleTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
+        self.status = Test.State.SUCCESS
         output_list = list()
 
         for action in self.actions:
-            action.status = Status.success
+            action.status = Action.State.SUCCESS
 
             output = action.call()
 
@@ -242,7 +246,7 @@ class SingleTest(Test,):
                 output = ""
 
             if not (exit_status == "0" or exit_status == 0):
-                action.status  = Status.fail
+                action.status  |= Action.State.FAIL
 
             # ugly hack: if allow_fail then make a failure look like a success
             # (for actions such as mounting a drive that might "fail" if the
@@ -251,7 +255,7 @@ class SingleTest(Test,):
             # own.
 
             if action.allow_fail:
-                action.status = Status.success
+                action.status = Action.State.SUCCESS
 
 ## Test class
 #
@@ -334,6 +338,7 @@ class ExpectTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
+        self.status = Test.State.SUCCESS
         for i in range(self.num_values):
             # run statechanger actions
             for statechanger in self.statechangers:
@@ -362,9 +367,9 @@ class ExpectTest(Test,):
                     ( test_value < max_expected_value and
                         test_value > min_expected_value )) or
                     ( test_value == expected_value )): 
-                    action.status = Status.success
+                    action.status = Action.State.SUCCESS
                 else:
-                    action.status = Status.fail
+                    action.status |= Action.State.FAIL
                     logging.debug(pprint.pformat( {
                         "name"       : action.name,
                         "tolerance"         : tolerance,
@@ -398,6 +403,7 @@ class InteractTest(Test,):
     # Fires an InteractTest event 
     #
     def _run(self):
+        self.status = Test.State.UNKNOWN
         self.fire( ft.event.TestInteract,
                 obj = self,
                 )
