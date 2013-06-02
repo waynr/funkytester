@@ -9,4 +9,4 @@ class ActionAdapter(GenericAdapter):
 
     def __init__(self, **kwargs):
         super(ActionAdapter, self).__init__(**kwargs)
-        self.recipient_type = RecipientType.UUT
+        self.recipient_type = RecipientType.ACTION

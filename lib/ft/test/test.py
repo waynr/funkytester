@@ -144,9 +144,10 @@ class Test(TestDB):
                         )
             count += 1
             time.sleep(.1)
-        self.status = self.check_actions()
+        self.check_actions()
         self.fire(ft.event.TestFinish,
-                obj = self
+                obj = self,
+                status = self.status,
                 )
 
     ## Checks the status of the test's actions and updates the test's
@@ -189,6 +190,17 @@ class Test(TestDB):
     #
     def get(self, attr):
         return getattr(self, attr)
+
+    class CommandsSync:
+        @staticmethod
+        def acknowledge(uut, data):
+            pass
+
+    class CommandsAsync:
+        @staticmethod
+        def run(test, data):
+            print("herlP")
+            self.run()
 
 ## Method that adds xmlrpc_client object to the action_dict provided
 #

@@ -120,13 +120,10 @@ class TestManagerPage(FunctPage):
     
     def __dispatch_rightclick_tests(self, adapter, button, time):
         if isinstance(adapter, UnitUnderTestAdapter):
-            logging.debug(adapter)
             self.uutmanager_menu.popup(adapter, button, time)
         elif isinstance(adapter, TestAdapter):
-            logging.debug(adapter)
             self.testmanager_menu.popup(adapter, button, time)
         elif isinstance(adapter, ActionAdapter):
-            logging.debug(adapter)
             self.actionmanager_menu.popup(adapter, button, time)
         else:
             raise TypeError("Invalid Adapter: {0}".format(adapter))

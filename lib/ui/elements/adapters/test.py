@@ -9,4 +9,4 @@ class TestAdapter(GenericAdapter):
 
     def __init__(self, **kwargs):
         super(TestAdapter, self).__init__(**kwargs)
-        self.recipient_type = RecipientType.UUT
+        self.recipient_type = RecipientType.TEST

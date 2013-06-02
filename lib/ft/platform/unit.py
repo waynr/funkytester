@@ -226,27 +226,23 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
 
-        self.status &= UnitUnderTest.State.WAITING
         self.status &= ~UnitUnderTest.State.UBOOT
-        self.status &= UnitUnderTest.State.LINUX
+        self.status |= UnitUnderTest.State.WAITING
+        self.status |= UnitUnderTest.State.LINUX
         self.fire( ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,
                 )
 
-    ## Initialize UUT's Test objects.
-    #
-    #  Assumes that the system is already booted and logged in using the minimal
-    #  test boot interface.
+    ## Initialize UUT's Test objects; if UUT is not booted, boot it to nfs.
     #
     def _initialize_tests(self):
+        if not (self.status & (UnitUnderTest.State.WAITING |
+            UnitUnderTest.State.LINUX)):
+            self._nfs_test_boot()
+
         interface = self.interfaces["linux"]
 
-        self.status |= UnitUnderTest.State.LOAD_TESTS
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
         # run xmlrpc server on remote machine
         interface.cmd("./bin/xmlrpcserver.py {0} &".format(self.ip_address))
         
@@ -275,23 +271,36 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             self.tests.append(Test(test_dict, self, xmlrpc_client))
             self.tests[i].set_address(i)
 
-        self.status &= ~UnitUnderTest.State.LOAD_TESTS
+        self.status |= UnitUnderTest.State.LOAD_TESTS
         self.status |= UnitUnderTest.State.WAITING
         self.fire( ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,
                 )
 
-    ## Run all initialized tests.
+    ## Run all tests; if tests are not initialized, initialize them.
     #
     def _run_all_tests(self):
+        if not self.status & UnitUnderTest.State.LOAD_TESTS:
+            self._initialize_tests()
+
         if len(self.tests) == 0:
             self.fire( ft.event.UpdateStatus,
                     obj = self,
                     message = "WARNING: No tests available!",
                     )
+        self.status |= UnitUnderTest.State.TESTING
+        self.fire( ft.event.UnitUnderTestEvent,
+                obj = self,
+                status = self.status,
+                )
         for test in self.tests:
             test.run()
+        self.status |= UnitUnderTest.State.WAITING
+        self.fire( ft.event.UnitUnderTestEvent,
+                obj = self,
+                status = self.status,
+                )
 
     def _load_kfs(self):
         pass
@@ -317,6 +326,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         @staticmethod
         def nfs_test_boot(uut, data):
             uut._nfs_test_boot()
+            uut._initialize_tests()
 
         @staticmethod
         def nfs_full_boot(uut, data):
@@ -328,7 +338,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         @staticmethod
         def run_all_tests(uut, data):
-            uut.run_all_tests()
+            uut._run_all_tests()
 
         @staticmethod
         def load_bootloader(uut, data):
@@ -344,6 +354,5 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         @staticmethod
         def run_all_modes(uut, data):
-            pass
-            #uut.run_all()
+            uut._run_all_modes()
 

@@ -39,7 +39,7 @@ class ActionDB(Base):
         return rstring % rtuple
 
     class State:
-        INIT        = 0x001
+        INIT        = 0x000
         FAIL        = 0x100
         BROKEN      = 0x200
 
@@ -80,6 +80,8 @@ class Action(ActionDB):
 
         if action_dict.has_key("log_output"):
             log_action_output   = action_dict["log_output"]
+
+        self.status = Action.State.INIT
 
     def set_address(self, address):
         self.address = (self.parent.address, address)
