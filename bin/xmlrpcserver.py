@@ -2,10 +2,8 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 from optparse import OptionParser
-import inspect
-import sys
-
 from os import path
+import inspect, sys, logging
 
 bindir = path.dirname(__file__)
 topdir = path.dirname(bindir)
@@ -15,12 +13,16 @@ extdir = path.join(topdir, "ext")
 sys.path.insert(0, libdir)
 sys.path.insert(0, extdir)
 
-import logging
+log_file = path.join(topdir, "xmlrpcserver.log")
+
 logging.basicConfig(
-    #filename    = "gf_info.txt",
-    Stream      = sys.stdout,
-    format      = "%(levelname)-5s %(module)-5s %(funcName)-5s %(message)s",
-    level       = logging.DEBUG )
+    level = logging.DEBUG 
+        format = "%(asctime)s %(name)-5s %(levelname)-5s %(module)-5s " + \
+                "%(funcName)-5s %(message)s",
+                datefmt = '%Y%m%d %H:%M:%S',
+    filename = log_file,
+    filemode = 'a',
+    )
 
 from SimpleXMLRPCServer import (
         SimpleXMLRPCServer,
@@ -31,10 +33,11 @@ from interfaces.xmlrpc import (
         EMACXMLRPCInterface,
         ServerInterface,
         )
+
 from ft.device import emac_devices
 
-def main():
-    parser          = OptionParser()
+def parse_options():
+    parser = OptionParser()
     parser.add_option("-p", "--port", action="store", type="int", dest="port")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
     parser.add_option("-q", "--quiet", action="store_false", dest="verbose")
@@ -43,26 +46,29 @@ def main():
             port=8000,
             verbose=False,
             )
+    return parser.parse_args()
     
-    (options, args) = parser.parse_args()
-    ip_address      = args[0]      
-    port            = options.port      
-    verbose         = options.verbose      
+def main():
+    (options, args) = parse_options
+
+    ip_address = args[0]      
+    port = options.port      
+    verbose = options.verbose      
     
     #-------------------------------------------------------------------------------
     # dynamically import required modules and append imported names to a list
     #
     
     interface_names = []
-    interfaces      = []
-    module          = sys.modules[__name__]
+    interfaces = []
+    module = sys.modules[__name__]
     
     for name, obj in inspect.getmembers(emac_devices):
         if inspect.isclass(obj):
             interface_names.append(name)
             interfaces.append(obj)
     
-    temp    = __import__('ft.device.emac_devices', globals(), locals(), interface_names,
+    temp = __import__('ft.device.emac_devices', globals(), locals(), interface_names,
             -1)
     
     for name, obj in inspect.getmembers(temp):
@@ -77,17 +83,6 @@ def main():
         rpc_paths   = ("/RPC2",)
     
     #-------------------------------------------------------------------------------
-    # something something ip address? not sure what this is supposed to do...
-    # 
-    
-    #ip      = BinaryCall(
-            #kwargs={ 
-                #"binary_full_path"  : "ip", 
-                #"instance_name"     : "macaddr", 
-                #}
-            #)
-    
-    #-------------------------------------------------------------------------------
     # start server, register functions from dynamically imported module list
     #
     
@@ -98,7 +93,6 @@ def main():
             )
         
     server.register_instance( EMACXMLRPCInterface(interface_list=interfaces) )
-    #server.register_introspection_functions()
     
     #-------------------------------------------------------------------------------
     # run server until killed by signal
