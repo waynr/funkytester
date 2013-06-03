@@ -46,11 +46,11 @@ class TestManagerModel(FunctTreeStore):
 
     def __dispatch_data_function(self, method_name, adapter, *args, **kwargs):
         if isinstance(adapter, UnitUnderTestAdapter):
-            suffix = "__uut_cb"
+            suffix = "_uut_cb"
         elif isinstance(adapter, TestAdapter):
-            suffix = "__test_cb"
+            suffix = "_test_cb"
         elif isinstance(adapter, ActionAdapter):
-            suffix = "__action_cb"
+            suffix = "_action_cb"
         else:
             raise TypeError("Invalid Adapter: {0}".format(adapter))
 
@@ -74,14 +74,24 @@ class TestManagerModel(FunctTreeStore):
     def __status_data(self, treeview_column, cell, model, iter, 
             user_data):
         adapter = model.get_value(iter, 4)
-        if self.__dispatch_data_function("__status_data", adapter,
+        if self.__dispatch_data_function("_status_data", adapter,
                 treeview_column, cell, model, iter, user_data):
             return
 
         obj = model.get_value(iter, 1)
         cell.set_property('text', obj)
 
-    def __status_data_uut_cb(self, treeview_column, cell, model, iter, 
+    def _status_data_uut_cb(self, treeview_column, cell, model, iter, 
+            user_data):
+        status = int(model.get_value(iter, 1), 16)
+        status_message = "nonsense"
+
+        if status & UnitUnderTest.State.POWER:
+            status_message = "powered up"
+
+        cell.set_property('text', status_message)
+        
+    def _status_data_test_cb(self, treeview_column, cell, model, iter, 
             user_data):
         status = int(model.get_value(iter, 1), 16)
         status_message = "nonsense"
