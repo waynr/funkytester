@@ -248,10 +248,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         interface = self.interfaces["linux"]
 
         # run xmlrpc server on remote machine
-        interface.cmd("./bin/xmlrpcserver.py {0} &".format(self.ip_address))
+        interface.cmd("./bin/xmlrpcserver.py -p 8001 {0} &".format(self.ip_address))
         
         # initialize xmlrpc client
-        xmlrpc_server_address = "http://{0}:{1}".format(self.ip_address, "8000")
+        xmlrpc_server_address = "http://{0}:{1}".format(self.ip_address, "8001")
         def load_xmlrpc_client():
             try:
                 xmlrpc_client = xmlrpclib.ServerProxy(xmlrpc_server_address,
@@ -267,13 +267,18 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         xmlrpc_client = load_xmlrpc_client()
 
+        logging.debug("XML RPC Client Loaded for: {0}".format(
+            xmlrpc_server_address))
+
         # initialize Tests from Product's Specification and xmlrpc client
         specification_dict = self.product.specification
         self.tests = []
 
         for i, test_dict in enumerate(specification_dict["testlist"]):
-            self.tests.append(Test(test_dict, self, xmlrpc_client))
-            self.tests[i].set_address(i)
+            test = Test(test_dict, self, xmlrpc_client)
+            test.set_address(i)
+            test.initialize_actions()
+            self.tests.append(test)
 
         self.status |= UnitUnderTest.State.LOAD_TESTS
         self.status |= UnitUnderTest.State.WAITING

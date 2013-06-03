@@ -38,12 +38,11 @@ class TestDB(Base):
     
     class State:
         INIT        = 0x000
-        SUCCESS     = 0x001
+        HAS_RUN     = 0x001
 
         FAIL        = 0x100
         BROKEN      = 0x200
         INVALID_I   = 0x400
-
 
 ## Test class to provide common functionality among a broad category of test
 # types. Also acts as an abstract interface to specify functionality required of
@@ -137,13 +136,19 @@ class Test(TestDB):
             try:
                 self._run()
             except:
+                import traceback
+                msg = traceback.format_exc()
+                logging.debug(msg)
                 self.status |= Test.State.BROKEN
                 self.fire(ft.event.TestFatal,
                         obj = self
                         )
+            else:
+                break
             count += 1
-            time.sleep(.1)
+            #time.sleep(.1)
         self.check_actions()
+        self.status |= Test.State.HAS_RUN
         self.fire(ft.event.TestFinish,
                 obj = self,
                 status = self.status,
@@ -159,6 +164,10 @@ class Test(TestDB):
     #
     def check_actions(self,):
         for action in self.actions:
+            if action.status & Action.State.BROKEN:
+                self.status |= Test.State.BROKEN
+                self.status |= Test.State.FAIL
+                break
             if action.status & Action.State.FAIL:
                 self.status |= Test.State.FAIL
                 break
@@ -230,9 +239,12 @@ class SingleTest(Test,):
         super(SingleTest, self).__init__(*args, **kwargs)
         self.actions    = []
         
-        for action_dict in self.test_dict["actionlist"]:
+    def initialize_actions(self):
+        for i, action_dict in enumerate(self.test_dict["actionlist"]):
             set_remote(action_dict, self.xmlrpc_client)
-            self.actions.append( Action(action_dict, self) )
+            action = Action(action_dict, self)
+            action.set_address(i)
+            self.actions.append(action)
 
     ## Runs the SingleTest
     #
@@ -241,22 +253,20 @@ class SingleTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
-        self.status = Test.State.SUCCESS
         output_list = list()
 
         for action in self.actions:
-            action.status = Action.State.SUCCESS
-
             output = action.call()
 
-            if not output == None:
-                exit_status, output = output
-
             if output == None:
-                output = ""
-
-            if not (exit_status == "0" or exit_status == 0):
-                action.status  |= Action.State.FAIL
+                action.status != Action.State.BROKEN
+                action.status != Action.State.FAIL
+            else:
+                exit_status, output = output
+                if output == None:
+                    output = ""
+                if not (exit_status == "0" or exit_status == 0):
+                    action.status  |= Action.State.FAIL
 
             # ugly hack: if allow_fail then make a failure look like a success
             # (for actions such as mounting a drive that might "fail" if the
@@ -265,7 +275,7 @@ class SingleTest(Test,):
             # own.
 
             if action.allow_fail:
-                action.status = Action.State.SUCCESS
+                action.status = Action.State.INIT
 
 ## Test class
 #
@@ -287,26 +297,32 @@ class ExpectTest(Test,):
     #
     def __init__(self, *args, **kwargs):
         super(ExpectTest, self).__init__(*args, **kwargs)
+
+    def initialize_actions(self):
         test_dict = self.test_dict
 
         self.statechangers  = list( dict() )
         self.statecheckers  = list( dict() )
 
-        for action_dict in test_dict["statechangers"]:
+        for i, action_dict in enumerate(test_dict["statechangers"]):
             set_remote(action_dict, self.xmlrpc_client)
+            action = Action(action_dict, self)
+            action.set_address(i)
             self.statechangers.append( 
                     { 
-                        "action" : Action(action_dict, self), 
+                        "action" : action, 
                         "values" : action_dict["values"], 
                         }
                     )
         
         action_dict = test_dict["statechecker"]
-
         set_remote(action_dict, self.xmlrpc_client)
 
+        action = Action(action_dict, self)
+        action.set_address(None)
+
         self.statecheckers.append( {
-                    "action" : Action(action_dict, self), 
+                    "action" : action,
                     "values" : action_dict["values"],
                     } )
 
@@ -348,7 +364,6 @@ class ExpectTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
-        self.status = Test.State.SUCCESS
         for i in range(self.num_values):
             # run statechanger actions
             for statechanger in self.statechangers:
@@ -377,7 +392,7 @@ class ExpectTest(Test,):
                     ( test_value < max_expected_value and
                         test_value > min_expected_value )) or
                     ( test_value == expected_value )): 
-                    action.status = Action.State.SUCCESS
+                    action.status = Action.State.INIT
                 else:
                     action.status |= Action.State.FAIL
                     logging.debug(pprint.pformat( {
@@ -387,8 +402,7 @@ class ExpectTest(Test,):
                         "test_value"        : test_value,
                         } ) )
     
-                action.set_status(tmp_result, expected_value, test_value, 
-                        tolerance)
+                action.set_status(expected_value, test_value, tolerance)
 
 ## Test class
 #
@@ -407,6 +421,9 @@ class InteractTest(Test,):
     def __init__(self, *args, **kwargs):
         super(InteractTest, self).__init__(*args, **kwargs)
         test_dict = self.test_dict
+
+    def initialize_actions(self):
+        pass # does nothing; _run instead requests information from UI
 
     ## Runs the ExpectTest
     #

@@ -43,8 +43,6 @@ class ActionDB(Base):
         FAIL        = 0x100
         BROKEN      = 0x200
 
-        SUCCESS     = 0x000
-
 ## Base class for actions that comprise a test run.
 #
 class Action(ActionDB):
@@ -59,7 +57,8 @@ class Action(ActionDB):
     # @param action_dict The dictionary of actions from a test specification
     #
     def __init__(self, action_dict, parent=None):
-        self.parent = parent
+        self.test = parent
+        self.event_handler = parent.event_handler
 
         self.name = action_dict["name"]
         self.method_name = action_dict["method_name"]
@@ -83,11 +82,14 @@ class Action(ActionDB):
 
         self.status = Action.State.INIT
 
+    def fire(self, event, **kwargs):
+        self.event_handler.fire(event, **kwargs)
+
     def set_address(self, address):
-        self.address = (self.parent.address, address)
-        self.set_status(Action.State.INIT)
+        self.address = (self.test.address, address)
         self.fire( ft.event.ActionInit,
                 obj = self,
+                name = self.name,
                 status = self.status,
                 )
 
@@ -124,11 +126,15 @@ class Action(ActionDB):
         try:
             result = self._call()
         except:
-            print( "Unexpected error:" + str(sys.exc_info()[0]) )
+            import traceback
+            msg = traceback.format_exc()
+            logging.debug(msg)
             self.fire(ft.event.ActionFatal,
                     obj = self
                     )
-        self.fire(ft.event.ActionFinish,
+            result = None
+        else:
+            self.fire(ft.event.ActionFinish,
                 obj = self
                 )
         return result
@@ -150,8 +156,7 @@ class Action(ActionDB):
         logging.debug(output)
         return output
     
-    def set_status(self, status, exp='', act='', tol=''):
-        self.status = status
+    def set_status(self, exp='', act='', tol=''):
         self.value= {
                 "expected": exp,
                 "actual": act,
