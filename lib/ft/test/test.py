@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import logging
-import pprint
-import time
-import sys
+import logging, pprint, time, sys, threading
 
 from functools import wraps
 
@@ -92,6 +89,8 @@ class Test(TestDB):
     def __init__(self, test_dict, parent, xmlrpc_client=None):
         self.uut_id = parent.serial_number
         self.test_dict  = test_dict
+
+        self.lock = threading.RLock()
 
         self.unit_under_test = parent
         self.event_handler = parent.event_handler
@@ -199,8 +198,7 @@ class Test(TestDB):
     class CommandsAsync:
         @staticmethod
         def run(test, data):
-            print("herlP")
-            self.run()
+            test.run()
 
 ## Method that adds xmlrpc_client object to the action_dict provided
 #
