@@ -10,7 +10,7 @@ class RecipientType:
     SLOT = "platform_slot"
     UUT = "unit_under_test"
     TEST = "test"
-    ACTIONS = "action"
+    ACTION = "action"
 
 class Command(object):
 
