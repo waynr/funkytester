@@ -109,7 +109,6 @@ class Command(object):
                 recipient = self.platform
             else:
                 recipient_index = recipient_address[1]
-                print(recipient_address)
                 if recipient_type == RecipientType.SLOT:
                     recipient = self.platform.slots[recipient_index]
                 elif recipient_type == RecipientType.UUT:
@@ -123,7 +122,6 @@ class Command(object):
                     test_index = recipient_address[0][1]
                     recipient = self.platform.uuts[uut_index].\
                             tests[test_index].actions[recipient_index]
-            print(recipient)
         except IndexError, KeyError:
             msg = "ERROR: recipient '{0}:{1}' does not exist".format(
                     recipient_type, recipient_address)
