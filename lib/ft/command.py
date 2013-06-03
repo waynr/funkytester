@@ -68,21 +68,26 @@ class Command(object):
             return None, error
 
     def __get_recipient(self, command):
-        try: 
-            recipient_type = command[1]
-            if recipient_type == RecipientType.PLATFORM:
-                recipient = self.platform
+        return self.__get_recipient_v0(command)
+        #return self.__get_recipient_v1(command)
+
+    address_index = 2
+    ## Get recipient without depending on a specific RecipientType.
+    #
+    def __get_recipient_v1(self, command):
+        def get_object_by_address(tpl):
+            parent_address = tpl[0]
+            object_index = tpl[1]
+            if isinstance(parent_address, tuple):
+                parent = get_parent(tpl)
+                return parent.get_subordinate(object_index)
             else:
-                recipient_address = command[2][1]
-                if recipient_type == RecipientType.SLOT:
-                    recipient = self.platform.slots[recipient_address]
-                elif recipient_type == RecipientType.UUT:
-                    recipient = self.platform.uuts[recipient_address]
-                elif recipient_type == RecipientType.TEST:
-                    recipient = self.platform.uuts[recipient_address[0]].tests[recipient_address[1]]
-                elif recipient_type == RecipientType.ACTION:
-                    recipient = self.platform.uuts[recipient_address[0][0]].tests[recipient_address[0][1]].actions[1]
-            return True, recipient
+                return platform
+
+        object_address = command[self.address_index]
+        try:
+            obj = get_object_by_address(object_address)
+            return True, obj
         except IndexError, KeyError:
             msg = "ERROR: recipient '{0}:{1}' does not exist".format(
                     recipient_type, recipient_address)
@@ -91,6 +96,47 @@ class Command(object):
             msg = traceback.format_exc()
         else:
             msg = "ERROR: invalid recipient type '{0}'".format( recipient_type)
+
+        return False, msg
+                
+    ## Get recipient by checking the given RecipientType value.
+    #
+    def __get_recipient_v0(self, command):
+        try: 
+            recipient_type = command[1]
+            recipient_address = command[2]
+            if recipient_type == RecipientType.PLATFORM:
+                recipient = self.platform
+            else:
+                recipient_index = recipient_address[1]
+                print(recipient_address)
+                if recipient_type == RecipientType.SLOT:
+                    recipient = self.platform.slots[recipient_index]
+                elif recipient_type == RecipientType.UUT:
+                    recipient = self.platform.uuts[recipient_index]
+                elif recipient_type == RecipientType.TEST:
+                    uut_index = recipient_address[0][1]
+                    recipient = self.platform.uuts[uut_index].\
+                            tests[recipient_index]
+                elif recipient_type == RecipientType.ACTION:
+                    uut_index = recipient_address[0][0][1]
+                    test_index = recipient_address[0][1]
+                    recipient = self.platform.uuts[uut_index].\
+                            tests[test_index].actions[recipient_index]
+            print(recipient)
+        except IndexError, KeyError:
+            msg = "ERROR: recipient '{0}:{1}' does not exist".format(
+                    recipient_type, recipient_address)
+        except Exception:
+            import traceback
+            msg = traceback.format_exc()
+        else:
+            return True, recipient
+
+        self.platform.fire(ft.event.ErrorEvent,
+                obj = self.platform,
+                traceback = msg,
+                )
 
         return False, msg
 
