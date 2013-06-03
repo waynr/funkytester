@@ -69,7 +69,7 @@ class UnitUnderTestDB(Base):
 
     def __repr__(self,):
         rstring = "<UnitUnderTest('%s','%s','%s')>" 
-        rtuple = self.name, self.serialnum, self.status
+        rtuple = self.name, self.serial_number, self.status
         return rstring % rtuple
 
 ## Representation of a UUT for testing purposes.
@@ -88,6 +88,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.mac_address = None
         self.ip_address = None
         self.status = self.State.INIT
+
+        self.name = "Anonymous Unit"
 
         self.com = config["control"]["com"]
 
@@ -111,6 +113,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.serial_number = serial_number
         self.product = product
         self.mac_address = mac_address
+
+        self.name = product.name
 
         self.serial = self.platform_slot.get_serialport()
         self.interfaces = { 
