@@ -39,10 +39,11 @@ class TestDB(Base):
     class State:
         INIT        = 0x000
         HAS_RUN     = 0x001
+        VALID       = 0x002
 
         FAIL        = 0x100
         BROKEN      = 0x200
-        INVALID_I   = 0x400
+        INVALID_INTERFACE = 0x400
 
 ## Test class to provide common functionality among a broad category of test
 # types. Also acts as an abstract interface to specify functionality required of
@@ -100,13 +101,15 @@ class Test(TestDB):
         self.type   = test_dict["type"]
         self.shortdesc  = test_dict["shortdesc"]
         self.refdes = test_dict["refdes"]
-        self.is_valid   = test_dict["valid"]
 
         self.max_retry  = 5
         if test_dict.has_key("max_retry"):
             self.max_retry  = test_dict["max_retry"]
 
         self.status = Test.State.INIT
+
+        if test_dict["valid"]:
+            self.status |= Test.State.VALID
 
     def set_address(self, index):
         self.address = (self.unit_under_test.address, index)
@@ -171,12 +174,11 @@ class Test(TestDB):
             if action.status & Action.State.FAIL:
                 self.status |= Test.State.FAIL
                 break
-        if not self.is_valid:
+        if not self.status & Test.State.VALID:
             if self.status & Test.State.FAIL:
-                self.status &= ~(Test.State.FAIL | Test.State.BROKEN |
-                        Test.State.INVALID_I)
+                self.status &= ~(Test.State.FAIL | Test.State.BROKEN)
             else:
-                self.status |= Test.State.INVALID_I
+                self.status |= Test.State.INVALID_INTERFACE
 
     ## Runs the test
     #

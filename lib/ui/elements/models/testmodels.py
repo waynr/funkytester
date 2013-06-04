@@ -12,6 +12,7 @@ from ui.elements.adapters import (
         )
 
 from ft.platform import UnitUnderTest
+from ft.test import Test, Action
 
 class TestManagerModel(FunctTreeStore):
 
@@ -94,12 +95,25 @@ class TestManagerModel(FunctTreeStore):
     def _status_data_test_cb(self, treeview_column, cell, model, iter, 
             user_data):
         status = int(model.get_value(iter, 1), 16)
-        status_message = "nonsense"
 
-        if status & UnitUnderTest.State.POWER:
-            status_message = "powered up"
+        if status & Test.State.HAS_RUN:
+            print(status)
+            if status & Test.State.FAIL:
+                cell.set_property('cell-background', gtk.gdk.Color('#FF0kk033'))
+                status_message = "Fail"
+            else:
+                cell.set_property('cell-background', gtk.gdk.Color('#00FF33'))
+                status_message = "Pass"
+        else:
+            cell.set_property('cell-background', gtk.gdk.Color('#FFFFFF'))
+            status_message = "Not Run"
 
         cell.set_property('text', status_message)
+
+    def _status_data_action_cb(self, treeview_column, cell, model, iter, 
+            user_data):
+        status = int(model.get_value(iter, 1), 16)
+        cell.set_property('text', status)
         
     ## Format the datetime column to give useful information to tester.
     #
