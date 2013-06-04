@@ -66,15 +66,22 @@ class FunctTreeStore(gtk.TreeStore):
         
         for n in range(0, len(self.columns)):
             self.tvcolumns[n] = gtk.TreeViewColumn(self.columns[n][0], None)
-            for i, func in enumerate(self.columns[n][1]):
+
+            if len(self.columns[n][1]) == 0:
                 cell = gtk.CellRendererText()
                 self.tvcolumns[n].pack_start(cell) # XXX might need expand=False
                 text_column = self.columns[n][2]
-
-                if text_column:
-                    self.tvcolumns[n].set_attributes(cell, text=text_column)
-                if not func == None:
-                    self.tvcolumns[n].set_cell_data_func(cell, func, n)
+                self.tvcolumns[n].set_attributes(cell, text=text_column)
+            else:
+                for i, func in enumerate(self.columns[n][1]):
+                    cell = gtk.CellRendererText()
+                    self.tvcolumns[n].pack_start(cell) # XXX might need expand=False
+    
+                    text_column = self.columns[n][2]
+                    if text_column:
+                        self.tvcolumns[n].set_attributes(cell, text=text_column)
+                    if not func == None:
+                        self.tvcolumns[n].set_cell_data_func(cell, func, n)
 
 class GenericAdapter(gobject.GObject):
 

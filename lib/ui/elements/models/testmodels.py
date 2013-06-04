@@ -24,10 +24,10 @@ class TestManagerModel(FunctTreeStore):
 
     def __init__(self):
         self.columns = [
-                ("Name/ID", [None], 0),
-                ("Status", [None], 1),
-                ("DateTime", [None], 2),
-                ("Additional Info", [None], 3),
+                ("Name/ID", [], 0),
+                ("Status", [], 1),
+                ("DateTime", [], 2),
+                ("Additional Info", [], 3),
                 ]
         self.valid_adapter_types = [
                 adapters.unit.UnitUnderTestAdapter,
@@ -47,7 +47,7 @@ class TestManagerModel(FunctTreeStore):
     def _add(self, parent_iter, adapter):
         logging.debug(adapter.name)
         row_iter = self.append( parent_iter, ( adapter.name, adapter.status,
-            adapter.datetime, adapter.additional_info, adapter, gtk.gdk.Color('#FFFFFF')))
+            adapter.datetime, adapter.additional_info, adapter, '#FFFFFF'))
         adapter.connect('on-changed', self.__update, row_iter)
         return row_iter
 
@@ -94,7 +94,7 @@ class TestManagerModel(FunctTreeStore):
 
         if status & Test.State.HAS_RUN:
             if status & Test.State.FAIL:
-                gdk_color = gtk.gdk.Color('#FF0kk033')
+                gdk_color = gtk.gdk.Color('#FF0033')
                 message = "Fail"
             else:
                 gdk_color = gtk.gdk.Color('#00FF33')
