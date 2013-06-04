@@ -69,7 +69,10 @@ class FunctTreeStore(gtk.TreeStore):
             for i, func in enumerate(self.columns[n][1]):
                 cell = gtk.CellRendererText()
                 self.tvcolumns[n].pack_start(cell) # XXX might need expand=False
+                text_column = self.columns[n][2]
 
+                if text_column:
+                    self.tvcolumns[n].set_attributes(cell, text=text_column)
                 if not func == None:
                     self.tvcolumns[n].set_cell_data_func(cell, func, n)
 
