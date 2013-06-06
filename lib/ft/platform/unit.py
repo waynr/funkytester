@@ -7,6 +7,8 @@
 #  various interfaces.
 #
 
+import datetime
+
 import logging, threading, time, xmlrpclib
 from string import Template
 
@@ -197,12 +199,22 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.ip_address = interface.get_var("ipaddr")
         logging.debug(self.ip_address)
 
-    def _nfs_test_boot(self):
-        self.status &= UnitUnderTest.State.BOOT_NFS
-        self.fire( ft.event.UnitUnderTestEvent,
+    def _fire_status(state_bit=None):
+        if state_bit:
+            self.state &= state_bit
+
+        # get date and time in ISO format
+        now = datetime.datetime.now()
+        datetime = now.strftime("%Y-%m-%d %X")
+
+        self.fire(ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,
+                datetime
                 )
+
+    def _nfs_test_boot(self): 
+        self._fire_status(UnitUnderTest.State.BOOT_NFS)
 
         # get nfs_test.template from product
         template_string = self.product.get_file("nfs_test.template")
@@ -222,11 +234,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         
         # run boot command
         interface = self.interfaces["uboot"]
-        self.status &= UnitUnderTest.State.BOOTING
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
+        self._fire_status(UnitUnderTest.State.BOOTING)
 
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
 

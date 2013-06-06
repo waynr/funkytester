@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
+import datetime
+
 import threading, sys, logging, os.path as path, weakref, os
 
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
@@ -97,6 +99,20 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             status = self.status,
             )
 
+    def _fire_status(state_bit=None):
+        if state_bit:
+            self.state &= state_bit
+
+        # get date and time in ISO format
+        now = datetime.datetime.now()
+        datetime = now.strftime("%Y-%m-%d %X")
+
+        self.fire(ft.event.PlatformSlotEvent,
+                obj = self,
+                status = self.status,
+                datetime
+                )
+
     def _deploy_files(self):
         product_tftp_dir = os.path.join(self.product.local_path, "tftp_files")
         platform_tftp_dir = os.path.join(self.platform.config.tftp_base_dir,
@@ -149,11 +165,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].disable()
-                self.status &= ~PlatformSlot.State.POWER
-                self.fire( ft.event.PlatformSlotEvent,
-                        obj = self,
-                        status = self.status,
-                        )
+                self._fire_status(~PlatformSlot.State.POWER)
+
         else:
             self.fire( ft.event.UpdateStatus,
                     message = "WARNING: Automated powerdown not available.",
