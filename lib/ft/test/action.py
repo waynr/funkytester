@@ -40,6 +40,8 @@ class ActionDB(Base):
 
     class State:
         INIT        = 0x000
+        HAS_RUN     = 0x001
+
         FAIL        = 0x100
         BROKEN      = 0x200
 
