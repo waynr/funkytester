@@ -24,10 +24,14 @@ class TestManagerModel(FunctTreeStore):
 
     def __init__(self):
         self.columns = [
-                ("Name/ID", [], 0),
-                ("Status", [], 1),
-                ("DateTime", [], 2),
-                ("Additional Info", [], 3),
+                ("Name/ID", 
+                    {'text':0}),
+                ("Status", 
+                    {'text':1, 'cell_background':5}),
+                ("DateTime", 
+                    {'text':2}),
+                ("Additional Info", 
+                    {'text':3}),
                 ]
         self.valid_adapter_types = [
                 adapters.unit.UnitUnderTestAdapter,
@@ -40,19 +44,16 @@ class TestManagerModel(FunctTreeStore):
                 str, # status background color string
                 )
 
-        status_cr_list = self.tvcolumns[1].get_cell_renderers()
-        status_cr = status_cr_list[0] 
-        self.tvcolumns[1].set_attributes(status_cr, cell_background=5)
-
     def _add(self, parent_iter, adapter):
-        logging.debug(adapter.name)
-        row_iter = self.append( parent_iter, ( adapter.name, adapter.status,
-            adapter.datetime, adapter.additional_info, adapter, '#FFFFFF'))
+        status_message, status_bg_color = self.__dispatch_data_function(
+                "_status", adapter)
+        row_iter = self.append(parent_iter, (adapter.name, status_message,
+            adapter.datetime, adapter.additional_info, adapter,
+            status_bg_color))
         adapter.connect('on-changed', self.__update, row_iter)
         return row_iter
 
     def __update(self, adapter, row_iter):
-        logging.debug(adapter.name)
         status_message, status_bg_color = self.__dispatch_data_function(
                 "_status", adapter)
         self[row_iter] = (adapter.name, status_message, adapter.datetime,
@@ -78,35 +79,56 @@ class TestManagerModel(FunctTreeStore):
     def _status_uut_cb(self, adapter):
         status = adapter.status
 
-        message = "INIT"
-        gdk_color = gtk.gdk.Color('#FFFFFF')
+        message = status
+        gdk_color = '#FFFFFF'
 
         if status & UnitUnderTest.State.POWER:
-            message = "powered up"
+            message = "Power On"
 
-        return message, gdk_color
+        if status == UnitUnderTest.State.INIT:
+            message = "INIT"
+
+        return message, gtk.gdk.Color(gdk_color)
         
     def _status_test_cb(self, adapter):
         status = adapter.status
 
-        gdk_color = gtk.gdk.Color('#FFFFFF')
-        message = "Not Run"
+        message = status
+        gdk_color = '#FFFFFF'
 
         if status & Test.State.HAS_RUN:
             if status & Test.State.FAIL:
-                gdk_color = gtk.gdk.Color('#FF0033')
+                gdk_color = '#FF0033'
                 message = "Fail"
             else:
-                gdk_color = gtk.gdk.Color('#00FF33')
+                gdk_color = '#00FF33'
                 message = "Pass"
 
-        return message, gdk_color
+        if not status & Test.State.VALID:
+            message = "Invalid Test"
+            gdk_color = '#202020'
+
+        if status == Test.State.VALID:
+            message = "INIT"
+
+        return message, gtk.gdk.Color(gdk_color)
 
     def _status_action_cb(self, adapter):
         status = adapter.status
 
-        message = "INIT"
-        gdk_color = "#FFFFFF"
+        message = status
+        gdk_color = '#FFFFFF'
 
-        return message, gdk_color
+        if status & Action.State.HAS_RUN:
+            if status & Action.State.FAIL:
+                gdk_color = '#FF0033'
+                message = "Fail"
+            else:
+                gdk_color = '#00FF33'
+                message = "Pass"
+
+        if status == Action.State.INIT:
+            message = "INIT"
+
+        return message, gtk.gdk.Color(gdk_color)
         

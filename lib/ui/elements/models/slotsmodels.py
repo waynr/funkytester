@@ -5,6 +5,7 @@ import gtk, gobject
 
 from ui.elements import adapters
 from ui.elements.generic import FunctTreeStore
+from ui.elements.adapters import PlatformSlotAdapter, PlatformAdapter
 
 from ft.platform import PlatformSlot
 
@@ -12,56 +13,67 @@ class SlotsManagerModel(FunctTreeStore):
     
     def __init__(self):
         self.columns = [
-                ("Status", [self.__status_data], None),
-                ("Current Unit Under Test", [self.__currentuut_data], None),
-                ("Product Type", [self.__producttype_data], None),
+                ("Status", 
+                    {'text':0, 'cell_background':4}),
+                ("Current Unit Under Test", 
+                    {'text':1}),
+                ("Product Type", 
+                    {'text':2}),
                 ]
         self.valid_adapter_types = [
                 adapters.platform.PlatformAdapter,
                 adapters.platformslot.PlatformSlotAdapter,
                 ]
-        super(SlotsManagerModel, self).__init__(str, str, str, gobject.TYPE_PYOBJECT)
+        super(SlotsManagerModel, self).__init__(
+                str, str, str, # name, status, datetime, additional_info
+                gobject.TYPE_PYOBJECT, # adapter object
+                str, # status background color string
+                )
 
     def _add(self, parent_iter, adapter):
-        row_iter = self.append( parent_iter, ( adapter.status,
-            adapter.current_uut, adapter.product_type, adapter))
+        status_message, status_bg_color = self.__dispatch_data_function(
+                "_status", adapter)
+        row_iter = self.append( parent_iter, ( status_message,
+            adapter.current_uut, adapter.product_type, adapter,
+            status_bg_color))
         adapter.connect('on-changed', self.__update, row_iter)
         return row_iter
 
     def __update(self, adapter, row_iter):
+        status_message, status_bg_color = self.__dispatch_data_function(
+                "_status", adapter)
         product_data = "{0} | {1} | {2}".format(adapter.product_type,
                 adapter.metadata_version, adapter.specification_name)
-        self[row_iter] = (adapter.status, adapter.current_uut,
-                product_data, adapter)
+        self[row_iter] = (status_message, adapter.current_uut, product_data,
+                adapter, status_bg_color)
 
-    def __status_data(self, treeview_column, cell, model, iter, 
-            user_data):
-        status = int(model.get_value(iter, 0), 16)
-        cell.set_property('xalign', 0.5)
-        cell.set_property('width-chars', 15)
+    def __dispatch_data_function(self, method_name, adapter, *args, **kwargs):
+        if isinstance(adapter, PlatformSlotAdapter):
+            suffix = "_platformslot_cb"
+        elif isinstance(adapter, PlatformAdapter):
+            suffix = "_platform_cb"
+        else:
+            raise TypeError("Invalid Adapter: {0}".format(adapter))
+
+        method_name += suffix
+
+        if hasattr(self, method_name):
+            method = getattr(self, method_name)
+            return method(adapter, *args, **kwargs)
+        return "nonce", gtk.gdk.Color('#F0F0F0')
+
+    def _status_platformslot_cb(self, adapter):
+        status = adapter.status
 
         if status & PlatformSlot.State.POWER:
             message = "Power On"
-            cell.set_property('cell-background', gtk.gdk.Color('#00FF33'))
+            gdk_color = '#00FF33'
         elif status & PlatformSlot.State.OCCUPIED:
             message = "Slot Occupied"
-            cell.set_property('cell-background', gtk.gdk.Color('#FFBF00'))
+            gdk_color = '#FFBF00'
         else:
             message = "Slot Empty"
-            cell.set_property('cell-background', gtk.gdk.Color('#FFFFFF'))
+            gdk_color = '#FFFFFF'
 
-        cell.set_property('text', message)
-        return
-
-    def __currentuut_data(self, treeview_column, cell, model, iter, 
-            user_data):
-        obj = model.get_value(iter, 1)
-        cell.set_property('text', str(obj))
-        return
-
-    def __producttype_data(self, treeview_column, cell, model, iter, 
-            user_data):
-        obj = model.get_value(iter, 2)
-        cell.set_property('text', str(obj))
-        return
+        return message, gtk.gdk.Color(gdk_color)
 
