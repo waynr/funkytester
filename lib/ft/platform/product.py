@@ -65,8 +65,10 @@ class Product(ProductDB, HasMetadata):
         config_file = os.path.join(self.local_path, "config.yaml")
         self.config = GenConfig2(config_file)
 
-        os.unlink("./current_test")
-        os.symlink(self.local_path, "./current_test")
+        current_test = "current_test"
+        if os.path.exists(current_test):
+            os.unlink(current_test)
+        os.symlink(self.local_path, current_test)
 
     def get_file_path(self, file_name):
         return os.path.join(self.local_path, file_name)
