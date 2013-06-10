@@ -99,10 +99,12 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             status = self.status,
             )
 
-    def _fire_status(state_bit=None):
-        if state_bit:
-            self.state &= state_bit
-
+    # For PlatformSlotEvents only.
+    # This no longer takes a bitmask argument -- we'd have to be able to tell 
+    #  which operation we needed first (that is, |= or &=)
+    #
+    # It seems easier right now to just do the bitmasking work outside _fire_status().
+    def _fire_status(self):
         # get date and time in ISO format
         now = datetime.datetime.now()
         datetime = now.strftime("%Y-%m-%d %X")
@@ -165,7 +167,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].disable()
-                self._fire_status(~PlatformSlot.State.POWER)
+                self.status &= ~PlatformSlot.State.POWER
+                self._fire_status()
 
         else:
             self.fire( ft.event.UpdateStatus,
@@ -184,10 +187,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             else:
                 self.__control["power"].enable()
                 self.status |= PlatformSlot.State.POWER
-                self.fire( ft.event.PlatformSlotEvent, 
-                        obj = self, 
-                        status = self.status,
-                        )
+                self._fire_status()
         else:
             self.fire( ft.event.UpdateStatus, 
                     message = "WARNING: Automated powerup not available.",
@@ -210,10 +210,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         serial_number = data["serialnum"]
 
         if self.status & PlatformSlot.State.OCCUPIED:
-            self.fire( ft.event.PlatformSlotEvent,
-                    obj = self,
-                    status = self.status,
-                    )
+            self._fire_status()
             self.fire( ft.event.UpdateStatus,
                     message = "WARNING: PlatformSlot currently populated.",
                     )
@@ -226,6 +223,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.platform.uuts[serial_number] = self.uut
         
         self.status |= PlatformSlot.State.OCCUPIED
+        # should we use self._fire_status() anywhere here?
         self.fire( ft.event.PlatformSlotEvent, 
                 obj = self,
                 status = self.status,
