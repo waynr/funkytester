@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import datetime
+import time
 
 import threading, sys, logging, os.path as path, weakref, os
 
@@ -100,19 +100,17 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             )
 
     # For PlatformSlotEvents only.
-    # This no longer takes a bitmask argument -- we'd have to be able to tell 
-    #  which operation we needed first (that is, |= or &=)
-    #
-    # It seems easier right now to just do the bitmasking work outside _fire_status().
-    def _fire_status(self):
-        # get date and time in ISO format
-        now = datetime.datetime.now()
-        datetime = now.strftime("%Y-%m-%d %X")
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
 
         self.fire(ft.event.PlatformSlotEvent,
                 obj = self,
                 status = self.status,
-                datetime
+                datetime = time.time()
                 )
 
     def _deploy_files(self):
@@ -167,8 +165,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].disable()
-                self.status &= ~PlatformSlot.State.POWER
-                self._fire_status()
+                self._fire_status(PlatformSlot.State.POWER, False)
 
         else:
             self.fire( ft.event.UpdateStatus,
@@ -186,8 +183,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].enable()
-                self.status |= PlatformSlot.State.POWER
-                self._fire_status()
+                self._fire_status(PlatformSlot.State.POWER)
         else:
             self.fire( ft.event.UpdateStatus, 
                     message = "WARNING: Automated powerup not available.",
@@ -223,7 +219,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.platform.uuts[serial_number] = self.uut
         
         self.status |= PlatformSlot.State.OCCUPIED
-        # should we use self._fire_status() anywhere here?
+        # How should we use self._fire_status() here?
         self.fire( ft.event.PlatformSlotEvent, 
                 obj = self,
                 status = self.status,

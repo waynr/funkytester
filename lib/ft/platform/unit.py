@@ -7,7 +7,7 @@
 #  various interfaces.
 #
 
-import datetime
+import time
 
 import logging, threading, time, xmlrpclib
 from string import Template
@@ -200,24 +200,21 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         logging.debug(self.ip_address)
 
     # For UnitUnderTestEvents only.
-    # This no longer takes a bitmask argument -- we'd have to be able to tell 
-    #  which operation we needed first (that is, |= or &=)
-    #
-    # It seems easier right now to just do the bitmasking work outside _fire_status().
-    def _fire_status(self):
-        # get date and time in ISO format
-        now = datetime.datetime.now()
-        datetime = now.strftime("%Y-%m-%d %X")
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
 
         self.fire(ft.event.UnitUnderTestEvent,
                 obj = self,
                 status = self.status,
-                datetime
+                datetime = time.time()
                 )
 
     def _nfs_test_boot(self):
-        self.status &= UnitUnderTest.State.BOOT_NFS
-        self._fire_status()
+        self._fire_status(~UnitUnderTest.State.BOOT_NFS, False)
 
         # get nfs_test.template from product
         template_string = self.product.get_file("nfs_test.template")
@@ -237,15 +234,12 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         
         # run boot command
         interface = self.interfaces["uboot"]
-        self.status &= UnitUnderTest.State.BOOTING
-        self._fire_status()
+        self._fire_status(~UnitUnderTest.State.BOOTING, False)
 
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
 
-        self.status &= ~UnitUnderTest.State.UBOOT
-        self.status |= UnitUnderTest.State.WAITING
-        self.status |= UnitUnderTest.State.LINUX
-        self._fire_status()
+        self._fire_status(UnitUnderTest.State.UBOOT, False)
+        self._fire_status(UnitUnderTest.State.WAITING | UnitUnderTest.State.LINUX)
 
     ## Initialize UUT's Test objects; if UUT is not booted, boot it to nfs.
     #
@@ -289,9 +283,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             test.initialize_actions()
             self.tests.append(test)
 
-        self.status |= UnitUnderTest.State.LOAD_TESTS
-        self.status |= UnitUnderTest.State.WAITING
-        self._fire_status()
+        self._fire_status(UnitUnderTest.State.LOAD_TESTS | UnitUnderTest.State.WAITING)
 
     ## Run all tests; if tests are not initialized, initialize them.
     #
@@ -304,12 +296,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                     obj = self,
                     message = "WARNING: No tests available!",
                     )
-        self.status |= UnitUnderTest.State.TESTING
-        self._fire_status()
+        self._fire_status(UnitUnderTest.State.TESTING)
         for test in self.tests:
             test.run()
-        self.status |= UnitUnderTest.State.WAITING
-        self._fire_status()
+        self._fire_status(UnitUnderTest.State.WAITING)
 
     def _load_kfs(self):
         pass
