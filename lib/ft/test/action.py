@@ -106,6 +106,20 @@ class Action(ActionDB):
 
         instances[name] = self.action_class(kwargs=constructorargs)
 
+    # For ActionEvents only.
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.ActionEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
+
     ## Clears action instances
     # 
     @staticmethod

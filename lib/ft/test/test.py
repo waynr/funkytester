@@ -191,6 +191,20 @@ class Test(TestDB):
     def _run(self,):
         raise NotImplementedError
 
+    # For TestEvents only.
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.TestEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
+
     ## Retrieves a given attribute if it exists
     #
     # If the attribute does not exist, an AttributeError exception is raised
