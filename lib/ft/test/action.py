@@ -87,6 +87,19 @@ class Action(ActionDB):
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.ActionEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
+
     def set_address(self, address):
         self.address = (self.test.address, address)
         self.fire( ft.event.ActionInit,
@@ -105,20 +118,6 @@ class Action(ActionDB):
         constructorargs["instance_name"]    = name
 
         instances[name] = self.action_class(kwargs=constructorargs)
-
-    # For ActionEvents only.
-    def _fire_status(self, state_bit=None, on=True):
-        if state_bit:
-            if on:
-                self.status |= state_bit
-            elif not on:
-                self.status &= ~state_bit
-
-        self.fire(ft.event.ActionEvent,
-                obj = self,
-                status = self.status,
-                datetime = time.time()
-                )
 
     ## Clears action instances
     # 

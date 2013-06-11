@@ -122,6 +122,19 @@ class Test(TestDB):
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.TestEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
+
     ## Runs the test, fires events to signal that the test begins and ends
     #
     # Fires the TestStart event, runs the test a maximum of max_retry times
@@ -190,20 +203,6 @@ class Test(TestDB):
     #
     def _run(self,):
         raise NotImplementedError
-
-    # For TestEvents only.
-    def _fire_status(self, state_bit=None, on=True):
-        if state_bit:
-            if on:
-                self.status |= state_bit
-            elif not on:
-                self.status &= ~state_bit
-
-        self.fire(ft.event.TestEvent,
-                obj = self,
-                status = self.status,
-                datetime = time.time()
-                )
 
     ## Retrieves a given attribute if it exists
     #

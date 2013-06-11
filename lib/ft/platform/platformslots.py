@@ -67,6 +67,19 @@ class PlatformSlot(PlatformSlotDB, Commandable):
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.PlatformSlotEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
+
     def configure(self, specification_name):
         self.product.set_specification(specification_name)
         self.product.configure()
@@ -98,20 +111,6 @@ class PlatformSlot(PlatformSlotDB, Commandable):
             obj = self,
             status = self.status,
             )
-
-    # For PlatformSlotEvents only.
-    def _fire_status(self, state_bit=None, on=True):
-        if state_bit:
-            if on:
-                self.status |= state_bit
-            elif not on:
-                self.status &= ~state_bit
-
-        self.fire(ft.event.PlatformSlotEvent,
-                obj = self,
-                status = self.status,
-                datetime = time.time()
-                )
 
     def _deploy_files(self):
         product_tftp_dir = os.path.join(self.product.local_path, "tftp_files")

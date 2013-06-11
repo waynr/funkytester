@@ -111,6 +111,19 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.UnitUnderTestEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
+
     def configure(self, serial_number, product, mac_address=None):
         self.serial_number = serial_number
         self.product = product
@@ -198,20 +211,6 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         # set UUT's IP address
         self.ip_address = interface.get_var("ipaddr")
         logging.debug(self.ip_address)
-
-    # For UnitUnderTestEvents only.
-    def _fire_status(self, state_bit=None, on=True):
-        if state_bit:
-            if on:
-                self.status |= state_bit
-            elif not on:
-                self.status &= ~state_bit
-
-        self.fire(ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                datetime = time.time()
-                )
 
     def _nfs_test_boot(self):
         self._fire_status(~UnitUnderTest.State.BOOT_NFS, False)
