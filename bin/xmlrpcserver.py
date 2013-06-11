@@ -3,7 +3,7 @@
 
 from optparse import OptionParser
 from os import path
-import inspect, sys, logging
+import inspect, sys, logging, pdb
 
 bindir = path.dirname(__file__)
 topdir = path.dirname(bindir)
@@ -39,6 +39,7 @@ from ft.device import emac_devices
 def parse_options():
     parser = OptionParser()
     parser.add_option("-p", "--port", action="store", type="int", dest="port")
+    parser.add_option("-P", "--quiet", action="store_false", dest="pydebug")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
     parser.add_option("-q", "--quiet", action="store_false", dest="verbose")
     
@@ -98,6 +99,8 @@ def main():
     # run server until killed by signal
     #
     
+    if options.pydebug:
+        pdb.set_trace()
     server.serve_forever()
 
 if __name__ == "__main__":
