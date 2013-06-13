@@ -238,7 +238,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
 
         self._fire_status(UnitUnderTest.State.UBOOT, False)
-        self._fire_status(UnitUnderTest.State.WAITING | UnitUnderTest.State.LINUX)
+        self._fire_status(UnitUnderTest.State.WAITING |
+                UnitUnderTest.State.LINUX)
 
     ## Initialize UUT's Test objects; if UUT is not booted, boot it to nfs.
     #
@@ -250,7 +251,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         interface = self.interfaces["linux"]
 
         # run xmlrpc server on remote machine
-        interface.cmd("./bin/xmlrpcserver.py -p 8001 {0} &".format(self.ip_address))
+        interface.cmd("./bin/xmlrpcserver.py -p 8001 {0} &".format( 
+            self.ip_address))
         
         # initialize xmlrpc client
         xmlrpc_server_address = "http://{0}:{1}".format(self.ip_address, "8001")
@@ -282,7 +284,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             test.initialize_actions()
             self.tests.append(test)
 
-        self._fire_status(UnitUnderTest.State.LOAD_TESTS | UnitUnderTest.State.WAITING)
+        self._fire_status(UnitUnderTest.State.LOAD_TESTS |
+                UnitUnderTest.State.WAITING)
 
     ## Run all tests; if tests are not initialized, initialize them.
     #

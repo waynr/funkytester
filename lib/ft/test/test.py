@@ -295,18 +295,19 @@ class SingleTest(Test,):
 ## Test class
 #
 # Creates and runs an ExpectTest. ExpectTests check a list of actions by keeping
-# track of changes in state in the platform and then verifying that the expected states
-# are recieved by the UUT.
+# track of changes in state in the platform and then verifying that the expected
+# states are recieved by the UUT.
 #
 class ExpectTest(Test,):
 
     ## The constructor
     #
-    # Sets up two lists of dictionaries to keep track of state changes in the test's
-    # actions.
+    # Sets up two lists of dictionaries to keep track of state changes in the
+    # test's actions.
     #
     # @param self The object pointer
-    # @param xmlrpc_client Connection to the UUT to facilitate the transparent proxy
+    # @param xmlrpc_client Connection to the UUT to facilitate the transparent
+    # proxy
     # @param uut_id Serial number of the UUT
     # @param test_dict Dictionary from the test
     #
