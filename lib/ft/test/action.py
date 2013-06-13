@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import sys
-import logging, pprint
+import sys, time, logging, pprint
 
 from sqlalchemy import Column, Integer, String, Boolean, Date, Text, ForeignKey
 from sqlalchemy.orm import relationship
