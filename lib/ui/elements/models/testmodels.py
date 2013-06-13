@@ -29,7 +29,7 @@ class TestManagerModel(FunctTreeStore):
                     {'xalign':0.0, 'width-chars':15}),
                 ("Status", 
                     {'text':1, 'cell_background':5},
-                    {'xalign':0.5, 'width-chars':15}),
+                    {'xalign':0.5, 'width-chars':25}),
                 ("DateTime", 
                     {'text':2},
                     {'xalign':0.5, 'width-chars':21}),
@@ -90,14 +90,49 @@ class TestManagerModel(FunctTreeStore):
     def _status_uut_cb(self, adapter):
         status = adapter.status
 
-        message = status
+        message = ""
         gdk_color = '#FFFFFF'
 
-        if status & UnitUnderTest.State.POWER:
-            message = "Power On"
+        while True:
+            if status == UnitUnderTest.State.INIT:
+                message += "INIT"
+                break
 
-        if status == UnitUnderTest.State.INIT:
-            message = "INIT"
+            if not status & UnitUnderTest.State.POWER:
+                message += "Power Off"
+                break
+
+            if status & UnitUnderTest.State.LINUX:
+                if status & UnitUnderTest.State.BOOT_NFS:
+                    message += "NFS"
+
+                if status & UnitUnderTest.State.BOOT_FLASH:
+                    message += "FLASH"
+
+                message += "Linux | "
+                if status & UnitUnderTest.State.LOAD_TESTS:
+                    message += "Loading Tests"
+                    break
+                if status & UnitUnderTest.State.WAITING:
+                    message += "Waiting"
+                    break
+                if status & UnitUnderTest.State.TESTING:
+                    message += "Testing"
+                    break
+    
+            if status & UnitUnderTest.State.BOOTING:
+                message += "Booting"
+                break
+
+            if status & UnitUnderTest.State.UBOOT:
+                message += "U-Boot | "
+                if status & UnitUnderTest.State.WAITING:
+                    message += "Waiting"
+                else:
+                    message += "Busy"
+                break
+
+            break
 
         return message, gtk.gdk.Color(gdk_color)
         
