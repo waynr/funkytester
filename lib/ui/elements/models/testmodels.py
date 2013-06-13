@@ -94,11 +94,15 @@ class TestManagerModel(FunctTreeStore):
         gdk_color = '#FFFFFF'
 
         while True:
-            if status == UnitUnderTest.State.INIT:
+            if status & UnitUnderTest.State.INIT:
                 message += "INIT"
                 break
 
-            if not status & UnitUnderTest.State.POWER:
+            if not status & UnitUnderTest.State.ACTIVE:
+                gdk_color = "#FF5555"
+                message += "Inactive"
+                break
+            elif not status & UnitUnderTest.State.POWER:
                 message += "Power Off"
                 break
 
@@ -113,25 +117,28 @@ class TestManagerModel(FunctTreeStore):
                 if status & UnitUnderTest.State.LOAD_TESTS:
                     message += "Loading Tests"
                     break
-                if status & UnitUnderTest.State.WAITING:
-                    message += "Waiting"
-                    break
                 if status & UnitUnderTest.State.TESTING:
                     message += "Testing"
                     break
+                if status & UnitUnderTest.State.READY:
+                    message += "Ready"
+                else:
+                    message += "Busy"
+                break
     
             if status & UnitUnderTest.State.BOOTING:
                 message += "Booting"
                 break
 
-            if status & UnitUnderTest.State.UBOOT:
+            if status & UnitUnderTest.State.BOOTL:
                 message += "U-Boot | "
-                if status & UnitUnderTest.State.WAITING:
-                    message += "Waiting"
+                if status & UnitUnderTest.State.READY:
+                    message += "Ready"
                 else:
                     message += "Busy"
                 break
 
+            message += "Unknown"
             break
 
         return message, gtk.gdk.Color(gdk_color)

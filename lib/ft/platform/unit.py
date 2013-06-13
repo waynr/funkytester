@@ -50,24 +50,25 @@ class UnitUnderTestDB(Base):
     tests = relationship("Test")
 
     class State:
-        INIT        = 0x0000
-        POWER       = 0x0002
+        INIT        = 0x000001
+        ACTIVE      = 0x000002
+        POWER       = 0x000004
 
-        UBOOT       = 0x0004
-        LINUX       = 0x0008
+        BOOTL       = 0x100000
+        LINUX       = 0x200000
 
-        BOOT_NFS    = 0x0010
-        BOOT_FLASH  = 0x0020
+        BOOT_NFS    = 0x000010
+        BOOT_FLASH  = 0x000020
+        BOOTING     = 0x000040
 
-        BOOTING     = 0x0040
-        WAITING     = 0x0080
+        READY       = 0x000080
 
-        LOAD_TESTS  = 0x0100
-        TESTING     = 0x0200
-        LOAD_BL     = 0x0400
-        LOAD_KFS    = 0x0800
+        LOAD_TESTS  = 0x000100
+        TESTING     = 0x000200
+        LOAD_BL     = 0x000400
+        LOAD_KFS    = 0x000800
 
-        FAIL        = 0x8000
+        FAIL        = 0x008000
 
     def __repr__(self,):
         rstring = "<UnitUnderTest('%s','%s','%s')>" 
@@ -107,6 +108,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 name = self.serial_number,
                 status = self.status,
                 )
+        self.activate()
 
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
@@ -124,13 +126,25 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 datetime = time.time()
                 )
 
+    ## Indicate that the UUT is an active Platform Object.
+    #
+    def activate(self):
+        self._fire_status(UnitUnderTest.State.INIT, False)
+        self._fire_status(UnitUnderTest.State.ACTIVE)
+
+    ## Indicate that the UUT is no longer an active Platform Object.
+    #
+    def deactivate(self):
+        self._fire_status(UnitUnderTest.State.ACTIVE, False)
+
     def powerdown(self):
         self.platform_slot.powerdown()
         self._fire_status(UnitUnderTest.State.POWER, False)
 
     def powerup(self):
         self.platform_slot.powerup()
-        self.status = UnitUnderTest.State.INIT
+        self.status = UnitUnderTest.State.ACTIVE
+        self.activate()
         self._fire_status(UnitUnderTest.State.POWER)
 
     def configure(self, serial_number, product, mac_address=None):
@@ -217,8 +231,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         if not interface.chk(10):
             raise Exception("U-Boot prompt not found!")
 
-        self._fire_status(UnitUnderTest.State.UBOOT)
-        self._fire_status(UnitUnderTest.State.WAITING, False)
+        self._fire_status(UnitUnderTest.State.BOOTL)
+        self._fire_status(UnitUnderTest.State.READY, False)
 
         # run given uboot template line-by-line at uboot prompt
         for command in commands:
@@ -229,7 +243,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.ip_address = interface.get_var("ipaddr")
         logging.debug(self.ip_address)
 
-        self._fire_status(UnitUnderTest.State.WAITING)
+        self._fire_status(UnitUnderTest.State.READY)
 
     def _nfs_test_boot(self):
         self._fire_status(UnitUnderTest.State.BOOT_NFS)
@@ -249,21 +263,21 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             baud = self.product.config.serial["baud"],
             )
         self._fire_status(UnitUnderTest.State.BOOTING)
-        self._fire_status(UnitUnderTest.State.UBOOT, False)
+        self._fire_status(UnitUnderTest.State.BOOTL, False)
         
         # run boot command
         interface = self.interfaces["uboot"]
 
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
 
-        self._fire_status(UnitUnderTest.State.WAITING |
+        self._fire_status(UnitUnderTest.State.READY |
                 UnitUnderTest.State.LINUX)
         self._fire_status(UnitUnderTest.State.BOOTING, False)
 
     ## Initialize UUT's Test objects; if UUT is not booted, boot it to nfs.
     #
     def _initialize_tests(self):
-        if not (self.status & (UnitUnderTest.State.WAITING |
+        if not (self.status & (UnitUnderTest.State.READY |
             UnitUnderTest.State.LINUX)):
             self._nfs_test_boot()
 
@@ -304,7 +318,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             test.initialize_actions()
             self.tests.append(test)
 
-        self._fire_status(UnitUnderTest.State.WAITING)
+        self._fire_status(UnitUnderTest.State.READY)
         self._fire_status(UnitUnderTest.State.LOAD_TESTS, False)
 
     ## Run all tests; if tests are not initialized, initialize them.
@@ -321,7 +335,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self._fire_status(UnitUnderTest.State.TESTING)
         for test in self.tests:
             test.run()
-        self._fire_status(UnitUnderTest.State.WAITING)
+        self._fire_status(UnitUnderTest.State.READY)
 
     def _load_kfs(self):
         pass
