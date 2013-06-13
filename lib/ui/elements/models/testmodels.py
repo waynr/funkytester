@@ -25,13 +25,17 @@ class TestManagerModel(FunctTreeStore):
     def __init__(self):
         self.columns = [
                 ("Name/ID", 
-                    {'text':0}),
+                    {'text':0},
+                    {'xalign':0.0, 'width-chars':15}),
                 ("Status", 
-                    {'text':1, 'cell_background':5}),
+                    {'text':1, 'cell_background':5},
+                    {'xalign':0.5, 'width-chars':15}),
                 ("DateTime", 
-                    {'text':2}),
+                    {'text':2},
+                    {'xalign':0.5, 'width-chars':21}),
                 ("Additional Info", 
-                    {'text':3}),
+                    {'text':3},
+                    {'xalign':0.0,} ),
                 ]
         self.valid_adapter_types = [
                 adapters.unit.UnitUnderTestAdapter,

@@ -69,8 +69,9 @@ class FunctTreeStore(gtk.TreeStore):
 
             cell = gtk.CellRendererText()
             self.tvcolumns[n].pack_start(cell) # XXX might need expand=False
-            cell.set_property('xalign', 0.5)
-            cell.set_property('width-chars', 15)
+
+            for property, column in self.columns[n][2].items():
+                cell.set_property(property, column)
 
             for attribute, column in self.columns[n][1].items():
                 self.tvcolumns[n].add_attribute(cell, attribute, column)

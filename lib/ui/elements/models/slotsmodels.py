@@ -14,11 +14,14 @@ class SlotsManagerModel(FunctTreeStore):
     def __init__(self):
         self.columns = [
                 ("Status", 
-                    {'text':0, 'cell_background':4}),
+                    {'text':0, 'cell_background':4},
+                    {'xalign':0.5, 'width-chars':15}),
                 ("Current Unit Under Test", 
-                    {'text':1}),
+                    {'text':1},
+                    {'xalign':0.5, 'width-chars':11}),
                 ("Product Type", 
-                    {'text':2}),
+                    {'text':2},
+                    {'xalign':0.05,}),
                 ]
         self.valid_adapter_types = [
                 adapters.platform.PlatformAdapter,
