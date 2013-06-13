@@ -124,6 +124,15 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 datetime = time.time()
                 )
 
+    def powerdown(self):
+        self.platform_slot.powerdown()
+        self._fire_status(UnitUnderTest.State.POWER, False)
+
+    def powerup(self):
+        self.platform_slot.powerup()
+        self.status = UnitUnderTest.State.INIT
+        self._fire_status(UnitUnderTest.State.POWER)
+
     def configure(self, serial_number, product, mac_address=None):
         self.serial_number = serial_number
         self.product = product
@@ -175,6 +184,9 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self._run_all_tests()
 
     ## Power on the UUT and prepare the U-Boot environment using template script.
+    #  
+    #  Will always power down, then power up the UUT before attempting to work
+    #  the u-boot environment.
     #
     # @param template_string Python Template string.
     # @param mapping Dictionary object whose keys correspond to variables to be
@@ -197,7 +209,9 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         # poweron the slot
         interface = self.interfaces["uboot"]
-        self.platform_slot.powerup()
+
+        self.powerdown()
+        self.powerup()
 
         # listen for U-Boot prompt
         if not interface.chk(10):
