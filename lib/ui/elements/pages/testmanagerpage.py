@@ -40,8 +40,11 @@ class TestManagerPage(FunctPage):
         self.box["left"] = gtk.VBox(False, 0)
         self.box["right"] = gtk.VBox(False, 0)
 
-        self.box["main"].pack_start(self.box["left"], False, False, 10)
-        self.box["main"].pack_start(gtk.VSeparator(), False, False, 5)
+        # Disable the side "Button Bar" for now, but keep the code in case it is
+        # useful later.
+        #self.box["main"].pack_start(self.box["left"], False, False, 10)
+        #self.box["main"].pack_start(gtk.VSeparator(), False, False, 5)
+
         self.box["main"].pack_start(self.box["right"])
 
         self.box["right_innerbottom"] = gtk.HBox(False, 0)
