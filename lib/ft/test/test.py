@@ -38,8 +38,9 @@ class TestDB(Base):
     
     class State:
         INIT        = 0x000
-        HAS_RUN     = 0x001
-        VALID       = 0x002
+        RUNNING     = 0x001
+        HAS_RUN     = 0x002
+        VALID       = 0x004
 
         FAIL        = 0x100
         BROKEN      = 0x200
@@ -147,6 +148,7 @@ class Test(TestDB):
         self.fire(ft.event.TestStart,
                 obj = self
                 )
+        self._fire_status(Test.State.RUNNING)
         count   = 0
         while count < self.max_retry:
             try:
@@ -164,7 +166,8 @@ class Test(TestDB):
             count += 1
             #time.sleep(.1)
         self.check_actions()
-        self.status |= Test.State.HAS_RUN
+        self._fire_status(Test.State.RUNNING, False)
+        self._fire_status(Test.State.HAS_RUN)
         self.fire(ft.event.TestFinish,
                 obj = self,
                 status = self.status,

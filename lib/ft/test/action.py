@@ -39,7 +39,8 @@ class ActionDB(Base):
 
     class State:
         INIT        = 0x000
-        HAS_RUN     = 0x001
+        RUNNING     = 0x001
+        HAS_RUN     = 0x002
 
         FAIL        = 0x100
         BROKEN      = 0x200
@@ -135,6 +136,7 @@ class Action(ActionDB):
         self.fire(ft.event.ActionStart,
                 obj = self
                 )
+        self._fire_status(Action.State.RUNNING)
         if not value == None:
             self.kwargs[self.kwargs_value_key] = value
         try:
@@ -147,10 +149,13 @@ class Action(ActionDB):
                     obj = self
                     )
             result = None
+            self._fire_status(Action.State.FAIL)
         else:
             self.fire(ft.event.ActionFinish,
                 obj = self
                 )
+        self._fire_status(Action.State.RUNNING, False)
+        self._fire_status(Action.State.HAS_RUN)
         return result
 
     def _call(self,):
