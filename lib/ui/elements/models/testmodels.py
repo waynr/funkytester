@@ -107,7 +107,10 @@ class TestManagerModel(FunctTreeStore):
         message = status
         gdk_color = '#FFFFFF'
 
-        if status & Test.State.HAS_RUN:
+        if status & Test.State.RUNNING:
+            gdk_color = '#0033FF'
+            message = "Running"
+        elif status & Test.State.HAS_RUN:
             if status & Test.State.FAIL:
                 gdk_color = '#FF0033'
                 message = "Fail"
@@ -130,7 +133,10 @@ class TestManagerModel(FunctTreeStore):
         message = status
         gdk_color = '#FFFFFF'
 
-        if status & Action.State.HAS_RUN:
+        if status & Action.State.RUNNING:
+            gdk_color = '#0033FF'
+            message = "Running"
+        elif status & Action.State.HAS_RUN:
             if status & Action.State.FAIL:
                 gdk_color = '#FF0033'
                 message = "Fail"
