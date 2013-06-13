@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import logging
+import logging, datetime
 
 import gtk, gobject
 
@@ -60,7 +60,14 @@ class TestManagerModel(FunctTreeStore):
     def __update(self, adapter, row_iter):
         status_message, status_bg_color = self.__dispatch_data_function(
                 "_status", adapter)
-        self[row_iter] = (adapter.name, status_message, adapter.datetime,
+
+        if adapter.datetime:
+            dt = datetime.datetime.fromtimestamp(adapter.datetime)
+            date_time = dt.strftime("%m/%d/%y, %I:%M:%S %p")
+        else:
+            date_time = "N/A"
+
+        self[row_iter] = (adapter.name, status_message, date_time,
                 adapter.additional_info, adapter, status_bg_color)
 
     def __dispatch_data_function(self, method_name, adapter, *args, **kwargs):
