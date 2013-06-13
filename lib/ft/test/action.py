@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import sys
-import logging, pprint
+import sys, time, logging, pprint
 
 from sqlalchemy import Column, Integer, String, Boolean, Date, Text, ForeignKey
 from sqlalchemy.orm import relationship
@@ -40,7 +39,8 @@ class ActionDB(Base):
 
     class State:
         INIT        = 0x000
-        HAS_RUN     = 0x001
+        RUNNING     = 0x001
+        HAS_RUN     = 0x002
 
         FAIL        = 0x100
         BROKEN      = 0x200
@@ -87,6 +87,19 @@ class Action(ActionDB):
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.ActionEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
+
     def set_address(self, address):
         self.address = (self.test.address, address)
         self.fire( ft.event.ActionInit,
@@ -123,6 +136,7 @@ class Action(ActionDB):
         self.fire(ft.event.ActionStart,
                 obj = self
                 )
+        self._fire_status(Action.State.RUNNING)
         if not value == None:
             self.kwargs[self.kwargs_value_key] = value
         try:
@@ -135,10 +149,13 @@ class Action(ActionDB):
                     obj = self
                     )
             result = None
+            self._fire_status(Action.State.FAIL)
         else:
             self.fire(ft.event.ActionFinish,
                 obj = self
                 )
+        self._fire_status(Action.State.RUNNING, False)
+        self._fire_status(Action.State.HAS_RUN)
         return result
 
     def _call(self,):

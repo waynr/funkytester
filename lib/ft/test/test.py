@@ -38,8 +38,9 @@ class TestDB(Base):
     
     class State:
         INIT        = 0x000
-        HAS_RUN     = 0x001
-        VALID       = 0x002
+        RUNNING     = 0x001
+        HAS_RUN     = 0x002
+        VALID       = 0x004
 
         FAIL        = 0x100
         BROKEN      = 0x200
@@ -122,6 +123,19 @@ class Test(TestDB):
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.TestEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
+
     ## Runs the test, fires events to signal that the test begins and ends
     #
     # Fires the TestStart event, runs the test a maximum of max_retry times
@@ -134,6 +148,7 @@ class Test(TestDB):
         self.fire(ft.event.TestStart,
                 obj = self
                 )
+        self._fire_status(Test.State.RUNNING)
         count   = 0
         while count < self.max_retry:
             try:
@@ -151,7 +166,8 @@ class Test(TestDB):
             count += 1
             #time.sleep(.1)
         self.check_actions()
-        self.status |= Test.State.HAS_RUN
+        self._fire_status(Test.State.RUNNING, False)
+        self._fire_status(Test.State.HAS_RUN)
         self.fire(ft.event.TestFinish,
                 obj = self,
                 status = self.status,
@@ -282,18 +298,19 @@ class SingleTest(Test,):
 ## Test class
 #
 # Creates and runs an ExpectTest. ExpectTests check a list of actions by keeping
-# track of changes in state in the platform and then verifying that the expected states
-# are recieved by the UUT.
+# track of changes in state in the platform and then verifying that the expected
+# states are recieved by the UUT.
 #
 class ExpectTest(Test,):
 
     ## The constructor
     #
-    # Sets up two lists of dictionaries to keep track of state changes in the test's
-    # actions.
+    # Sets up two lists of dictionaries to keep track of state changes in the
+    # test's actions.
     #
     # @param self The object pointer
-    # @param xmlrpc_client Connection to the UUT to facilitate the transparent proxy
+    # @param xmlrpc_client Connection to the UUT to facilitate the transparent
+    # proxy
     # @param uut_id Serial number of the UUT
     # @param test_dict Dictionary from the test
     #

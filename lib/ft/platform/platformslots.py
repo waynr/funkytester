@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
+import time
+
 import threading, sys, logging, os.path as path, weakref, os
 
 from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
@@ -64,6 +66,19 @@ class PlatformSlot(PlatformSlotDB, Commandable):
 
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
+
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.PlatformSlotEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
 
     def configure(self, specification_name):
         self.product.set_specification(specification_name)
@@ -149,11 +164,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].disable()
-                self.status &= ~PlatformSlot.State.POWER
-                self.fire( ft.event.PlatformSlotEvent,
-                        obj = self,
-                        status = self.status,
-                        )
+                self._fire_status(PlatformSlot.State.POWER, False)
+
         else:
             self.fire( ft.event.UpdateStatus,
                     message = "WARNING: Automated powerdown not available.",
@@ -170,11 +182,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].enable()
-                self.status |= PlatformSlot.State.POWER
-                self.fire( ft.event.PlatformSlotEvent, 
-                        obj = self, 
-                        status = self.status,
-                        )
+                self._fire_status(PlatformSlot.State.POWER)
         else:
             self.fire( ft.event.UpdateStatus, 
                     message = "WARNING: Automated powerup not available.",
@@ -197,10 +205,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         serial_number = data["serialnum"]
 
         if self.status & PlatformSlot.State.OCCUPIED:
-            self.fire( ft.event.PlatformSlotEvent,
-                    obj = self,
-                    status = self.status,
-                    )
+            self._fire_status()
             self.fire( ft.event.UpdateStatus,
                     message = "WARNING: PlatformSlot currently populated.",
                     )
@@ -213,6 +218,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.platform.uuts[serial_number] = self.uut
         
         self.status |= PlatformSlot.State.OCCUPIED
+        # How should we use self._fire_status() here?
         self.fire( ft.event.PlatformSlotEvent, 
                 obj = self,
                 status = self.status,

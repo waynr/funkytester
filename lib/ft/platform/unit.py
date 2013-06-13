@@ -7,6 +7,8 @@
 #  various interfaces.
 #
 
+import time
+
 import logging, threading, time, xmlrpclib
 from string import Template
 
@@ -109,6 +111,19 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
+    def _fire_status(self, state_bit=None, on=True):
+        if state_bit:
+            if on:
+                self.status |= state_bit
+            elif not on:
+                self.status &= ~state_bit
+
+        self.fire(ft.event.UnitUnderTestEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time()
+                )
+
     def configure(self, serial_number, product, mac_address=None):
         self.serial_number = serial_number
         self.product = product
@@ -198,11 +213,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         logging.debug(self.ip_address)
 
     def _nfs_test_boot(self):
-        self.status &= UnitUnderTest.State.BOOT_NFS
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
+        self._fire_status(~UnitUnderTest.State.BOOT_NFS, False)
 
         # get nfs_test.template from product
         template_string = self.product.get_file("nfs_test.template")
@@ -222,21 +233,13 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         
         # run boot command
         interface = self.interfaces["uboot"]
-        self.status &= UnitUnderTest.State.BOOTING
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
+        self._fire_status(~UnitUnderTest.State.BOOTING, False)
 
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
 
-        self.status &= ~UnitUnderTest.State.UBOOT
-        self.status |= UnitUnderTest.State.WAITING
-        self.status |= UnitUnderTest.State.LINUX
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
+        self._fire_status(UnitUnderTest.State.UBOOT, False)
+        self._fire_status(UnitUnderTest.State.WAITING |
+                UnitUnderTest.State.LINUX)
 
     ## Initialize UUT's Test objects; if UUT is not booted, boot it to nfs.
     #
@@ -248,7 +251,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         interface = self.interfaces["linux"]
 
         # run xmlrpc server on remote machine
-        interface.cmd("./bin/xmlrpcserver.py -p 8001 {0} &".format(self.ip_address))
+        interface.cmd("./bin/xmlrpcserver.py -p 8001 {0} &".format( 
+            self.ip_address))
         
         # initialize xmlrpc client
         xmlrpc_server_address = "http://{0}:{1}".format(self.ip_address, "8001")
@@ -280,12 +284,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             test.initialize_actions()
             self.tests.append(test)
 
-        self.status |= UnitUnderTest.State.LOAD_TESTS
-        self.status |= UnitUnderTest.State.WAITING
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
+        self._fire_status(UnitUnderTest.State.LOAD_TESTS |
+                UnitUnderTest.State.WAITING)
 
     ## Run all tests; if tests are not initialized, initialize them.
     #
@@ -298,18 +298,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                     obj = self,
                     message = "WARNING: No tests available!",
                     )
-        self.status |= UnitUnderTest.State.TESTING
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
+        self._fire_status(UnitUnderTest.State.TESTING)
         for test in self.tests:
             test.run()
-        self.status |= UnitUnderTest.State.WAITING
-        self.fire( ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                )
+        self._fire_status(UnitUnderTest.State.WAITING)
 
     def _load_kfs(self):
         pass
