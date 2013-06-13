@@ -15,8 +15,9 @@ junk*
 *junk
 *.output
 *.log
+*.session
+vim.*
 
-vim.session
 py_test
 pytest_log
 current_test
