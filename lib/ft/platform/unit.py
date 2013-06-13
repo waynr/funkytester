@@ -217,6 +217,9 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         if not interface.chk(10):
             raise Exception("U-Boot prompt not found!")
 
+        self._fire_status(UnitUnderTest.State.UBOOT)
+        self._fire_status(UnitUnderTest.State.WAITING, False)
+
         # run given uboot template line-by-line at uboot prompt
         for command in commands:
             if len(command) > 0:
@@ -226,9 +229,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.ip_address = interface.get_var("ipaddr")
         logging.debug(self.ip_address)
 
-    def _nfs_test_boot(self):
-        self._fire_status(~UnitUnderTest.State.BOOT_NFS, False)
+        self._fire_status(UnitUnderTest.State.WAITING)
 
+    def _nfs_test_boot(self):
+        self._fire_status(UnitUnderTest.State.BOOT_NFS)
         # get nfs_test.template from product
         template_string = self.product.get_file("nfs_test.template")
         
@@ -244,16 +248,17 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             nfs_base_dir = platform.config.nfs_base_dir,
             baud = self.product.config.serial["baud"],
             )
+        self._fire_status(UnitUnderTest.State.BOOTING)
+        self._fire_status(UnitUnderTest.State.UBOOT, False)
         
         # run boot command
         interface = self.interfaces["uboot"]
-        self._fire_status(~UnitUnderTest.State.BOOTING, False)
 
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
 
-        self._fire_status(UnitUnderTest.State.UBOOT, False)
         self._fire_status(UnitUnderTest.State.WAITING |
                 UnitUnderTest.State.LINUX)
+        self._fire_status(UnitUnderTest.State.BOOTING, False)
 
     ## Initialize UUT's Test objects; if UUT is not booted, boot it to nfs.
     #
@@ -262,6 +267,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             UnitUnderTest.State.LINUX)):
             self._nfs_test_boot()
 
+        self._fire_status(UnitUnderTest.State.LOAD_TESTS)
         interface = self.interfaces["linux"]
 
         # run xmlrpc server on remote machine
@@ -298,8 +304,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             test.initialize_actions()
             self.tests.append(test)
 
-        self._fire_status(UnitUnderTest.State.LOAD_TESTS |
-                UnitUnderTest.State.WAITING)
+        self._fire_status(UnitUnderTest.State.WAITING)
+        self._fire_status(UnitUnderTest.State.LOAD_TESTS, False)
 
     ## Run all tests; if tests are not initialized, initialize them.
     #
