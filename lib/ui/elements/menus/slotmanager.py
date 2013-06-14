@@ -11,7 +11,7 @@ from ft.platform import PlatformSlot
 class SlotManagerMenu(ManagerMenu):
 
     def __init__(self, *args, **kwargs):
-        super(ManagerMenu, self).__init__(*args, **kwargs)
+        super(SlotManagerMenu, self).__init__(*args, **kwargs)
         self.__init_menuitems()
 
     def popup(self, adapter, *args, **kwargs):
