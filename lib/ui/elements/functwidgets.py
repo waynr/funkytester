@@ -29,7 +29,6 @@ class PlatformSlotSetupWidget(gtk.Frame):
             self.uut_setup_frame.hide()
 
     def _init_visuals(self):
-        
         self.set_label("Slot [%s]" % self.platform_slot_adapter.address[1])
         self.set_label_align(0.5, 0.5)
 
