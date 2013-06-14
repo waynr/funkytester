@@ -217,11 +217,9 @@ class PlatformSlot(PlatformSlotDB, Commandable):
 
         self.platform.uuts[serial_number] = self.uut
         
-        self.status |= PlatformSlot.State.OCCUPIED
-        # How should we use self._fire_status() here?
+        self._fire_status(PlatformSlot.State.OCCUPIED)
         self.fire( ft.event.PlatformSlotEvent, 
                 obj = self,
-                status = self.status,
                 current_uut = serial_number,
                 product_type = self.product.name,
                 metadata_version = self.product.metadata_version,
@@ -294,8 +292,9 @@ class PlatformSlot(PlatformSlotDB, Commandable):
     
         @staticmethod
         def power_up(platform_slot, data):
-            platform_slot.powerup()
+            platform_slot.uut.powerup()
 
         @staticmethod
         def power_down(platform_slot, data):
-            platform_slot.powerdown()
+            platform_slot.uut.powerdown()
+

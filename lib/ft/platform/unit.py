@@ -135,16 +135,15 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
     ## Indicate that the UUT is no longer an active Platform Object.
     #
     def deactivate(self):
+        self.powerdown()
         self._fire_status(UnitUnderTest.State.ACTIVE, False)
 
     def powerdown(self):
         self.platform_slot.powerdown()
-        self._fire_status(UnitUnderTest.State.POWER, False)
+        self.status = UnitUnderTest.State.ACTIVE
 
     def powerup(self):
         self.platform_slot.powerup()
-        self.status = UnitUnderTest.State.ACTIVE
-        self.activate()
         self._fire_status(UnitUnderTest.State.POWER)
 
     def configure(self, serial_number, product, mac_address=None):
@@ -226,6 +225,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         self.powerdown()
         self.powerup()
+        self.activate()
 
         # listen for U-Boot prompt
         if not interface.chk(10):
