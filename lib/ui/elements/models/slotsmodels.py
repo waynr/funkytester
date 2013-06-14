@@ -10,6 +10,8 @@ from ui.elements.adapters import PlatformSlotAdapter, PlatformAdapter
 from ft.platform import PlatformSlot
 
 class SlotsManagerModel(FunctTreeStore):
+
+    model_type = "slot"
     
     def __init__(self):
         self.columns = [
@@ -40,7 +42,7 @@ class SlotsManagerModel(FunctTreeStore):
             adapter.current_uut, adapter.product_type, adapter,
             status_bg_color))
         adapter.connect('on-changed', self.__update, row_iter)
-        return row_iter
+        return row_iter, []
 
     def __update(self, adapter, row_iter):
         status_message, status_bg_color = self.__dispatch_data_function(

@@ -22,6 +22,8 @@ class TestManagerModel(FunctTreeStore):
      TEST,
      ACTION) = range(3)
 
+    model_type = "test"
+
     def __init__(self):
         self.columns = [
                 ("Name/ID", 
@@ -54,8 +56,32 @@ class TestManagerModel(FunctTreeStore):
         row_iter = self.append(parent_iter, (adapter.name, status_message,
             adapter.datetime, adapter.additional_info, adapter,
             status_bg_color))
-        adapter.connect('on-changed', self.__update, row_iter)
-        return row_iter
+
+        handler_ids = []
+        hid = adapter.connect('on-changed', self.__update, row_iter)
+        handler_ids.append(hid)
+
+        hid = adapter.connect('destroy', self.__remove_row_cb, row_iter)
+        handler_ids.append(hid)
+
+        return row_iter, handler_ids
+
+    def __remove_row_cb(self, adapter=None, row_iter=None):
+        if not row_iter:
+            return None
+
+        if not adapter:
+            path = self.get_path(row_iter)
+            row = self[path]
+            adapter = row[4]
+
+        handler_ids = adapter.get_handler_ids(self.model_type)
+        for hid in handler_ids:
+            adapter.disconnect(hid)
+            adapter.del_handler_id(self.model_type, hid)
+
+        adapter.del_iter(self.model_type)
+        self.remove(row_iter)
 
     def __update(self, adapter, row_iter):
         status_message, status_bg_color = self.__dispatch_data_function(

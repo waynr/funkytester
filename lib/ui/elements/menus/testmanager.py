@@ -15,8 +15,16 @@ class ManagerMenu(gtk.Menu):
         self.adapter = None
 
     def _popup(self, adapter, button, activate_time):
+        if self.adapter:
+            self.__adapter_destroy_cb()
         self.adapter = adapter
+        self.adapter_hid = self.adapter.connect('destroy', self.__adapter_destroy_cb)
         super(ManagerMenu, self).popup(None, None, None, button, activate_time)
+
+    def __adapter_destroy_cb(self, adapter=None):
+        self.adapter.disconnect(self.adapter_hid)
+        self.adapter = None
+        self.adapter_hid = None
 
 class UUTManagerMenu(ManagerMenu):
 
