@@ -148,7 +148,7 @@ class Action(ActionDB):
         self.fire(ft.event.ActionStart,
                 obj = self
                 )
-        self._fire_status(Action.State.RUNNING)
+        self._fire_status(Action.State.RUNNING | Action.State.FAIL)
         if not value == None:
             self.kwargs[self.kwargs_value_key] = value
         try:
@@ -157,12 +157,13 @@ class Action(ActionDB):
             import traceback
             msg = traceback.format_exc()
             logging.debug(msg)
-            self.fire(ft.event.ActionFatal,
-                    obj = self
+            self.fire(ft.event.ErrorEvent,
+                    obj = self,
+                    traceback = msg
                     )
             result = None
-            self._fire_status(Action.State.FAIL)
         else:
+            self._fire_status(Action.State.FAIL, False)
             self.fire(ft.event.ActionFinish,
                 obj = self
                 )
@@ -193,6 +194,7 @@ class Action(ActionDB):
                 "actual": act,
                 "tolerance": tol,
                 }
+        self._fire_status(value = self.value)
 
 if __name__ == "__main__":
     a   = Action()

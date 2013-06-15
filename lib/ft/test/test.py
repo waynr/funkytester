@@ -140,6 +140,35 @@ class Test(TestDB):
                 **kwargs
                 )
 
+    ## Checks the status of the test's actions and updates the test's
+    # status appropriately.
+    #
+    # If any action fails, the whole test fails. Also handles the case
+    # of a successful action with an invalid interface.
+    #
+    # @param self The object pointer
+    #
+    def check(self):
+        self._check()
+        if not self.status & Test.State.VALID:
+            if self.status & Test.State.FAIL:
+                self._fire_status(Test.State.FAIL | Test.State.BROKEN)
+            else:
+                self._fire_status(Test.State.INVALID_INTERFACE)
+
+    def _check(self):
+        raise NotImplementedError
+
+    def _check_action(self, action):
+        if action.status & Action.State.BROKEN:
+            self._fire_status(Test.State.BROKEN | Test.State.FAIL)
+            return False
+        if action.status & Action.State.FAIL:
+            self._fire_status(Test.State.FAIL)
+            return False
+        self._fire_status(Test.State.FAIL, False)
+        return True
+
     ## Runs the test, fires events to signal that the test begins and ends
     #
     # Fires the TestStart event, runs the test a maximum of max_retry times
@@ -169,36 +198,13 @@ class Test(TestDB):
                 break
             count += 1
             #time.sleep(.1)
-        self.check_actions()
+        self.check()
         self._fire_status(Test.State.RUNNING, False)
         self._fire_status(Test.State.HAS_RUN)
         self.fire(ft.event.TestFinish,
                 obj = self,
                 status = self.status,
                 )
-
-    ## Checks the status of the test's actions and updates the test's
-    # status appropriately.
-    #
-    # If any action fails, the whole test fails. Also handles the case
-    # of a successful action with an invalid interface.
-    #
-    # @param self The object pointer
-    #
-    def check_actions(self,):
-        for action in self.actions:
-            if action.status & Action.State.BROKEN:
-                self.status |= Test.State.BROKEN
-                self.status |= Test.State.FAIL
-                break
-            if action.status & Action.State.FAIL:
-                self.status |= Test.State.FAIL
-                break
-        if not self.status & Test.State.VALID:
-            if self.status & Test.State.FAIL:
-                self.status &= ~(Test.State.FAIL | Test.State.BROKEN)
-            else:
-                self.status |= Test.State.INVALID_INTERFACE
 
     ## Runs the test
     #
@@ -277,6 +283,11 @@ class SingleTest(Test,):
             action.set_address(i)
             self.actions.append(action)
 
+    def _check(self):
+        for action in self.actions:
+            if not self._check_action(action):
+                break
+
     ## Runs the SingleTest
     #
     # Updates status of each action
@@ -306,7 +317,9 @@ class SingleTest(Test,):
             # own.
 
             if action.allow_fail:
-                action.status = Action.State.INIT
+                action.status &= ~Action.State.FAIL
+
+            action._fire_status()
     
     def _destroy(self):
         for action in self.actions[::-1]:
@@ -391,6 +404,11 @@ class ExpectTest(Test,):
 
         self.num_values = num_values
 
+    def _check(self):
+        for action in self.statecheckers:
+            if not self._check_action(action["action"]):
+                break
+
     ## Runs the ExpectTest
     #
     # Runs the statechanger actions, then the statechecker. The test succeeds
@@ -428,7 +446,7 @@ class ExpectTest(Test,):
                     ( test_value < max_expected_value and
                         test_value > min_expected_value )) or
                     ( test_value == expected_value )): 
-                    action.status = Action.State.INIT
+                    action.status &= ~Action.State.FAIL
                 else:
                     action.status |= Action.State.FAIL
                     logging.debug(pprint.pformat( {
@@ -469,6 +487,11 @@ class InteractTest(Test,):
 
     def initialize_actions(self):
         pass # does nothing; _run instead requests information from UI
+
+    ## Stub implementation.
+    #
+    def _check(self):
+        pass
 
     ## Runs the ExpectTest
     #
