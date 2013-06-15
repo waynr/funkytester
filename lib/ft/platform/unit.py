@@ -132,10 +132,24 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self._fire_status(UnitUnderTest.State.INIT, False)
         self._fire_status(UnitUnderTest.State.ACTIVE)
 
-    ## Indicate that the UUT is no longer an active Platform Object.
+    ## Perform all the steps necessary to make current UUT "inactive".
     #
     def deactivate(self):
+        # power down
         self.powerdown()
+
+        # remove references to Tests
+        for test in self.tests:
+            test.destroy()
+            self.tests.remove(test)
+
+        # somehow notify UI to remove reference to Test and Action objects if
+        # they don't have associated database entries.
+        #
+        #  * maybe convert them each to respective TestDB and ActionDB objects?
+        #    * best to do this in the UI code itself?
+
+        # status notification
         self._fire_status(UnitUnderTest.State.ACTIVE, False)
 
     def powerdown(self):
@@ -390,4 +404,9 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         @staticmethod
         def run_all_modes(uut, data):
             uut._run_all_modes()
+    
+        @staticmethod
+        def remove(uut, data):
+            uut.powerdown()
+            uut.deactivate()
 

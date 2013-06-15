@@ -161,6 +161,6 @@ class GenericAdapter(gobject.GObject):
     def add_handler_ids(self, context, handler_list):
         self.__iters[context]["handler_list"].extend(handler_list)
     
-    def del_handler_ids(self, context, handler_id):
-        self.__remove[context]["handler_list"].remove(handler_id)
+    def del_handler_id(self, context, handler_id):
+        self.__iters[context]["handler_list"].remove(handler_id)
 

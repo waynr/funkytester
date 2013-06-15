@@ -229,6 +229,16 @@ class PlatformSlot(PlatformSlotDB, Commandable):
 
         self.lock.release()
 
+    ## Remove the current UUT object.
+    #
+    def _clear_uut(self):
+        self.uut.deactivate()
+        self._fire_status(PlatformSlot.State.OCCUPIED, False)
+        self.fire( ft.event.PlatformSlotEvent,
+                obj = self,
+                current_uut = "",
+                )
+
     # - - - - - - - - - - - - - - - - -
     # PlatformSlot commands
     #
@@ -283,6 +293,11 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         @staticmethod
         def set_uut(platform_slot, data):
             platform_slot._create_uut(data)
+            return None, ""
+
+        @staticmethod
+        def clear_uut(platform_slot, data):
+            platform_slot._clear_uut()
             return None, ""
 
         @staticmethod

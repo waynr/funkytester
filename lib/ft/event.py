@@ -100,6 +100,11 @@ class UnitUnderTestEvent(Event):
 class ErrorEvent(Event):
     """ Error Event """
 
+## Event class indicates that object has been destroyed.
+#
+class DestroyEvent(Event):
+    """ Destroy Event """
+
 #-------------------------------------------------------------------------------
 # Misc Events
 

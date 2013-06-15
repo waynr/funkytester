@@ -84,6 +84,17 @@ class Action(ActionDB):
 
         self.status = Action.State.INIT
 
+    def destroy(self):
+        self._destroy()
+        self.fire( ft.event.DestroyEvent,
+                obj = self,
+                )
+    
+    def _destroy(self):
+        # finish database operations?
+        # decrease reference count on remote xmlrpc objects?
+        pass
+
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 

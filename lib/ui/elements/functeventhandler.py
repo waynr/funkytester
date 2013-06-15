@@ -117,6 +117,9 @@ class FuncTEventHandler(gobject.GObject):
             # - - - - - - - - - - - - -
             # miscellaneous signals
             # 
+            'destroy-object'        : (gobject.SIGNAL_RUN_LAST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,)),
             'error'        : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
@@ -179,6 +182,8 @@ class FuncTEventHandler(gobject.GObject):
             return self.handle_platform_slot_event(event)
         elif isinstance(event, ft.event.UnitUnderTestEvent):
             return self.handle_platform_uut_event(event)
+        elif isinstance(event, ft.event.DestroyEvent):
+            self.emit('destroy-object', event)
         elif isinstance(event, ft.event.ErrorEvent):
             self.emit('error', event)
         elif isinstance(event, ft.event.UpdateStatus):

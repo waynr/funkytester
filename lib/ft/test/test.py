@@ -78,6 +78,9 @@ class Test(TestDB):
         else:
             return super(Test, cls).__new__(cls)
 
+    def __del__(self):
+        self.destroy()
+
     ## The constructor
     #
     # Automatically sets max_retry to 5 if none is specified
@@ -217,6 +220,15 @@ class Test(TestDB):
     def get(self, attr):
         return getattr(self, attr)
 
+    def destroy(self):
+        self._destroy()
+        self.fire( ft.event.DestroyEvent,
+                obj = self,
+                )
+
+    def _destroy(self):
+        raise NotImplementedError
+
     class CommandsSync:
         @staticmethod
         def acknowledge(uut, data):
@@ -294,6 +306,10 @@ class SingleTest(Test,):
 
             if action.allow_fail:
                 action.status = Action.State.INIT
+    
+    def _destroy(self):
+        for action in self.actions:
+            action.destroy()
 
 ## Test class
 #
@@ -422,6 +438,15 @@ class ExpectTest(Test,):
                         } ) )
     
                 action.set_status(expected_value, test_value, tolerance)
+    
+    def _destroy(self):
+        for action in self.statecheckers:
+            action["action"].destroy()
+            self.statecheckers.remove(action)
+
+        for action in self.statechangers:
+            action["action"].destroy()
+            self.statechangers.remove(action)
 
 ## Test class
 #
@@ -453,4 +478,7 @@ class InteractTest(Test,):
         self.fire( ft.event.TestInteract,
                 obj = self,
                 )
+
+    def _destroy(self):
+        pass
 

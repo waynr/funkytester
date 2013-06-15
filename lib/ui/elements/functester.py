@@ -28,6 +28,7 @@ from ui.elements.pages.platformslotsetuppage import PlatformSlotSetupPage
 from ui.elements.pages.testmanagerpage import TestManagerPage
 from ui.elements.adapters import (PlatformAdapter, PlatformSlotAdapter,
         UnitUnderTestAdapter, TestAdapter, ActionAdapter)
+from ui.elements.generic import GenericAdapter
 
 from ft.command import RecipientType
 
@@ -130,6 +131,7 @@ class FunctionalTestWindow(gtk.Window):
 
         self.handler.connect('update-status', self.__update_statusbar_cb)
         self.handler.connect('error', self.__error_cb)
+        self.handler.connect('destroy-object', self.__destroy_object_cb)
 
     def __terminate(self):
         self.handler.running = False
@@ -163,6 +165,10 @@ class FunctionalTestWindow(gtk.Window):
         message = event.message
         self.context_id = self.statusbar.get_context_id("update-event")
         self.statusbar.push(self.context_id, message)
+
+    def __destroy_object_cb(self, handler, event):
+        adapter = GenericAdapter.get(event.address)
+        adapter.destroy()
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Unit Under Test Callbacks
