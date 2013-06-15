@@ -28,7 +28,7 @@ class TestManagerModel(FunctTreeStore):
         self.columns = [
                 ("Name/ID", 
                     {'text':0},
-                    {'xalign':0.0, 'width-chars':15}),
+                    {'xalign':0.0, 'width-chars':20}),
                 ("Status", 
                     {'text':1, 'cell_background':5},
                     {'xalign':0.5, 'width-chars':25}),
@@ -212,8 +212,7 @@ class TestManagerModel(FunctTreeStore):
             else:
                 gdk_color = '#00FF33'
                 message = "Pass"
-
-        if status == Action.State.INIT:
+        elif status == Action.State.INIT:
             message = "INIT"
 
         return message, gtk.gdk.Color(gdk_color)
