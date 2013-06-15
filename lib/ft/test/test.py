@@ -126,7 +126,7 @@ class Test(TestDB):
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
-    def _fire_status(self, state_bit=None, on=True):
+    def _fire_status(self, state_bit=None, on=True, **kwargs):
         if state_bit:
             if on:
                 self.status |= state_bit
@@ -136,7 +136,8 @@ class Test(TestDB):
         self.fire(ft.event.TestEvent,
                 obj = self,
                 status = self.status,
-                datetime = time.time()
+                datetime = time.time(),
+                **kwargs
                 )
 
     ## Runs the test, fires events to signal that the test begins and ends

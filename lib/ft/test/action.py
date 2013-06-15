@@ -98,7 +98,7 @@ class Action(ActionDB):
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
-    def _fire_status(self, state_bit=None, on=True):
+    def _fire_status(self, state_bit=None, on=True, **kwargs):
         if state_bit:
             if on:
                 self.status |= state_bit
@@ -108,7 +108,8 @@ class Action(ActionDB):
         self.fire(ft.event.ActionEvent,
                 obj = self,
                 status = self.status,
-                datetime = time.time()
+                datetime = time.time(),
+                **kwargs
                 )
 
     def set_address(self, address):
