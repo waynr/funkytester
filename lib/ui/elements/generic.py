@@ -38,22 +38,23 @@ class FunctTreeStore(gtk.TreeStore):
             return False
 
         # check if adapter is already in this testmodel
-        if adapter.get_iter(self.model_type):
+        if adapter.get_row(self.model_type):
             return True
 
         parent_iter = None
         if adapter.parent_address:
             parent_address = adapter.parent_address
             parent = GenericAdapter.get(address = parent_address)
-            parent_iter = parent.get_iter(self.model_type)
+            parent_row = parent.get_row(self.model_type)
+            parent_iter = parent_row.iter
 
-        row_iter, handler_list = self._add(parent_iter, adapter)
-        adapter.set_iter(self.model_type, row_iter)
+        row, handler_list = self._add(parent_iter, adapter)
+        adapter.set_row(self.model_type, row)
         adapter.add_handler_ids(self.model_type, handler_list)
 
         return True
 
-    def _add(self, parent_iter, adapter):
+    def _add(self, parent_row, adapter):
         raise NotImplementedError
 
     def _check_adapter(self, adapter):
@@ -108,7 +109,7 @@ class GenericAdapter(gobject.GObject):
 
         self.handler = handler
 
-        self.__iters = {}
+        self.__rows = {}
 
         self.__update(kwargs)
         self.__registry[self.address] = self
@@ -142,25 +143,26 @@ class GenericAdapter(gobject.GObject):
             return GenericAdapter.__registry[address]
         return None
     
-    def get_iter(self, context):
-        if self.__iters.has_key(context):
-            return self.__iters[context]["row_iter"]
+    def get_row(self, context):
+        if self.__rows.has_key(context):
+            return self.__rows[context]["row"]
         return None
 
-    def set_iter(self, context, itr):
-        self.__iters[context] = {
-                "row_iter" : itr,
+    def set_row(self, context, row):
+        self.__rows[context] = {
+                "row" : row,
                 "handler_list" : []
                 }
-    def del_iter(self, context):
-        self.__iters[context].clear()
+
+    def del_row(self, context):
+        self.__rows[context].clear()
 
     def get_handler_ids(self, context):
-        return self.__iters[context]["handler_list"]
+        return self.__rows[context]["handler_list"]
     
     def add_handler_ids(self, context, handler_list):
-        self.__iters[context]["handler_list"].extend(handler_list)
+        self.__rows[context]["handler_list"].extend(handler_list)
     
     def del_handler_id(self, context, handler_id):
-        self.__iters[context]["handler_list"].remove(handler_id)
+        self.__rows[context]["handler_list"].remove(handler_id)
 

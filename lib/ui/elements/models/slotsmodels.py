@@ -41,15 +41,19 @@ class SlotsManagerModel(FunctTreeStore):
         row_iter = self.append( parent_iter, ( status_message,
             adapter.current_uut, adapter.product_type, adapter,
             status_bg_color))
-        adapter.connect('on-changed', self.__update, row_iter)
-        return row_iter, []
 
-    def __update(self, adapter, row_iter):
+        path = self.get_path(row_iter)
+        row = self[path]
+
+        adapter.connect('on-changed', self.__update, row)
+        return row, []
+
+    def __update(self, adapter, row):
         status_message, status_bg_color = self.__dispatch_data_function(
                 "_status", adapter)
         product_data = "{0} | {1} | {2}".format(adapter.product_type,
                 adapter.metadata_version, adapter.specification_name)
-        self[row_iter] = (status_message, adapter.current_uut, product_data,
+        self[row.iter] = (status_message, adapter.current_uut, product_data,
                 adapter, status_bg_color)
 
     def __dispatch_data_function(self, method_name, adapter, *args, **kwargs):

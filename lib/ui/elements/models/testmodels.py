@@ -57,22 +57,23 @@ class TestManagerModel(FunctTreeStore):
             adapter.datetime, adapter.additional_info, adapter,
             status_bg_color))
 
+        path = self.get_path(row_iter)
+        row = self[path]
+
         handler_ids = []
-        hid = adapter.connect('on-changed', self.__update, row_iter)
+        hid = adapter.connect('on-changed', self.__update, row)
         handler_ids.append(hid)
 
-        hid = adapter.connect('destroy', self.__remove_row_cb, row_iter)
+        hid = adapter.connect('destroy', self.__remove_row_cb, row)
         handler_ids.append(hid)
 
-        return row_iter, handler_ids
+        return row, handler_ids
 
-    def __remove_row_cb(self, adapter=None, row_iter=None):
-        if not row_iter:
+    def __remove_row_cb(self, adapter=None, row=None):
+        if not row:
             return None
 
         if not adapter:
-            path = self.get_path(row_iter)
-            row = self[path]
             adapter = row[4]
 
         handler_ids = adapter.get_handler_ids(self.model_type)
@@ -80,10 +81,10 @@ class TestManagerModel(FunctTreeStore):
             adapter.disconnect(hid)
             adapter.del_handler_id(self.model_type, hid)
 
-        adapter.del_iter(self.model_type)
-        self.remove(row_iter)
+        adapter.del_row(self.model_type)
+        self.remove(row.iter)
 
-    def __update(self, adapter, row_iter):
+    def __update(self, adapter, row):
         status_message, status_bg_color = self.__dispatch_data_function(
                 "_status", adapter)
 
@@ -93,7 +94,7 @@ class TestManagerModel(FunctTreeStore):
         else:
             date_time = "N/A"
 
-        self[row_iter] = (adapter.name, status_message, date_time,
+        self[row.iter] = (adapter.name, status_message, date_time,
                 adapter.additional_info, adapter, status_bg_color)
 
     def __dispatch_data_function(self, method_name, adapter, *args, **kwargs):
