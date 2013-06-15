@@ -139,7 +139,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.powerdown()
 
         # remove references to Tests
-        for test in self.tests:
+        for test in self.tests[::-1]:
             test.destroy()
             self.tests.remove(test)
 

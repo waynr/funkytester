@@ -308,7 +308,7 @@ class SingleTest(Test,):
                 action.status = Action.State.INIT
     
     def _destroy(self):
-        for action in self.actions:
+        for action in self.actions[::-1]:
             action.destroy()
 
 ## Test class
@@ -440,11 +440,11 @@ class ExpectTest(Test,):
                 action.set_status(expected_value, test_value, tolerance)
     
     def _destroy(self):
-        for action in self.statecheckers:
+        for action in self.statecheckers[::-1]:
             action["action"].destroy()
             self.statecheckers.remove(action)
 
-        for action in self.statechangers:
+        for action in self.statechangers[::-1]:
             action["action"].destroy()
             self.statechangers.remove(action)
 
