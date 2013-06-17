@@ -24,6 +24,7 @@ import sys, logging
 import gtk
 
 from ui.elements.dialogs.selections import AbstractSelectionDialog
+from ui.elements.dialogs.interact_test import InteractTestDialog
 from ui.elements.pages.platformslotsetuppage import PlatformSlotSetupPage
 from ui.elements.pages.testmanagerpage import TestManagerPage
 from ui.elements.adapters import (PlatformAdapter, PlatformSlotAdapter,
@@ -125,6 +126,7 @@ class FunctionalTestWindow(gtk.Window):
         self.handler.connect('test-init', self.__test_init_cb)
         self.handler.connect('test-ready', self.__test_ready_cb)
         self.handler.connect('test-update', self.__test_update_cb)
+        self.handler.connect('test-interact', self.__test_interact_cb)
 
         self.handler.connect('action-init', self.__action_init_cb)
         self.handler.connect('action-update', self.__action_update_cb)
@@ -316,6 +318,34 @@ class FunctionalTestWindow(gtk.Window):
                 address = event.address,
                 )
         test.update(event)
+
+    def __test_interact_cb(self, handler, event):
+        test = TestAdapter.get(
+                address = event.address,
+                )
+        test.update(event)
+
+        uut_serial = test.parent_address[1]
+        dialog_title = uut_serial + ": " + test.name
+
+        dialog = InteractTestDialog(self, event.prompt, event.pass_text,
+                event.fail_text, dialog_title)
+        dialog.connect('response', self.__interactdialog_response_cb, test)
+        dialog.show()
+
+    def __interactdialog_response_cb(self, dialog, response_id, adapter):
+        if response_id == gtk.RESPONSE_DELETE_EVENT:
+            response = None
+        elif response_id == gtk.RESPONSE_NO:
+            response = "set_fail"
+        elif response_id == gtk.RESPONSE_YES:
+            response = "set_pass"
+        else:
+            response = None
+        dialog.destroy()
+
+        if response:
+            adapter.run_command((response, None, False))
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Action Callbacks

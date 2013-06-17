@@ -34,6 +34,9 @@ class FuncTEventHandler(gobject.GObject):
             'test-init'     : (gobject.SIGNAL_RUN_LAST,
                                 gobject.TYPE_NONE,
                                 (gobject.TYPE_PYOBJECT,)),
+            'test-interact'     : (gobject.SIGNAL_RUN_LAST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,)),
 
             # - - - - - - - - - - - - -
             # action signals
@@ -198,6 +201,8 @@ class FuncTEventHandler(gobject.GObject):
             self.emit('test-ready')
         elif isinstance(event, ft.event.TestInit):
             self.emit('test-init', event)
+        elif isinstance(event, ft.event.TestInteract):
+            self.emit('test-interact', event)
         else:
             self.emit('test-update', event)
 

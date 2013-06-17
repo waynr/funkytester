@@ -144,10 +144,10 @@ class TestFinish(TestEvent):
 class TestLogged(TestEvent):
     """ Test Logged """
 
-## Event indicates that the given test's data has been logged.
+## Event that tells the UI to pop up an Interactive test dialog.
 #
 class TestInteract(TestEvent):
-    """ Test Logged """
+    """ Test Interact """
 
 #-------------------------------------------------------------------------------
 # Action Events

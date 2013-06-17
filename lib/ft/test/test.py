@@ -480,7 +480,7 @@ class ExpectTest(Test,):
 # Test base class which allow the test platform to query the user when a
 # particular piece of functionality cannot be automatically verified.
 #
-class InteractTest(Test,):
+class InteractTest(Test):
 
     ## The constructor
     #
@@ -491,6 +491,8 @@ class InteractTest(Test,):
     def __init__(self, *args, **kwargs):
         super(InteractTest, self).__init__(*args, **kwargs)
         test_dict = self.test_dict
+        if test_dict["valid"]:
+            self.status |= Test.State.VALID
 
     def initialize_actions(self):
         pass # does nothing; _run instead requests information from UI
@@ -505,11 +507,26 @@ class InteractTest(Test,):
     # Fires an InteractTest event 
     #
     def _run(self):
-        self.status = Test.State.UNKNOWN
+        self._fire_status(Test.State.RUNNING)
         self.fire( ft.event.TestInteract,
                 obj = self,
+                prompt = self.test_dict["message"],
+                pass_text = self.test_dict["responses"]["pass"],
+                fail_text = self.test_dict["responses"]["fail"],
                 )
 
     def _destroy(self):
         pass
+
+    class CommandsAsync(Test.CommandsAsync):
+        @staticmethod
+        def set_pass(test, data):
+            test._fire_status(Test.State.HAS_RUN)
+            test._fire_status(Test.State.RUNNING | Test.State.FAIL |
+                    Test.State.BROKEN | Test.State.INVALID_INTERFACE, False)
+
+        @staticmethod
+        def set_fail(test, data):
+            test._fire_status(Test.State.HAS_RUN | Test.State.FAIL)
+            test._fire_status(Test.State.RUNNING, False)
 
