@@ -181,7 +181,6 @@ class Test(TestDB):
         self.fire(ft.event.TestStart,
                 obj = self
                 )
-        self._fire_status(Test.State.RUNNING)
         count   = 0
         while count < self.max_retry:
             try:
@@ -199,8 +198,6 @@ class Test(TestDB):
             count += 1
             #time.sleep(.1)
         self.check()
-        self._fire_status(Test.State.RUNNING, False)
-        self._fire_status(Test.State.HAS_RUN)
         self.fire(ft.event.TestFinish,
                 obj = self,
                 status = self.status,
@@ -295,6 +292,8 @@ class SingleTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
+        self._fire_status(Test.State.RUNNING)
+
         output_list = list()
 
         for action in self.actions:
@@ -320,6 +319,9 @@ class SingleTest(Test,):
                 action.status &= ~Action.State.FAIL
 
             action._fire_status()
+
+        self._fire_status(Test.State.RUNNING, False)
+        self._fire_status(Test.State.HAS_RUN)
     
     def _destroy(self):
         for action in self.actions[::-1]:
@@ -418,6 +420,8 @@ class ExpectTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
+        self._fire_status(Test.State.RUNNING)
+
         for i in range(self.num_values):
             # run statechanger actions
             for statechanger in self.statechangers:
@@ -457,6 +461,9 @@ class ExpectTest(Test,):
                         } ) )
     
                 action.set_status(expected_value, test_value, tolerance)
+
+        self._fire_status(Test.State.RUNNING, False)
+        self._fire_status(Test.State.HAS_RUN)
     
     def _destroy(self):
         for action in self.statecheckers[::-1]:
