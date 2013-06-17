@@ -37,10 +37,10 @@ class TestDB(Base):
         return rstring % rtuple
     
     class State:
-        INIT        = 0x000
-        RUNNING     = 0x001
-        HAS_RUN     = 0x002
-        VALID       = 0x004
+        INIT        = 0x001
+        RUNNING     = 0x002
+        HAS_RUN     = 0x004
+        VALID       = 0x008
 
         FAIL        = 0x100
         BROKEN      = 0x200
