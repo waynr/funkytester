@@ -289,9 +289,13 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
     ## Initialize UUT's Test objects; if UUT is not booted, boot it to nfs.
     #
     def _initialize_tests(self):
-        if not (self.status & (UnitUnderTest.State.READY |
-            UnitUnderTest.State.LINUX)):
+        if not (self.status & (UnitUnderTest.State.LINUX |
+            UnitUnderTest.State.BOOT_NFS)):
             self._nfs_test_boot()
+
+        while not self.status & UnitUnderTest.State.READY:
+            logging.debug("Not ready.")
+            time.sleep(0.1)
 
         self._fire_status(UnitUnderTest.State.LOAD_TESTS)
         interface = self.interfaces["linux"]
@@ -299,6 +303,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         # run xmlrpc server on remote machine
         interface.cmd("./bin/xmlrpcserver.py -p 8001 {0} &".format( 
             self.ip_address))
+
+        # time out 5 seconds to give xmlrpc server a chance to load and become
+        # ready to respond
+        time.sleep(5)
         
         # initialize xmlrpc client
         xmlrpc_server_address = "http://{0}:{1}".format(self.ip_address, "8001")
@@ -336,7 +344,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
     ## Run all tests; if tests are not initialized, initialize them.
     #
     def _run_all_tests(self):
-        if not self.status & UnitUnderTest.State.LOAD_TESTS:
+        if len(self.tests) == 0:
             self._initialize_tests()
 
         if len(self.tests) == 0:
