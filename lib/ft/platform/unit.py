@@ -7,8 +7,6 @@
 #  various interfaces.
 #
 
-import time
-
 import logging, threading, time, xmlrpclib
 from string import Template
 
