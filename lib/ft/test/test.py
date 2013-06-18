@@ -149,9 +149,10 @@ class Test(TestDB):
         self._check()
         if not self.status & Test.State.VALID:
             if self.status & Test.State.FAIL:
-                self._fire_status(Test.State.FAIL | Test.State.BROKEN)
+                self._fire_status(Test.State.FAIL | Test.State.BROKEN, False)
             else:
-                self._fire_status(Test.State.INVALID_INTERFACE)
+                self._fire_status(Test.State.INVALID_INTERFACE |
+                        Test.State.FAIL)
 
     def _check(self):
         raise NotImplementedError
@@ -431,6 +432,7 @@ class ExpectTest(Test,):
             # run statechecker 
             for statechecker in self.statecheckers:
                 action = statechecker["action"]
+                action.status &= ~Action.State.FAIL
                 output = action.call()
 
                 test_value, exit_status = output
@@ -443,12 +445,10 @@ class ExpectTest(Test,):
                     max_expected_value  = expected_value + tolerance
                     min_expected_value  = expected_value - tolerance
 
-                if ((tolerance > 0 and
+                if not ((tolerance > 0 and
                     ( test_value < max_expected_value and
                         test_value > min_expected_value )) or
                     ( test_value == expected_value )): 
-                    action.status &= ~Action.State.FAIL
-                else:
                     action.status |= Action.State.FAIL
                     logging.debug(pprint.pformat( {
                         "name"       : action.name,
