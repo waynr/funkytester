@@ -332,9 +332,6 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
     #
     def _run_all_tests(self):
         if len(self.tests) == 0:
-            self._initialize_tests()
-
-        if len(self.tests) == 0:
             self.fire( ft.event.UpdateStatus,
                     obj = self,
                     message = "WARNING: No tests available!",
@@ -380,6 +377,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         @staticmethod
         def run_all_tests(uut, data):
+
+            if len(self.tests) == 0:
+                self._initialize_tests()
+
             uut._run_all_tests()
 
         @staticmethod
