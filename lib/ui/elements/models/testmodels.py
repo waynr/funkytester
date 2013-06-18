@@ -179,19 +179,27 @@ class TestManagerModel(FunctTreeStore):
         if status & Test.State.RUNNING:
             gdk_color = '#0033FF'
             message = "Running"
+        elif status & Test.State.VALID:
+            if status & Test.State.HAS_RUN:
+                if status & Test.State.FAIL:
+                    gdk_color = '#FF0033'
+                    message = "Fail"
+                else:
+                    gdk_color = '#00FF33'
+                    message = "Pass"
+            else:
+                message = "INIT"
         elif status & Test.State.HAS_RUN:
             if status & Test.State.FAIL:
-                gdk_color = '#FF0033'
-                message = "Fail"
+                gdk_color = '#FFBF00'
+                message = "Invalid PASS"
             else:
-                gdk_color = '#00FF33'
-                message = "Pass"
+                gdk_color = '#202020'
+                message = "Invalid Test"
         else:
             message = "INIT"
-
-        if not status & Test.State.VALID:
-            message = "Invalid Test"
-            gdk_color = '#202020'
+            if not status & Test.State.VALID:
+                gdk_color = '#202020'
 
         return message, gtk.gdk.Color(gdk_color)
 
