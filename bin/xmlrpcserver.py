@@ -16,10 +16,10 @@ sys.path.insert(0, extdir)
 log_file = path.join(topdir, "xmlrpcserver.log")
 
 logging.basicConfig(
-    level = logging.DEBUG 
-        format = "%(asctime)s %(name)-5s %(levelname)-5s %(module)-5s " + \
-                "%(funcName)-5s %(message)s",
-                datefmt = '%Y%m%d %H:%M:%S',
+    level = logging.DEBUG,
+    format = "%(asctime)s %(name)-5s %(levelname)-5s %(module)-5s " + \
+            "%(funcName)-5s %(message)s",
+            datefmt = '%Y%m%d %H:%M:%S',
     filename = log_file,
     filemode = 'a',
     )
@@ -39,7 +39,7 @@ from ft.device import emac_devices
 def parse_options():
     parser = OptionParser()
     parser.add_option("-p", "--port", action="store", type="int", dest="port")
-    parser.add_option("-P", "--quiet", action="store_false", dest="pydebug")
+    parser.add_option("-P", "--pydebug", action="store_false", dest="pydebug")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
     parser.add_option("-q", "--quiet", action="store_false", dest="verbose")
     
@@ -50,7 +50,7 @@ def parse_options():
     return parser.parse_args()
     
 def main():
-    (options, args) = parse_options
+    (options, args) = parse_options()
 
     ip_address = args[0]      
     port = options.port      
