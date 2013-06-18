@@ -235,7 +235,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         # poweron the slot
         interface = self.interfaces["uboot"]
 
-        self.powerdown()
+        self.deactivate()
         self.powerup()
         self.activate()
 
