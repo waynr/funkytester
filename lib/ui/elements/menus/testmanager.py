@@ -55,11 +55,6 @@ class UUTManagerMenu(ManagerMenu):
                 self.__run_all_tests_cb)
         self.run_all_tests.show()
 
-        self.load_kfs = gtk.MenuItem("Load KFS")
-        self.load_kfs.connect('activate', self.__load_bootloader_cb)
-        self.load_kfs.show()
-        self.load_kfs.set_sensitive(False)
-
         self.load_bootloader = gtk.MenuItem("Load Bootloader")
         self.load_bootloader.connect('activate', self.__load_bootloader_cb)
         self.load_bootloader.show()
