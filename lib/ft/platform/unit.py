@@ -192,21 +192,8 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             newtest = Test(test_dict, self, None)
             self.testlist.append(newtest)
 
-    ## Run all selected test modes.
-    #
-    def run_all_modes(self):
-        self._load_bootloader()
-        self._run_nfs_test()
-        self._load_kfs()
-        self._run_firstboot()
-
     def _load_bootloader(self):
         pass
-
-    def _run_nfs_test(self):
-        self._boot_nfs_test()
-        self._initialize_tests()
-        self._run_all_tests()
 
     ## Power on the UUT and prepare the U-Boot environment using template script.
     #  
