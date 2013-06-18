@@ -78,9 +78,6 @@ class Test(TestDB):
         else:
             return super(Test, cls).__new__(cls)
 
-    def __del__(self):
-        self.destroy()
-
     ## The constructor
     #
     # Automatically sets max_retry to 5 if none is specified
