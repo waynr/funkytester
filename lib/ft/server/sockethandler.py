@@ -2,6 +2,9 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 #
 
+import Queue as StdLibQueue
+from multiprocessing import Queue
+
 import logging, threading
 
 try:
@@ -128,6 +131,24 @@ class SocketObjectHandler(SocketDataHandler):
         message = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
         SocketDataHandler.send(self, message)
 
-    def recv(self, obj):
-        message = SocketDataHandler.recv(self, message)
+    def recv(self):
+        message = SocketDataHandler.recv(self)
         return pickle.loads(message)
+
+## Provides queued socket handler to support polling server model.
+#
+class QueuedSocketHandler(SocketObjectHandler):
+
+    def __init__(self, *args, **kwargs):
+        super(QueuedSocketHandler, self).__init__(*args, **kwargs)
+        self.outgoing_queue = Queue()
+
+    def queue(self, message):
+        self.outgoing_queue.put(message)
+
+    def get(self):
+        try:
+            message = self.outgoing_queue.get(False)
+        except StdLibQueue.Empty:
+            return None
+
