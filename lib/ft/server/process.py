@@ -81,10 +81,10 @@ class PlatformServerConnection(threading.Thread):
     def terminate(self):
         self.run_command("TERMINATE")
         
-class PlatformLocalServer(Process):
+class PlatformProcessServer(Process):
 
     def __init__(self, server_channel):
-        super(PlatformLocalServer, self).__init__(name="PlatformLocalServer")
+        super(PlatformProcessServer, self).__init__(name="PlatformProcessServer")
         self.daemon = True
         self.channel = server_channel
 
@@ -187,7 +187,7 @@ class PlatformServer(object):
     def init_server(self):
         self.ui_channel, self.server_channel = Pipe()
 
-        self.server = PlatformLocalServer(self.server_channel)
+        self.server = PlatformProcessServer(self.server_channel)
         self.serverinfo = (self.ui_channel, self.server_channel)
 
     def init_platform(self, manifest_file):
@@ -204,7 +204,7 @@ class PlatformServer(object):
 
     ## Initiate and return connection to a remote PlatformServer.
     #
-    def establish_connection(self):
+    def establish_connection(self, serverinfo=None):
         self.connection = PlatformServerConnection(self.serverinfo)
         return self.connection
 

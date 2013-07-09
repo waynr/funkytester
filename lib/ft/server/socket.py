@@ -1,108 +1,19 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import Queue as StdLibQueue, threading, logging, os, socket, hashlib
+import Queue as StdLibQueue, threading, logging, os, socket, select
 from multiprocessing import Queue
 
 import ft.event
 from ft.platform import Platform
 
-__MAX_CLIENTS = 1
+from ft.server.sockethandler import QueuedSocketHandler
 
-__HASH_FUNCTION = hashlib.md5
+class PlatformSocketClient(threading.Thread):
 
-def __get_len(message):
-    return len(message)
-
-def __get_hexdigest(message):
-    m = __HASH_FUNCTION()
-    m.update(message)
-    return m.hexdigest()
-
-m = __HASH_FUNCTION()
-m.update(" ")
-__HASH_DIGESTLEN = len(m.hexdigest())
-
-__HEADER_FIELD_DELIMITER = ','
-__HEADER_FORMAT_LIST = [
-        ("0:0>{width}d", 16, __get_len),
-        ("0:0>{width}s", __HASH_DIGESTLEN, __get_hexdigest),
-        ]
-
-( __HFIELD_SIZE, 
-        __HFIELD_DIGEST,
-        ) = range(2)
-
-def __get_header(message):
-    header = ""
-    for field in __HEADER_FORMAT_LIST:
-        field = field[0].format(field[2](message), width=field[1])
-        header += field + __HEADER_FIELD_DELIMITER
-    return header[:1]
-
-def __parse_header(header):
-    return header.split(__HEADER_FIELD_DELIMITER)
-
-__HEADER_SIZE = 0
-for field in __HEADER_FORMAT_LIST:
-    __HEADER_SIZE += field[1] + len(__HEADER_FIELD_DELIMITER)
-
-class SocketDataHandler(object):
-
-    def send(self, message):
-        self.__check_socket()
-        self.__send_header(message)
-        self.__send_message(message)
-
-    def recv(self):
-        self.__check_socket()
-
-        header = self.__receive_header()
-        message = self.__receive_message(header[__HFIELD_SIZE])
-        check = __parse_header(__get_header(message))
-
-        assert header == check
-
-        return message
-
-    def __check_socket(self):
-        if not isinstance(self.socket, socket.Socket):
-            raise AttributeError("Socket object not available.")
-
-    def __send_header(self, message):
-        header = __get_header(message)
-        self.__send_message(header)
-
-    def __receive_header(self):
-        header = self.__receive_message(__HEADER_SIZE)
-        return __parse_header(header)
-
-    def __send_message(self, message):
-        message_size = len(message)
-        sent_bytes = 0
-        while sent_bytes < message_size:
-            tmp = self.socket.send(message[sent_bytes:])
-            if tmp == 0:
-                raise RuntimeError("Socket connection lost!")
-            sent_bytes += tmp
-
-    def __receive_message(self, size):
-        msg = ''
-        msglen = len(msg)
-        while msglen < size:
-            chunk = self.socket.recv(size - msglen)
-            if chunk == '':
-                raise RuntimeError("Socket connection lost!")
-            msg += chunk
-            msglen = len(msg)
-        return msg
-
-class PlatformServerConnection(threading.Thread):
-
-    def __init__(self):
+    def __init__(self, server_info):
         super(PlatformServerConnection, self).__init__()
 
-        self.channel = server_info[0]
         self.handler_registry = PlatformEventHandlerRegistry()
 
         self.outgoing_queue = Queue()
@@ -129,71 +40,171 @@ class PlatformSocketServer(threading.Thread):
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((address, port))
+        self.socket_list = set()
 
-        self.running = False
+        self.poll_lock = threading.RLock()
+        self.poll = select.poll()
+
+        self.accept_thread = threading.Thread(target=self.__acceptor)
+        self.accept_thread.daemon = True
+
+        self.running = threading.Event()
 
         self.commands = None
         self.platform = None # is set externally
-        self.outgoing_queue = Queue()
         self.event_registry = PlatformEventHandlerRegistry()
 
     def fire(self, event, **kwargs):
         e = event(**kwargs)
-        self.outgoing_queue.put(e)
+        for socket_handler in socket_list:
+            socket_handler.put(e)
     
     def __run_command(self, command):
         return self.commands.run_command(command)
 
+    def __acceptor(self):
+        while self.running.is_set():
+            client_socket, address = self.socket.accept()
+            client = QueuedSocketHandler(client_socket, address)
+            self.__register_socket(client)
+
     def run(self):
-        self.running = True
         self.commands = self.platform.commands
+        self.running.set()
+
+        self.accept_thread.start()
         self.main()
 
     def main(self):
-        while self.running:
-            command = self.__receive_command()
-            self.__handle_command(command)
-            self.__handle_outgoing_queue()
+        while self.running.is_set():
+            with self.poll_lock:
+                event_list = self.poll.poll(100)
+            for event in event_list:
+                self.__handle_socket_fd(event)
         self.__cleanup()
 
-    def __receive_command(self):
-        pass
+    __poll_mask = (select.POLLIN | select.POLLPRI | select.POLLERR |
+            select.POLLHUP | select.POLLNVAL)
+    def __register_socket(self, socket):
+        with self.poll_lock:
+            self.poll.register(socket, self.__poll_mask)
+            self.socket_list.add(socket)
+
+    def __unregister_socket(self, socket):
+        with self.poll_lock:
+            self.poll.unregister(socket)
+            self.socket_list.discard(socket)
+
+    def __handle_socket_fd(self, event):
+        socket_handler, event_mask = event
+
+        if event_mask & (select.POLLPRI | select.POLLIN):
+            command = self.__receive_command(socket_handler)
+            result = self.__handle_command(command)
+            socket_handler.put(result)
+        if event_mask & select.POLLOUT:
+            message = socket_handler.get()
+            socket_handler.send(message)
+
+        if event_mask & select.POLLHUP:
+            error = "Unexpected disconnect from client."
+        if event_mask & select.POLLERR:
+            error = "Unknown error condition."
+        if event_mask & select.POLLNVAL:
+            error = "Invalid request, descriptor not open."
+
+        if error:
+            self.__unregister_socket(socket_handler)
+            raise PlatformSocketError(error)
+
+    def __receive_command(self, socket_handler):
+        command = socket_handler.recv()
+        return command
 
     def __handle_command(self, command):
-        pass
+        if command == "TERMINATE":
+            self.running = False
+            return False
+        if command == None:
+            return False
+        logging.debug(command)
+        result = ("RESPONSE", self.__run_command(command))
+        return result
 
-    def __get_event(self):
-        pass
-
-    def __handle_outgoing_queue(self):
-        event = self.__get_event()
-        if event:
-            self.
+    def __run_command(self, command):
+        return self.commands.run_command(command)
 
     def __cleanup()
-        pass
+        for socket in self.socket_list:
+            self.__unregister_socket(socket)
+            socket.close()
 
-class PlatformEventhandlerRegistry(object):
-    pass
+## Generic event handler registry; register event handlers here. For the sake of
+#  this discussion, an "event handler" is any object that has a "fire" method
+#  which takes a single non-self argument.
+#
+class EventHandlerRegistry(object):
 
+    def __init__(self):
+        self._temp_queue = Queue()
+        self.handlers = list()
+
+    def fire(self, event):
+        if len(self.handlers) == 0:
+            self._temp_queue.append(event)
+            return
+
+        for handler in self.handlers:
+            handler.fire(event)
+
+    def register_handler(self, handler):
+        self.handlers.append(handler)
+        return True
+
+    def unregister_handler(self, handler):
+        if handler in self.handlers:
+            self.handlers.remove(handler)
+            return True
+        return False
+
+## PlatformServer is an interface wraps some type of server to provide a
+#  consistent API during program startup so that different server
+#  implementations can be used with relatively little difficulty using the same
+#  code.
+#
 class PlatformServer(object):
 
+    ## Initialize the daemon which will control the platform during testing, and
+    #  if applicable to server type set "serverinfo" tuple.
+    #
     def init_server(self, address=None, port=None):
 
         self.server = PlatformSocketServer(address, port)
         self.serverinfo = (self.server.address, self.server.port)
 
-    def init_platform(self):
-        pass
+    def init_platform(self, manifest_file):
+        self.platform = Platform(manifest_file, self.server)
+        self.server.platform = self.platform
+        return
 
+    ## If running locally as a thread or process, start the thread/process and
+    #  return to calling context.
+    #
     def detach(self):
         pass
 
-    def establish_connection(self):
-        pass
+    ## Initiate and return connection to a remote PlatformServer.
+    #
+    def establish_connection(self, serverinfo=None):
+        self.connection = PlatformSocketClient(self.serverinfo)
+        return self.connection
 
+    ## Launch given UI main() with the given args.
+    #
     def launch_ui(self):
         pass
 
+    ## Stop PlatformServer backend.
+    #
     def terminate(self):
         pass
