@@ -7,31 +7,50 @@ from multiprocessing import Queue
 import ft.event
 from ft.platform import Platform
 
-from ft.server.sockethandler import QueuedSocketHandler
+from ft.server.sockethandler import QueuedSocketHandler, SocketObjectHandler
+from ft.server.common import PlatformClient
 
-class PlatformSocketClient(threading.Thread):
+class PlatformSocketClient(PlatformClient):
 
-    def __init__(self, server_info):
-        super(PlatformServerConnection, self).__init__()
+    def __init__(self, server_info, *args, **kwargs):
+        super(PlatformSocketClient, self).__init__(*args, **kwargs)
 
-        self.handler_registry = PlatformEventHandlerRegistry()
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.connect(server_info)
 
-        self.outgoing_queue = Queue()
-        self.incoming_queue = Queue()
+        self.socket_handler = SocketObjectHandler(self.server)
 
-        self.running = False
-        self.setDaemon = True
+    def _receive_message(self):
+        readable, writable, exceptional = select.select(
+            [self.socket_handler], [] , [], 0)
+        if not len(readable) == 0:
+            message = self.socket_handler.recv()
+            return message
+        return None
 
-    def run(self):
-        self.running = True
-        self.main()
+    def _handle_message(self, message):
+        if isinstance(message, ft.event.Event):
+            logging.debug(message)
+            self.handler_registry.fire(message)
+        elif message[0] == "RESPONSE":
+            self.incoming_queue.put(message[1])
+        else:
+            logging.error("Unhandled PlatformServer message: "
+                          "{0}".format(message))
 
-    def main(self):
-        while self.running:
-            message = self.__receive_message()
-            if messsage:
-                self.__handle_message(message)
-            self.__handle_outgoing_queue()
+    def _get_outgoing_item(self):
+        try:
+            return self.outgoing_queue.get(False)
+        except StdLibQueue.Empty:
+            return None
+
+    def _handle_outgoing_queue(self):
+        command = self._get_outgoing_item()
+        if command:
+            readable, writeable, exceptional = select.select(
+                [], [self.socket_handler], [], 0)
+            if len(writable) > 0:
+                self.socket_handler.send(command)
 
 class PlatformSocketServer(threading.Thread):
 
@@ -123,7 +142,7 @@ class PlatformSocketServer(threading.Thread):
 
     def __handle_command(self, command):
         if command == "TERMINATE":
-            self.running = False
+            self.running.clear()
             return False
         if command == None:
             return False
@@ -138,34 +157,6 @@ class PlatformSocketServer(threading.Thread):
         for socket in self.socket_list:
             self.__unregister_socket(socket)
             socket.close()
-
-## Generic event handler registry; register event handlers here. For the sake of
-#  this discussion, an "event handler" is any object that has a "fire" method
-#  which takes a single non-self argument.
-#
-class EventHandlerRegistry(object):
-
-    def __init__(self):
-        self._temp_queue = Queue()
-        self.handlers = list()
-
-    def fire(self, event):
-        if len(self.handlers) == 0:
-            self._temp_queue.append(event)
-            return
-
-        for handler in self.handlers:
-            handler.fire(event)
-
-    def register_handler(self, handler):
-        self.handlers.append(handler)
-        return True
-
-    def unregister_handler(self, handler):
-        if handler in self.handlers:
-            self.handlers.remove(handler)
-            return True
-        return False
 
 ## PlatformServer is an interface wraps some type of server to provide a
 #  consistent API during program startup so that different server
