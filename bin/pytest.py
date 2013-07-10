@@ -75,6 +75,11 @@ def parse_options():
             action="store_false", 
             dest="verbose",
         )
+    option_parser.add_option("", "--client-only", 
+            help="Run the client only; connect to a remote server.",
+            action="store_true", 
+            dest="client_only",
+        )
     option_parser.add_option("", "--server-only", 
             help="Run the server only; connect with a UI client.",
             action="store_true", 
@@ -103,11 +108,17 @@ def parse_options():
             type="string",
             dest="platform_server_type",
         )
-    option_parser.add_option("-s", "--server", 
-            help="Connect to the specified platform server, <host>:<port>",
+    option_parser.add_option("-p", "--port", 
+            help="Connect to the specified port. Default is 5932.",
             action="store", 
             type="string",
-            dest="platform_server",
+            dest="platform_server_port",
+        )
+    option_parser.add_option("-H", "--host", 
+            help="Connect to the specified platform server host.",
+            action="store", 
+            type="string",
+            dest="platform_server_host",
         )
     option_parser.add_option("-l", "--log-db", 
             help="Use the specified database connection parameters for log data.",
@@ -115,7 +126,7 @@ def parse_options():
             type="string",
             dest="logdb_connection",
         )
-    option_parser.add_option("-p", "--platform-manifest", 
+    option_parser.add_option("-a", "--platform-manifest", 
             help="Use the specified platform manifest file.",
             action="store", 
             type="string",
@@ -126,7 +137,8 @@ def parse_options():
             tftp_server_ip = "192.168.2.1",
             nfs_server_ip = "192.168.2.1",
 
-            platform_server = "localhost:5932",
+            platform_server_host = "localhost",
+            platform_server_port = "5932",
             platform_server_type = "process",
 
             logdb_connection = "sqlite:///testlog.db",
@@ -140,9 +152,46 @@ def parse_options():
 
     return option_parser
 
+def setup_platform_server(platform_server, options):
+    #-------------------
+    # Intialize and detach PlatformServer
+    #
+    platform_server.init_server()
+    platform_server.init_platform(options.platform_manifest_file)
+    platform_server.detach()
+
+    if options.server_only:
+        print("server address: %s, server port: %s" %
+              (platform_server.serverinfo.host,
+               platform_server.serverinfo.port))
+
+def is_server_local(server_info):
+    host = server_info[0]
+    return host == "localhost" or host.startswith("127")
+
+def init_ui(server, client):
+        try:
+            return server.launch_ui(ui.funct.main, client)
+        except Exception:
+            import traceback
+            traceback.print_exc(15)
+        finally:
+            client.terminate()
+            server.terminate()
+
 def main():
     option_parser = parse_options()
     (options, args) = option_parser.parse_args()
+
+    server_info = (options.platform_server_host, options.platform_server_port)
+
+    #-------------------
+    # Prepare Default Database Engine
+    #
+    # Need to choose database module dynamically.
+    #
+    from emac.orm.achievo import setup_default_engine
+    setup_default_engine()
 
     #-------------------
     # Load PlatformServer
@@ -156,39 +205,34 @@ def main():
                 "Available Servers: process [default], socket." 
                 % options.platform_server_type )
 
-    #-------------------
-    # Prepare Default Database Engine
-    #
-    # Need to choose database module dynamically as with platformserver
-    #
-    from emac.orm.achievo import setup_default_engine
-    setup_default_engine()
-
-    #-------------------
-    # Intialize and detach PlatformServer
-    #
     platform_server = server.PlatformServer()
-    platform_server.init_server()
-    platform_server.init_platform(options.platform_manifest_file)
-    platform_server.detach()
 
-    #-------------------
-    # Connect to server and Launch UI
-    #
-    if not options.server_only:
-        platform_connection = platform_server.establish_connection()
-
-        try:
-            return platform_server.launch_ui(ui.funct.main, platform_connection)
-        except Exception:
-            import traceback
-            traceback.print_exc(15)
-        finally:
-            platform_connection.terminate()
-            platform_server.terminate()
-    else:
-        print("server address: %s, server port: %s" % (platform_server.serverinfo.host,
-            platform_server.serverinfo.port))
+    if options.platform_server_type == "socket":
+        if options.server_only:
+            setup_platform_server(platform_server, options)
+            platform_server.server.join()
+        elif options.client_only:
+            try:
+                client = platform_server.establish_connection(server_info)
+                init_ui(platform_server, client)
+            except socket.error as msg:
+                client.close()
+                sys.exit("ERROR: Could not connect.")
+        else:
+            if not is_server_local(server_info):
+                sys.exit("ERROR: '{0}:{1}' is not local!".format(
+                    server_info[0], server_info[1]))
+            setup_platform_server(options)
+            try:
+                client = platform_server.establish_connection(server_info)
+                init_ui(platform_server, client)
+            except socket.error as msg:
+                client.close()
+                sys.exit("ERROR: Could not connect.")
+    elif options.platform_server_type == "process":
+        setup_platform_server(platform_server, options)
+        client = platform_server.establish_connection()
+        init_ui(platform_server, client)
 
 if __name__ == "__main__":
     try:
