@@ -23,7 +23,7 @@
 __version__ = "0.3.0"
 
 import signal, os, os.path as path
-import sys, logging, optparse
+import sys, logging, optparse, socket, time
 
 bindir = path.dirname(__file__)
 topdir = path.dirname(bindir)
@@ -111,7 +111,7 @@ def parse_options():
     option_parser.add_option("-p", "--port", 
             help="Connect to the specified port. Default is 5932.",
             action="store", 
-            type="string",
+            type="int",
             dest="platform_server_port",
         )
     option_parser.add_option("-H", "--host", 
@@ -138,7 +138,7 @@ def parse_options():
             nfs_server_ip = "192.168.2.1",
 
             platform_server_host = "localhost",
-            platform_server_port = "5932",
+            platform_server_port = 5932,
             platform_server_type = "process",
 
             logdb_connection = "sqlite:///testlog.db",
@@ -156,7 +156,7 @@ def setup_platform_server(platform_server, options):
     #-------------------
     # Intialize and detach PlatformServer
     #
-    platform_server.init_server()
+    platform_server.init_server(options)
     platform_server.init_platform(options.platform_manifest_file)
     platform_server.detach()
 
@@ -207,7 +207,7 @@ def main():
 
     platform_server = server.PlatformServer()
 
-    if options.platform_server_type == "socket":
+    if options.platform_server_type == "sockets":
         if options.server_only:
             setup_platform_server(platform_server, options)
             platform_server.server.join()
@@ -216,19 +216,21 @@ def main():
                 client = platform_server.establish_connection(server_info)
                 init_ui(platform_server, client)
             except socket.error as msg:
-                client.close()
-                sys.exit("ERROR: Could not connect.")
+                sys.exit("ERROR: Could not connect to '{0}:{1}.".format(
+                    server_info[0], server_info[1]))
         else:
             if not is_server_local(server_info):
                 sys.exit("ERROR: '{0}:{1}' is not local!".format(
                     server_info[0], server_info[1]))
-            setup_platform_server(options)
+            setup_platform_server(platform_server, options)
+            time.sleep(10)
             try:
                 client = platform_server.establish_connection(server_info)
                 init_ui(platform_server, client)
             except socket.error as msg:
-                client.close()
-                sys.exit("ERROR: Could not connect.")
+                sys.exit("ERROR: Could not connect to '{0}:{1}'.".format(
+                    server_info[0], server_info[1]))
+            platform_server.server.join()
     elif options.platform_server_type == "process":
         setup_platform_server(platform_server, options)
         client = platform_server.establish_connection()
