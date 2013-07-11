@@ -8,7 +8,7 @@ import ft.event
 from ft.platform import Platform
 
 from ft.server.sockethandler import QueuedSocketHandler, SocketObjectHandler
-from ft.server.common import PlatformClient
+from ft.server.common import PlatformClient, EventHandlerRegistry
 
 class PlatformSocketClient(PlatformClient):
 
@@ -47,7 +47,7 @@ class PlatformSocketClient(PlatformClient):
     def _handle_outgoing_queue(self):
         command = self._get_outgoing_item()
         if command:
-            readable, writeable, exceptional = select.select(
+            readable, writable, exceptional = select.select(
                 [], [self.socket_handler], [], 0)
             if len(writable) > 0:
                 self.socket_handler.send(command)
@@ -56,10 +56,13 @@ class PlatformSocketServer(threading.Thread):
 
     def __init__(self, address, port):
         super(PlatformSocketServer, self).__init__()
+        self.address = address
+        self.port = port
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((address, port))
-        self.socket_list = set()
+        self.socket.listen(3)
+        self.socket_dict = {}
 
         self.poll_lock = threading.RLock()
         self.poll = select.poll()
@@ -71,11 +74,11 @@ class PlatformSocketServer(threading.Thread):
 
         self.commands = None
         self.platform = None # is set externally
-        self.event_registry = PlatformEventHandlerRegistry()
+        self.event_registry = EventHandlerRegistry()
 
     def fire(self, event, **kwargs):
         e = event(**kwargs)
-        for socket_handler in socket_list:
+        for socket_fd, socket_handler in self.socket_dict.items():
             socket_handler.put(e)
     
     def __run_command(self, command):
@@ -107,15 +110,16 @@ class PlatformSocketServer(threading.Thread):
     def __register_socket(self, socket):
         with self.poll_lock:
             self.poll.register(socket, self.__poll_mask)
-            self.socket_list.add(socket)
+            self.socket_dict[socket.fileno()] = socket
 
     def __unregister_socket(self, socket):
         with self.poll_lock:
             self.poll.unregister(socket)
-            self.socket_list.discard(socket)
+            self.socket_dict.pop(socket.fileno)
 
     def __handle_socket_fd(self, event):
-        socket_handler, event_mask = event
+        socket_fd, event_mask = event
+        socket_handler = self.socket_dict[socket_fd]
 
         if event_mask & (select.POLLPRI | select.POLLIN):
             command = self.__receive_command(socket_handler)
@@ -153,9 +157,9 @@ class PlatformSocketServer(threading.Thread):
     def __run_command(self, command):
         return self.commands.run_command(command)
 
-    def __cleanup()
-        for socket in self.socket_list:
-            self.__unregister_socket(socket)
+    def __cleanup():
+        for socket_fd, socket_handler in self.socket_dict.items():
+            self.__unregister_socket(socket_handler)
             socket.close()
 
 ## PlatformServer is an interface wraps some type of server to provide a
@@ -168,7 +172,10 @@ class PlatformServer(object):
     ## Initialize the daemon which will control the platform during testing, and
     #  if applicable to server type set "serverinfo" tuple.
     #
-    def init_server(self, address=None, port=None):
+    def init_server(self, options):
+
+        address = options.platform_server_host
+        port = options.platform_server_port
 
         self.server = PlatformSocketServer(address, port)
         self.serverinfo = (self.server.address, self.server.port)
@@ -182,7 +189,8 @@ class PlatformServer(object):
     #  return to calling context.
     #
     def detach(self):
-        pass
+        self.server.start()
+        return
 
     ## Initiate and return connection to a remote PlatformServer.
     #
@@ -192,8 +200,8 @@ class PlatformServer(object):
 
     ## Launch given UI main() with the given args.
     #
-    def launch_ui(self):
-        pass
+    def launch_ui(self, uifunc, *args):
+        return  uifunc(*args)
 
     ## Stop PlatformServer backend.
     #

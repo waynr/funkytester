@@ -122,7 +122,7 @@ class PlatformServer(object):
     ## Initialize the daemon which will control the platform during testing, and
     #  if applicable to server type set "serverinfo" tuple.
     #
-    def init_server(self):
+    def init_server(self, options):
         self.ui_channel, self.server_channel = Pipe()
 
         self.server = PlatformProcessServer(self.server_channel)

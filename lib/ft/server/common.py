@@ -2,7 +2,7 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 from multiprocessing import Queue
-import threading
+import threading, logging
 
 class PlatformClient(threading.Thread):
 
