@@ -2,58 +2,58 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 #
 
-import Queue as StdLibQueue
+import Queue as StdLibQueu
 from multiprocessing import Queue
 
-import logging, threading
+import logging, threading, hashlib, socket
 
 try:
     import cPickle as pickle
 except ImportError:
     import pickle
 
-__MAX_CLIENTS = 1
+_MAX_CLIENTS = 1
 
-__HASH_FUNCTION = hashlib.md5
+_HASH_FUNCTION = hashlib.md5
 
-def __get_len(message):
+def _get_len(message):
     return len(message)
 
-def __get_hexdigest(message):
-    m = __HASH_FUNCTION()
+def _get_hexdigest(message):
+    m = _HASH_FUNCTION()
     m.update(message)
     return m.hexdigest()
 
-m = __HASH_FUNCTION()
+m = _HASH_FUNCTION()
 m.update(" ")
-__HASH_DIGESTLEN = len(m.hexdigest())
+_HASH_DIGESTLEN = len(m.hexdigest())
 
-__HEADER_FIELD_DELIMITER = ','
-__HEADER_FORMAT_LIST = [
-        ("0:0>{width}d", 16, __get_len),
-        ("0:0>{width}s", __HASH_DIGESTLEN, __get_hexdigest),
+_HEADER_FIELD_DELIMITER = ','
+_HEADER_FORMAT_LIST = [
+        ("0:0>{width}d", 16, _get_len),
+        ("0:0>{width}s", _HASH_DIGESTLEN, _get_hexdigest),
         ]
 
-( __HFIELD_SIZE, 
-        __HFIELD_DIGEST,
+( _HFIELD_SIZE, 
+        _HFIELD_DIGEST,
         ) = range(2)
 
-def __get_header(message):
+def _get_header(message):
     header = ""
-    for field in __HEADER_FORMAT_LIST:
+    for field in _HEADER_FORMAT_LIST:
         field = field[0].format(field[2](message), width=field[1])
-        header += field + __HEADER_FIELD_DELIMITER
+        header += field + _HEADER_FIELD_DELIMITER
     return header[:1]
 
-def __parse_header(header):
-    return header.split(__HEADER_FIELD_DELIMITER)
+def _parse_header(header):
+    return header.split(_HEADER_FIELD_DELIMITER)
 
-__HEADER_SIZE = 0
-for field in __HEADER_FORMAT_LIST:
-    __HEADER_SIZE += field[1] 
-__HEADER_SIZE += len(__HEADER_FORMAT_LIST) - 1
+_HEADER_SIZE = 0
+for field in _HEADER_FORMAT_LIST:
+    _HEADER_SIZE += field[1] 
+_HEADER_SIZE += len(_HEADER_FORMAT_LIST) - 1
 
-class PlatformSocketError(Exception)
+class PlatformSocketError(Exception):
 
     def __init__(self, message):
         self.message = message
@@ -81,24 +81,24 @@ class SocketDataHandler(object):
         self.__check_socket()
 
         header = self.__receive_header()
-        message = self.__receive_message(header[__HFIELD_SIZE])
-        check = __parse_header(__get_header(message))
+        message = self.__receive_message(header[_HFIELD_SIZE])
+        check = __parse_header(_get_header(message))
 
         assert header == check
 
         return message
 
     def __check_socket(self):
-        if not isinstance(self.__socket, socket.Socket):
+        if not isinstance(self.__socket, socket.SocketType):
             raise AttributeError("Socket object not available.")
 
     def __send_header(self, message):
-        header = __get_header(message)
+        header = _get_header(message)
         self.__send_message(header)
 
     def __receive_header(self):
-        header = self.__receive_message(__HEADER_SIZE)
-        return __parse_header(header)
+        header = self.__receive_message(_HEADER_SIZE)
+        return _parse_header(header)
 
     def __send_message(self, message):
         message_size = len(message)
