@@ -41,7 +41,7 @@ log_level = logging.DEBUG
 
 logging.basicConfig(
         level = log_level,
-        format = "%(asctime)s %(name)-5s %(levelname)-5s %(module)-5s " + \
+        format = "%(asctime)s %(threadName)-5s %(levelname)-5s %(module)-5s " + \
                 "%(funcName)-5s %(message)s",
                 datefmt = '%Y%m%d %H:%M:%S',
         filename = log_file,
@@ -223,7 +223,6 @@ def main():
                 sys.exit("ERROR: '{0}:{1}' is not local!".format(
                     server_info[0], server_info[1]))
             setup_platform_server(platform_server, options)
-            time.sleep(10)
             try:
                 client = platform_server.establish_connection(server_info)
                 init_ui(platform_server, client)
