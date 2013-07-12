@@ -97,9 +97,6 @@ class PlatformSocketServer(threading.Thread):
             for socket_fd, socket_handler in self.socket_dict.items():
                 socket_handler.put(e)
     
-    def __run_command(self, command):
-        return self.commands.run_command(command)
-
     def __acceptor(self):
         while self.running.is_set():
             client_socket, address = self.socket.accept()
@@ -122,7 +119,7 @@ class PlatformSocketServer(threading.Thread):
         self.__cleanup()
 
     __poll_mask = (select.POLLIN | select.POLLPRI | select.POLLERR |
-            select.POLLHUP | select.POLLNVAL)
+            select.POLLHUP | select.POLLNVAL | select.POLLOUT)
     def __register_socket(self, socket):
         with self.poll_lock:
             self.poll.register(socket, self.__poll_mask)
@@ -145,8 +142,9 @@ class PlatformSocketServer(threading.Thread):
 
         if event_mask & (select.POLLPRI | select.POLLIN):
             command = self.__receive_command(socket_handler)
-            result = self.__handle_command(command)
-            socket_handler.put(result)
+            if command:
+                result = self.__handle_command(command)
+                socket_handler.put(result)
         if event_mask & select.POLLOUT:
             message = socket_handler.get()
             if message:
@@ -168,7 +166,6 @@ class PlatformSocketServer(threading.Thread):
             command = socket_handler.recv()
         except PlatformSocketError:
             return None
-
         return command
 
     def __handle_command(self, command):
@@ -219,7 +216,7 @@ class PlatformServer(object):
     ## Initiate and return connection to a remote PlatformServer.
     #
     def establish_connection(self, serverinfo=None):
-        self.connection = PlatformSocketClient(self.serverinfo)
+        self.connection = PlatformSocketClient(serverinfo)
         return self.connection
 
     ## Launch given UI main() with the given args.
@@ -230,5 +227,6 @@ class PlatformServer(object):
     ## Stop PlatformServer backend.
     #
     def terminate(self):
-        self.server.running.clear()
-        self.server.join()
+        if self.server:
+            self.server.running.clear()
+            self.server.join()

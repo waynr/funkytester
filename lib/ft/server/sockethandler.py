@@ -2,7 +2,7 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 #
 
-import Queue as StdLibQueu
+import Queue as StdLibQueue
 from multiprocessing import Queue
 
 import logging, threading, hashlib, socket
