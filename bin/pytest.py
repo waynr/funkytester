@@ -162,8 +162,8 @@ def setup_platform_server(platform_server, options):
 
     if options.server_only:
         print("server address: %s, server port: %s" %
-              (platform_server.serverinfo.host,
-               platform_server.serverinfo.port))
+              (platform_server.serverinfo[0],
+               platform_server.serverinfo[1]))
 
 def is_server_local(server_info):
     host = server_info[0]
@@ -177,7 +177,6 @@ def init_ui(server, client):
             traceback.print_exc(15)
         finally:
             client.terminate()
-            server.terminate()
 
 def main():
     option_parser = parse_options()
