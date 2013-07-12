@@ -7,7 +7,7 @@ import threading, logging
 class PlatformClient(threading.Thread):
 
     def __init__(self):
-        super(PlatformClient, self).__init__()
+        super(PlatformClient, self).__init__(name="PlatformClient")
 
         self.handler_registry = EventHandlerRegistry()
 

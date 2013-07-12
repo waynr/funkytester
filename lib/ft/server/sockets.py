@@ -55,7 +55,8 @@ class PlatformSocketClient(PlatformClient):
 class PlatformSocketServer(threading.Thread):
 
     def __init__(self, address, port):
-        super(PlatformSocketServer, self).__init__()
+        super(PlatformSocketServer, self).__init__(
+            name="PlatformSocketServerMain")
         self.address = address
         self.port = port
 
@@ -67,7 +68,8 @@ class PlatformSocketServer(threading.Thread):
         self.poll_lock = threading.RLock()
         self.poll = select.poll()
 
-        self.accept_thread = threading.Thread(target=self.__acceptor)
+        self.accept_thread = threading.Thread(target=self.__acceptor,
+            name="PlatformSocketServerAcceptor")
         self.accept_thread.daemon = True
 
         self.running = threading.Event()
