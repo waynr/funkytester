@@ -22,7 +22,7 @@ class PlatformClient(threading.Thread):
         self.main()
 
     def main(self):
-        while self.running:
+        while self.running.is_set():
             message = self._receive_message()
             if message:
                 self._handle_message(message)
@@ -47,6 +47,12 @@ class PlatformClient(threading.Thread):
 
     def terminate(self):
         self.run_command("TERMINATE")
+        while not self.outgoing_queue.empty():
+            pass
+        self._terminate()
+
+    def _terminate(self):
+        pass
 
 ## Generic event handler registry; register event handlers here. For the sake of
 #  this discussion, an "event handler" is any object that has a "fire" method

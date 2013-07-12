@@ -52,6 +52,9 @@ class PlatformSocketClient(PlatformClient):
             if len(writable) > 0:
                 self.socket_handler.send(command)
 
+    def _terminate(self):
+        self.running.clear()
+
 class PlatformSocketServer(threading.Thread):
 
     def __init__(self, address, port):
@@ -159,10 +162,10 @@ class PlatformSocketServer(threading.Thread):
     def __run_command(self, command):
         return self.commands.run_command(command)
 
-    def __cleanup():
+    def __cleanup(self):
         for socket_fd, socket_handler in self.socket_dict.items():
             self.__unregister_socket(socket_handler)
-            socket.close()
+            socket_handler.close()
 
 ## PlatformServer is an interface wraps some type of server to provide a
 #  consistent API during program startup so that different server
@@ -175,7 +178,6 @@ class PlatformServer(object):
     #  if applicable to server type set "serverinfo" tuple.
     #
     def init_server(self, options):
-
         address = options.platform_server_host
         port = options.platform_server_port
 
@@ -185,14 +187,12 @@ class PlatformServer(object):
     def init_platform(self, manifest_file):
         self.platform = Platform(manifest_file, self.server)
         self.server.platform = self.platform
-        return
 
     ## If running locally as a thread or process, start the thread/process and
     #  return to calling context.
     #
     def detach(self):
         self.server.start()
-        return
 
     ## Initiate and return connection to a remote PlatformServer.
     #
@@ -208,4 +208,5 @@ class PlatformServer(object):
     ## Stop PlatformServer backend.
     #
     def terminate(self):
-        pass
+        self.server.running.clear()
+        self.server.join()

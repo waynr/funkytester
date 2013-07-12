@@ -69,6 +69,9 @@ class SocketDataHandler(object):
         self.__socket = socket
         self.address = address
 
+    def close(self):
+        self.__socket.close()
+
     def fileno(self):
         return self.__socket.fileno()
 
