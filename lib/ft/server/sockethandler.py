@@ -30,8 +30,8 @@ _HASH_DIGESTLEN = len(m.hexdigest())
 
 _HEADER_FIELD_DELIMITER = ','
 _HEADER_FORMAT_LIST = [
-        ("0:0>{width}d", 16, _get_len),
-        ("0:0>{width}s", _HASH_DIGESTLEN, _get_hexdigest),
+        ("{0:0>{width}d}", 16, _get_len),
+        ("{0:0>{width}s}", _HASH_DIGESTLEN, _get_hexdigest),
         ]
 
 ( _HFIELD_SIZE, 
@@ -43,7 +43,7 @@ def _get_header(message):
     for field in _HEADER_FORMAT_LIST:
         field = field[0].format(field[2](message), width=field[1])
         header += field + _HEADER_FIELD_DELIMITER
-    return header[:1]
+    return header[:-1]
 
 def _parse_header(header):
     return header.split(_HEADER_FIELD_DELIMITER)
@@ -84,8 +84,8 @@ class SocketDataHandler(object):
         self.__check_socket()
 
         header = self.__receive_header()
-        message = self.__receive_message(header[_HFIELD_SIZE])
-        check = __parse_header(_get_header(message))
+        message = self.__receive_message(int(header[_HFIELD_SIZE]))
+        check = _parse_header(_get_header(message))
 
         assert header == check
 
@@ -109,7 +109,7 @@ class SocketDataHandler(object):
         while sent_bytes < message_size:
             tmp = self.__socket.send(message[sent_bytes:])
             if tmp == 0:
-                raise RuntimeError("Socket connection lost!")
+                raise PlatformSocketError("Socket connection lost!")
             sent_bytes += tmp
 
     def __receive_message(self, size):
@@ -118,7 +118,7 @@ class SocketDataHandler(object):
         while msglen < size:
             chunk = self.__socket.recv(size - msglen)
             if chunk == '':
-                raise RuntimeError("Socket connection lost!")
+                raise PlatformSocketError("Socket connection lost!")
             msg += chunk
             msglen = len(msg)
         return msg
@@ -146,7 +146,7 @@ class QueuedSocketHandler(SocketObjectHandler):
         super(QueuedSocketHandler, self).__init__(*args, **kwargs)
         self.outgoing_queue = Queue()
 
-    def queue(self, message):
+    def put(self, message):
         self.outgoing_queue.put(message)
 
     def get(self):

@@ -7,7 +7,11 @@ from multiprocessing import Queue
 import ft.event
 from ft.platform import Platform
 
-from ft.server.sockethandler import QueuedSocketHandler, SocketObjectHandler
+from ft.server.sockethandler import (
+    QueuedSocketHandler, 
+    SocketObjectHandler,
+    PlatformSocketError
+    )
 from ft.server.common import PlatformClient, EventHandlerRegistry
 
 class PlatformSocketClient(PlatformClient):
@@ -24,7 +28,10 @@ class PlatformSocketClient(PlatformClient):
         readable, writable, exceptional = select.select(
             [self.socket_handler], [] , [], 0)
         if not len(readable) == 0:
-            message = self.socket_handler.recv()
+            try:
+                message = self.socket_handler.recv()
+            except PlatformSocketError:
+                return None
             return message
         return None
 
@@ -80,11 +87,15 @@ class PlatformSocketServer(threading.Thread):
         self.commands = None
         self.platform = None # is set externally
         self.event_registry = EventHandlerRegistry()
+        self.temp_queue = Queue() 
 
     def fire(self, event, **kwargs):
         e = event(**kwargs)
-        for socket_fd, socket_handler in self.socket_dict.items():
-            socket_handler.put(e)
+        if len(self.socket_dict) == 0:
+            self.temp_queue.put(e)
+        else:
+            for socket_fd, socket_handler in self.socket_dict.items():
+                socket_handler.put(e)
     
     def __run_command(self, command):
         return self.commands.run_command(command)
@@ -115,14 +126,20 @@ class PlatformSocketServer(threading.Thread):
     def __register_socket(self, socket):
         with self.poll_lock:
             self.poll.register(socket, self.__poll_mask)
-            self.socket_dict[socket.fileno()] = socket
+        self.socket_dict[socket.fileno()] = socket
+        tmp = Queue()
+        while not self.temp_queue.empty():
+            tmp.put(self.temp_queue.get())
+        while not tmp.empty():
+            socket.put(tmp.get())
 
     def __unregister_socket(self, socket):
         with self.poll_lock:
             self.poll.unregister(socket)
-            self.socket_dict.pop(socket.fileno)
+            self.socket_dict.pop(socket.fileno())
 
     def __handle_socket_fd(self, event):
+        error = None
         socket_fd, event_mask = event
         socket_handler = self.socket_dict[socket_fd]
 
@@ -132,7 +149,8 @@ class PlatformSocketServer(threading.Thread):
             socket_handler.put(result)
         if event_mask & select.POLLOUT:
             message = socket_handler.get()
-            socket_handler.send(message)
+            if message:
+                socket_handler.send(message)
 
         if event_mask & select.POLLHUP:
             error = "Unexpected disconnect from client."
@@ -146,7 +164,11 @@ class PlatformSocketServer(threading.Thread):
             raise PlatformSocketError(error)
 
     def __receive_command(self, socket_handler):
-        command = socket_handler.recv()
+        try:
+            command = socket_handler.recv()
+        except PlatformSocketError:
+            return None
+
         return command
 
     def __handle_command(self, command):
