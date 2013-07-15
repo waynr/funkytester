@@ -154,4 +154,5 @@ class QueuedSocketHandler(SocketObjectHandler):
             message = self.outgoing_queue.get(False)
         except StdLibQueue.Empty:
             return None
+        return message
 

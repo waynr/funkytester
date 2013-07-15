@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import Queue as StdLibQueue, threading, logging, os, socket, select
+import Queue as StdLibQueue, threading, logging, os, socket, select, time
 from multiprocessing import Queue
 
 import ft.event
