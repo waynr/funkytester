@@ -23,6 +23,7 @@ class PlatformSocketClient(PlatformClient):
         self.server.connect(server_info)
 
         self.socket_handler = SocketObjectHandler(self.server)
+        logging.debug("connected to server")
 
     def _receive_message(self):
         readable, writable, exceptional = select.select(
@@ -128,10 +129,12 @@ class PlatformSocketServer(threading.Thread):
         self.socket_dict[socket_handler.fileno()] = socket_handler
         tmp = Queue()
         while not self.temp_queue.empty():
+            logging.debug("emptying temp_queue")
             e = self.temp_queue.get(False)
             tmp.put(e)
         time.sleep(0.3)
         while not tmp.empty():
+            logging.debug("queuing socket_handler")
             e = tmp.get(False)
             socket_handler.put(e)
 
