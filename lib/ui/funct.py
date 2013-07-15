@@ -29,7 +29,11 @@ def main(server_connection):
     functwindow = FunctionalTestWindow(functhandler)
     
     functhandler.start()
-    gtk.main()
+
+    try:
+        gtk.main()
+    except KeyboardInterrupt:
+        return
 
 if __name__ == "__main__":
     try:
