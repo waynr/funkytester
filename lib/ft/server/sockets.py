@@ -100,8 +100,10 @@ class PlatformSocketServer(threading.Thread):
     def __acceptor(self):
         while self.running.is_set():
             client_socket, address = self.socket.accept()
-            client = QueuedSocketHandler(client_socket, address)
-            self.__register_socket(client)
+            client_socket_handler = QueuedSocketHandler(client_socket, address)
+            logging.debug("client connected: " + str(address))
+            self.__register_socket(client_socket_handler)
+            logging.debug("client socket registered: " + str(address))
 
     def run(self):
         self.commands = self.platform.commands
@@ -120,15 +122,18 @@ class PlatformSocketServer(threading.Thread):
 
     __poll_mask = (select.POLLIN | select.POLLPRI | select.POLLERR |
             select.POLLHUP | select.POLLNVAL | select.POLLOUT)
-    def __register_socket(self, socket):
+    def __register_socket(self, socket_handler):
         with self.poll_lock:
-            self.poll.register(socket, self.__poll_mask)
-        self.socket_dict[socket.fileno()] = socket
+            self.poll.register(socket_handler, self.__poll_mask)
+        self.socket_dict[socket_handler.fileno()] = socket_handler
         tmp = Queue()
         while not self.temp_queue.empty():
-            tmp.put(self.temp_queue.get())
+            e = self.temp_queue.get(False)
+            tmp.put(e)
+        time.sleep(0.3)
         while not tmp.empty():
-            socket.put(tmp.get())
+            e = tmp.get(False)
+            socket_handler.put(e)
 
     def __unregister_socket(self, socket):
         with self.poll_lock:
