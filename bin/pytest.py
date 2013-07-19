@@ -54,10 +54,6 @@ logging.debug("GE Functional Test Init")
 # Load Functional Test & Associated libraries
 from ft.platform import Platform 
 
-#-------------------------------------------------------------------------------
-# Load Functional Test UI
-import ui.funct
-
 def parse_options():
     option_parser = optparse.OptionParser(
             version = "EMAC Functional Test, verison {0}".format(
@@ -103,7 +99,7 @@ def parse_options():
             dest="test_mode",
         )
     option_parser.add_option("", "--server-type", 
-            help="Specify the server type. Default is 'process'.",
+            help="Specify the server type. Default is 'sockets'.",
             action="store", 
             type="string",
             dest="platform_server_type",
@@ -139,7 +135,7 @@ def parse_options():
 
             platform_server_host = "localhost",
             platform_server_port = 5932,
-            platform_server_type = "process",
+            platform_server_type = "sockets",
 
             logdb_connection = "sqlite:///testlog.db",
     
@@ -170,6 +166,7 @@ def is_server_local(server_info):
     return host == "localhost" or host.startswith("127")
 
 def init_ui(server, client):
+        import ui.funct
         try:
             return server.launch_ui(ui.funct.main, client)
         except Exception:
@@ -201,7 +198,7 @@ def main():
         server = getattr(module, options.platform_server_type)
     except AttributeError:
         sys.exit("ERROR: Invalid server type '%s'.\n"
-                "Available Servers: process [default], socket." 
+                "Available Servers: process, socket [default]." 
                 % options.platform_server_type )
 
     platform_server = server.PlatformServer()
