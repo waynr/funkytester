@@ -1,3 +1,8 @@
+Requirements
+============
+
+Funkytester requires Python 2.7.3.
+
 Basic Installation
 ==================
 
@@ -5,15 +10,32 @@ Install the following from your distribution's repositories:
 
   * git
   * python
-  * python-mysqldb
   * python-dev
   * python-pip
+  * curl
+  * libmysqlclient-dev
 
-Run the following commands:
+Python 2.7.3
+============
+These steps are only necessary on systems that do not have Python 2.7.3
+available in their repositories.
+
+# pip install pythonbrew
+# pythonbrew_install
+# source ${HOME}/.pythonbrew/etc/bashrc
+# pythonbrew install 2.7.3
+
+Libraries
+=========
 
 # pip install GitPython
 # pip install fysom
 # pip install pyyaml
 # pip install sqlalchemy
+# pip install serial
 
+The following is only necessary on systems that do not have Python 2.7.3
+available in their repositories.
+
+# pip install MySQLdb
 
