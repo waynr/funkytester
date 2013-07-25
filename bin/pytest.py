@@ -168,7 +168,7 @@ def parse_options():
 
 def setup_platform_server(platform_server, options):
     platform_server.init_server(options)
-    platform_server.init_platform(options.platform_manifest_file)
+    platform_server.init_platform(options)
     platform_server.detach()
 
     if options.server_only:
@@ -194,7 +194,14 @@ def main():
     option_parser = parse_options()
     (options, args) = option_parser.parse_args()
 
+    options.profile_dir = path.join(topdir, options.profile_dir)
+
     server_info = (options.platform_server_host, options.platform_server_port)
+
+    if options.profile:
+        import cProfile
+        pr = cProfile.Profile()
+        pr.enable()
 
     #-------------------
     # Prepare Default Database Engine
@@ -245,6 +252,23 @@ def main():
         setup_platform_server(platform_server, options)
         client = platform_server.establish_connection()
         init_ui(platform_server, client)
+    
+    if options.profile:
+        pr.disable()
+        import pstats, io, threading
+        t = threading.current_thread()
+
+        try:
+            os.makedirs(options.profile_dir)
+        except:
+            logging.info("Directory already exists: {0}".format(
+                options.profile_dir))
+        profile_file = path.join(options.profile_dir, t.name)
+        f = io.open( profile_file, 'wb')
+
+        ps = pstats.Stats(pr, stream=f)
+        ps.sort_stats("file", "cumulative")
+        ps.print_stats()
 
 if __name__ == "__main__":
     try:

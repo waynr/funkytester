@@ -211,8 +211,8 @@ class PlatformServer(object):
         self.server = PlatformSocketServer(address, port)
         self.serverinfo = (self.server.address, self.server.port)
 
-    def init_platform(self, manifest_file):
-        self.platform = Platform(manifest_file, self.server)
+    def init_platform(self, options):
+        self.platform = Platform(self.server, options)
         self.server.platform = self.platform
 
     ## If running locally as a thread or process, start the thread/process and

@@ -53,11 +53,12 @@ class Platform(PlatformDB, HasMetadata, Commandable):
 
     __metadata_type__ = "platforms"
 
-    def __init__(self, manifest_file, event_handler, address=None):
+    def __init__(self, event_handler, options, address=None):
         HasMetadata.__init__(self) 
 
+        self.options = options
         self.config = None
-        self.manifest = load_manifest(manifest_file)
+        self.manifest = load_manifest(options.platform_manifest_file)
         self.metadata_repo_dict = self.manifest["metadata_repo"]
         self.repo = None
         self.local_path = None

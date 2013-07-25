@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import logging, threading
+import logging, threading, os, os.path as path
 
 import ft.event
 
@@ -26,6 +26,7 @@ class Command(object):
 
     def __init__(self, platform):
         self.platform = platform
+        self.options = platform.options
 
     ## Runs the specified command; depending on how many values are in the
     #  tuple, run the old or the new version of the run_command method.
@@ -55,7 +56,7 @@ class Command(object):
             if command_is_synchronous:
                 return recipient.run_command(command)
             else:
-                cw = CommandWorker(recipient, command)
+                cw = CommandWorker(recipient, command, self.options)
                 cw.start()
         except:
             import traceback
@@ -142,8 +143,10 @@ class Command(object):
 #
 class CommandWorker(threading.Thread):
 
-    def __init__(self, obj, command):
+    def __init__(self, obj, command, options=None):
         super(CommandWorker, self).__init__()
+
+        self.options = options
 
         self.obj = obj
         self.command = command
@@ -154,6 +157,11 @@ class CommandWorker(threading.Thread):
 
         command_name = self.command[0]
         command_data = self.command[3]
+
+        if self.options and self.options.profile:
+            import cProfile
+            pr = cProfile.Profile()
+            pr.enable()
 
         try:
             command_method = getattr(obj.CommandsAsync, command_name)
@@ -166,6 +174,23 @@ class CommandWorker(threading.Thread):
                     traceback = error,
                     )
             logging.debug(error)
+
+        if self.options and self.options.profile:
+            pr.disable()
+            import pstats, io, threading
+            t = threading.current_thread()
+
+            try:
+                os.makedirs(self.options.profile_dir)
+            except:
+                logging.info("Directory already exists: {0}".format(
+                    self.options.profile_dir))
+            profile_file = path.join(self.options.profile_dir, t.name)
+            f = io.open( profile_file, 'wb')
+
+            ps = pstats.Stats(pr, stream=f)
+            ps.sort_stats("file", "cumulative")
+            ps.print_stats()
 
         obj.lock.release()
 
@@ -191,6 +216,7 @@ class Commandable(object):
         return result
 
 class CommandError(Exception):
+
     def __init__(self, command_name):
         self.message = ("Command error: {0}").format(command_name)
     
