@@ -71,6 +71,22 @@ def parse_options():
             action="store_false", 
             dest="verbose",
         )
+    option_parser.add_option("-d", 
+            help="Enable various debug features.",
+            action="count", 
+            dest="debug",
+        )
+    option_parser.add_option("", "--profile", 
+            help="Produce statistical information about code runtime.",
+            action="store_true", 
+            dest="profile",
+        )
+    option_parser.add_option("", "--profile-dir", 
+            help="File in which to store profiling statistics.",
+            action="store", 
+            type="string",
+            dest="profile_dir",
+        )
     option_parser.add_option("", "--client-only", 
             help="Run the client only; connect to a remote server.",
             action="store_true", 
@@ -144,14 +160,13 @@ def parse_options():
             test_mode = None,
     
             verbose = False,
+            profile = False,
+            profile_dir = "profile",
             )
 
     return option_parser
 
 def setup_platform_server(platform_server, options):
-    #-------------------
-    # Intialize and detach PlatformServer
-    #
     platform_server.init_server(options)
     platform_server.init_platform(options.platform_manifest_file)
     platform_server.detach()
