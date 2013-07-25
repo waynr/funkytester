@@ -36,11 +36,11 @@ class GenConfig(object):
             self.shortdesc = tmp["shortdesc"]
             options = tmp["options"]
 
-            self.__set_subattr(self, options)
+            self._set_subattr(options)
     
-    def __set_subattr(self, obj, dct):
+    def _set_subattr(self, dct):
         for key, val in dct.items():
-            setattr(obj, key, val)
+            setattr(self, key, val)
 
     def save(self, file_name):
         with file(file_name, 'w') as f:
@@ -68,11 +68,7 @@ class GenConfig2(GenConfig):
     def _load(self, file_name):
         with file(file_name, 'r+') as f:
             tmp = yaml.load(f, Loader=Loader)
-            self.__set_subattr(tmp)
-
-    def __set_subattr(self, dct):
-        for key, val in dct.items():
-            setattr(self, key, val)
+            self._set_subattr(tmp)
 
 ## Mixin intended to give subclassers access to nifty metadata directories.
 #  
