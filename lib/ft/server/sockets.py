@@ -179,9 +179,9 @@ class PlatformSocketServer(threading.Thread):
     def __handle_command(self, command):
         if command == "TERMINATE":
             self.running.clear()
-            return False
+            return ("RESPONSE", False)
         if command == None:
-            return False
+            return ("RESPONSE", False)
         logging.debug(command)
         result = ("RESPONSE", self.__run_command(command))
         return result
