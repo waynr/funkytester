@@ -144,7 +144,12 @@ class Command(object):
 class CommandWorker(threading.Thread):
 
     def __init__(self, obj, command, options=None):
-        super(CommandWorker, self).__init__()
+        if obj.address:
+            thread_name = obj.address[1]
+        else:
+            thread_name = type(obj).__name__
+
+        super(CommandWorker, self).__init__(name=thread_name)
 
         self.options = options
 
