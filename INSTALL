@@ -39,3 +39,8 @@ available in their repositories.
 
 # pip install MySQLdb
 
+Pexpect
+=======
+
+# cd ext/pexpect
+# python setup.py install
