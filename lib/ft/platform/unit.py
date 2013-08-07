@@ -92,6 +92,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
         self.name = "Anonymous Unit"
 
+        self.options = parent.options
         self.com = config["control"]["com"]
 
         self.platform_slot = parent
@@ -288,8 +289,11 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         interface = self.interfaces["linux"]
 
         # run xmlrpc server on remote machine
-        interface.cmd("./bin/xmlrpcserver.py -p 8001 {0} &".format( 
-            self.ip_address))
+        xmlrpc_trace = ""
+        if self.options and self.options.debug > 0:
+            xmlrpc_trace = "-P "
+        interface.cmd("./bin/xmlrpcserver.py {0}-p 8001 {1} &".format( 
+            xmlrpc_trace, self.ip_address))
 
         # time out 5 seconds to give xmlrpc server a chance to load and become
         # ready to respond

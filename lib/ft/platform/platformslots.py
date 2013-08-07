@@ -39,6 +39,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
 
     def __init__(self, slot_config, parent):
         self.config = slot_config
+        self.options = parent.options
 
         self.address = None
         self.product = Product( self.config["product_manifest_filename"] )
