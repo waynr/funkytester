@@ -289,11 +289,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         interface = self.interfaces["linux"]
 
         # run xmlrpc server on remote machine
-        xmlrpc_trace = ""
         if self.options and self.options.debug > 0:
-            xmlrpc_trace = "-P "
-        interface.cmd("./bin/xmlrpcserver.py {0}-p 8001 {1} &".format( 
-            xmlrpc_trace, self.ip_address))
+            interface.cmd("./bin/xmlrpcserver.py -P -p 8001 {0}".format(self.ip_address))
+        else:
+            interface.cmd("./bin/xmlrpcserver.py -p 8001 {0} &".format(self.ip_address))
 
         # time out 5 seconds to give xmlrpc server a chance to load and become
         # ready to respond

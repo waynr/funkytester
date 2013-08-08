@@ -39,13 +39,14 @@ from ft.device import emac_devices
 def parse_options():
     parser = OptionParser()
     parser.add_option("-p", "--port", action="store", type="int", dest="port")
-    parser.add_option("-P", "--pydebug", action="store_false", dest="pydebug")
+    parser.add_option("-P", "--pydebug", action="store_true", dest="pydebug")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose")
     parser.add_option("-q", "--quiet", action="store_false", dest="verbose")
     
     parser.set_defaults(
             port=8000,
             verbose=False,
+            pydebug=False,
             )
     return parser.parse_args()
     
