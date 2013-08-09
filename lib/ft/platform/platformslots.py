@@ -165,6 +165,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].disable()
+                if self.__control.has_key("backlight"):
+                    self.__control["backlight"].disable()
                 self._fire_status(PlatformSlot.State.POWER, False)
 
         else:
@@ -183,6 +185,8 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                         )
             else:
                 self.__control["power"].enable()
+                if self.__control.has_key("backlight"):
+                    self.__control["backlight"].enable()
                 self._fire_status(PlatformSlot.State.POWER)
         else:
             self.fire( ft.event.UpdateStatus, 
