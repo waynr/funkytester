@@ -65,18 +65,25 @@ class FunctTreeStore(gtk.TreeStore):
 
     def _init_visuals(self):
         self.tvcolumns = [None] * len(self.columns)
-        
+
         for n in range(0, len(self.columns)):
             self.tvcolumns[n] = gtk.TreeViewColumn(self.columns[n][0], None)
 
             cell = gtk.CellRendererText()
-            self.tvcolumns[n].pack_start(cell) # XXX might need expand=False
+            self.tvcolumns[n].pack_start(cell)  # XXX might need expand=False
 
             for property, column in self.columns[n][2].items():
                 cell.set_property(property, column)
 
             for attribute, column in self.columns[n][1].items():
                 self.tvcolumns[n].add_attribute(cell, attribute, column)
+
+           #Allow columns to be resized
+            self.tvcolumns[n].set_resizable(True)
+            self.tvcolumns[n].set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+            self.tvcolumns[n].set_min_width(120)
+            self.tvcolumns[n].set_fixed_width(180)
+
 
 class GenericAdapter(gobject.GObject):
 
