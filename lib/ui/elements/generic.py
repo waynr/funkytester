@@ -80,9 +80,8 @@ class FunctTreeStore(gtk.TreeStore):
 
            #Allow columns to be resized
             self.tvcolumns[n].set_resizable(True)
-            self.tvcolumns[n].set_sizing(gtk.TREE_VIEW_COLUMN_FIXED)
+            self.tvcolumns[n].set_sizing(gtk.TREE_VIEW_COLUMN_GROW_ONLY)
             self.tvcolumns[n].set_min_width(120)
-            self.tvcolumns[n].set_fixed_width(180)
 
 
 class GenericAdapter(gobject.GObject):
