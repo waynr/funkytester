@@ -42,6 +42,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         self.options = parent.options
 
         self.address = None
+        self.uut = None
         self.product = Product( self.config["product_manifest_filename"] )
         self.hardware_rev = None
         self.status = PlatformSlot.State.INIT

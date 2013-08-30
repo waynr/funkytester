@@ -109,8 +109,8 @@ class PlatformProcessServer(Process):
             return None, "ERROR: Problem receiving command response."
     
     def __cleanup(self):
-        self.channel.close()
         self.platform.cleanup()
+        self.channel.close()
 
 ## PlatformServer is an interface wraps some type of server to provide a
 #  consistent API during program startup so that different server

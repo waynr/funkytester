@@ -190,6 +190,8 @@ class PlatformSocketServer(threading.Thread):
         return self.commands.run_command(command)
 
     def __cleanup(self):
+        self.platform.cleanup()
+
         for socket_fd, socket_handler in self.socket_dict.items():
             self.__unregister_socket(socket_handler)
             socket_handler.close()

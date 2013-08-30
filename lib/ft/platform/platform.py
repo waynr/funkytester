@@ -148,7 +148,15 @@ class Platform(PlatformDB, HasMetadata, Commandable):
         return self.repo.get_refs()
 
     def cleanup(self):
-        pass
+        self.deactivate()
+    
+    def deactivate(self):
+        slots = self.slots
+        if len(slots) > 0:
+            for slot in slots:
+                uut = slot.uut
+                if uut:
+                    uut.deactivate()
 
     def __configure(self, config_file):
         self.config = GenConfig(config_file)
