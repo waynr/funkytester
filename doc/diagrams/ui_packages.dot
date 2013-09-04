@@ -1,0 +1,56 @@
+digraph "packages_all_py" {
+charset="utf-8"
+rankdir=BT
+"3" [shape="box", label="ui.elements.pages"];
+"4" [shape="box", label="ui.elements.models.slotsmodels"];
+"6" [shape="box", label="ui.elements.menus"];
+"7" [shape="box", label="ui.elements.functeventhandler"];
+"9" [shape="box", label="ui.elements.dialogs.interact_test"];
+"11" [shape="box", label="ui.elements.utils"];
+"12" [shape="box", label="ui.elements.pages.platformslotsetuppage"];
+"14" [shape="box", label="ui.funct"];
+"15" [shape="box", label="ui.elements.functwidgets"];
+"18" [shape="box", label="ui.elements.adapters.action"];
+"20" [shape="box", label="ui.elements.dialogs"];
+"21" [shape="box", label="ui.elements.dialogs.selections"];
+"23" [shape="box", label="ui.elements.adapters.platform"];
+"25" [shape="box", label="ui.elements"];
+"26" [shape="box", label="ui.elements.menus.testmanager"];
+"31" [shape="box", label="ui.elements.functester"];
+"34" [shape="box", label="ui.elements.adapters.test"];
+"36" [shape="box", label="ui.elements.menus.slotmanager"];
+"38" [shape="box", label="ui.elements.pages.testmanagerpage"];
+"40" [shape="box", label="ui.elements.adapters.platformslot"];
+"42" [shape="box", label="ui.elements.adapters.unit"];
+"44" [shape="box", label="ui.elements.adapters"];
+"45" [shape="box", label="ui.elements.models.testmodels"];
+"47" [shape="box", label="ui"];
+"48" [shape="box", label="ui.elements.pages.functpage"];
+"50" [shape="box", label="ui.elements.models"];
+"4" -> "44" [arrowtail="none", arrowhead="open"];
+"4" -> "25" [arrowtail="none", arrowhead="open"];
+"12" -> "15" [arrowtail="none", arrowhead="open"];
+"12" -> "48" [arrowtail="none", arrowhead="open"];
+"14" -> "45" [arrowtail="none", arrowhead="open"];
+"14" -> "7" [arrowtail="none", arrowhead="open"];
+"14" -> "4" [arrowtail="none", arrowhead="open"];
+"14" -> "31" [arrowtail="none", arrowhead="open"];
+"21" -> "15" [arrowtail="none", arrowhead="open"];
+"31" -> "9" [arrowtail="none", arrowhead="open"];
+"31" -> "44" [arrowtail="none", arrowhead="open"];
+"31" -> "38" [arrowtail="none", arrowhead="open"];
+"31" -> "21" [arrowtail="none", arrowhead="open"];
+"31" -> "12" [arrowtail="none", arrowhead="open"];
+"36" -> "26" [arrowtail="none", arrowhead="open"];
+"38" -> "36" [arrowtail="none", arrowhead="open"];
+"38" -> "48" [arrowtail="none", arrowhead="open"];
+"38" -> "44" [arrowtail="none", arrowhead="open"];
+"38" -> "26" [arrowtail="none", arrowhead="open"];
+"44" -> "18" [arrowtail="none", arrowhead="open"];
+"44" -> "34" [arrowtail="none", arrowhead="open"];
+"44" -> "42" [arrowtail="none", arrowhead="open"];
+"44" -> "40" [arrowtail="none", arrowhead="open"];
+"44" -> "23" [arrowtail="none", arrowhead="open"];
+"45" -> "44" [arrowtail="none", arrowhead="open"];
+"45" -> "25" [arrowtail="none", arrowhead="open"];
+}

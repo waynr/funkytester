@@ -1,0 +1,39 @@
+digraph "classes_all_py" {
+charset="utf-8"
+rankdir=BT
+"5" [shape="record", label="{SlotsManagerModel|valid_adapter_types : list\lcolumns : list\lmodel_type : str\l|}"];
+"8" [shape="record", label="{FuncTEventHandler|testmanagermodel\lslotsmanagermodel\levent_queue : Queue\lplatform_connection\l|handle_platform_slot_event()\lhandle_platform_event()\lhandle_event()\lhandle_startup_events()\lstart()\lhandle_specification_event()\lnotify()\lhandle_action_event()\lhandle_test_event()\lhandle_platform_uut_event()\lrun_command()\l}"];
+"10" [shape="record", label="{InteractTestDialog|\l|}"];
+"13" [shape="record", label="{PlatformSlotSetupPage|platform_slot_list : list\lplatform_slot_widgets : dict\lplatform_slot_button_group : list\l|add_slot()\lclear_platform_slots()\l}"];
+"16" [shape="record", label="{AbstractSelectionWidget|labeled_combobox : list\ladapter : NoneType\l|set_isready_cb()\l}"];
+"17" [shape="record", label="{PlatformSlotSetupWidget|platform_slot_adapter\lcheckbox : dict\lbuttongroup_apply_all : RadioButton\lbuttonbox_applytoall : VButtonBox\lradiobutton_apply_all : RadioButton\luut_setup_frame : Frame\lproduct_setup_frame : Frame\lvbox : dict\luut_setup_widget\ltext_inputs : dict\lproduct_selection_widget\lhbox : dict\lbuttongroup_apply_all : NoneType\l|}"];
+"19" [shape="record", label="{ActionAdapter|recipient_type : str\l|}"];
+"22" [shape="record", label="{AbstractSelectionDialog|selection_widget\l|}"];
+"24" [shape="record", label="{PlatformAdapter|recipient_type : str\l|}"];
+"27" [shape="record", label="{ActionManagerMenu|\l|popup()\l}"];
+"28" [shape="record", label="{ManagerMenu|adapter : NoneType\ladapter_hid : NoneType\l|}"];
+"29" [shape="record", label="{UUTManagerMenu|nfs_test_boot : MenuItem\lrun_all_tests : MenuItem\lonboard_flash_boot : MenuItem\lload_bootloader : MenuItem\ls3 : SeparatorMenuItem\ls2 : SeparatorMenuItem\ls1 : SeparatorMenuItem\lload_kfs : MenuItem\lnfs_full_boot : MenuItem\llog_data : MenuItem\lrefresh_data : MenuItem\l|popup()\l}"];
+"30" [shape="record", label="{TestManagerMenu|run : MenuItem\l|popup()\l}"];
+"32" [shape="record", label="{FunctionalTestWindow|testmanagermodel\lcontext_id\ltest_manager_page : NoneType\lnotebook : Notebook\lvbox : VBox\lhandler\lstatusbar : Statusbar\lslotsmanagermodel\lslot_setup_page : NoneType\lset_resizable : bool\l|}"];
+"33" [shape="record", label="{ftw|MAX_WIN_HEIGHT : int\lMAX_WIN_WIDTH : int\l|}"];
+"35" [shape="record", label="{TestAdapter|recipient_type : str\l|}"];
+"37" [shape="record", label="{SlotManagerMenu|power_down : MenuItem\lpower_up : MenuItem\l|popup()\l}"];
+"39" [shape="record", label="{TestManagerPage|box : dict\ltestmanager_menu\ltestmanagermodel\lbutton : dict\ltreeview_slots : TreeView\luutmanager_menu\lactionmanager_menu\lscrolledwindow_tests : ScrolledWindow\lfunctest\lslotmanager_menu\lslotsmanagermodel\ltreeview_tests : TreeView\l|}"];
+"41" [shape="record", label="{PlatformSlotAdapter|recipient_type : str\lmetadata_version : str\lspecification_name : str\l|}"];
+"43" [shape="record", label="{UnitUnderTestAdapter|recipient_type : str\l|}"];
+"46" [shape="record", label="{TestManagerModel|valid_adapter_types : list\lcolumns : list\lmodel_type : str\l|}"];
+"49" [shape="record", label="{FunctPage|group_align : Alignment\ltitle : NoneType, str\lbox_group_area : VBox\lfunctester\lfunctester_height\ltitle_label : Label\lfunctester_width\l|}"];
+"13" -> "49" [arrowtail="none", arrowhead="empty"];
+"27" -> "28" [arrowtail="none", arrowhead="empty"];
+"29" -> "28" [arrowtail="none", arrowhead="empty"];
+"30" -> "28" [arrowtail="none", arrowhead="empty"];
+"37" -> "28" [arrowtail="none", arrowhead="empty"];
+"39" -> "49" [arrowtail="none", arrowhead="empty"];
+"16" -> "22" [arrowhead="diamond", style="solid", arrowtail="none", fontcolor="green", label="selection_widget"];
+"39" -> "32" [arrowhead="diamond", style="solid", arrowtail="none", fontcolor="green", label="test_manager_page"];
+"13" -> "32" [arrowhead="diamond", style="solid", arrowtail="none", fontcolor="green", label="slot_setup_page"];
+"30" -> "39" [arrowhead="diamond", style="solid", arrowtail="none", fontcolor="green", label="testmanager_menu"];
+"29" -> "39" [arrowhead="diamond", style="solid", arrowtail="none", fontcolor="green", label="uutmanager_menu"];
+"27" -> "39" [arrowhead="diamond", style="solid", arrowtail="none", fontcolor="green", label="actionmanager_menu"];
+"37" -> "39" [arrowhead="diamond", style="solid", arrowtail="none", fontcolor="green", label="slotmanager_menu"];
+}
