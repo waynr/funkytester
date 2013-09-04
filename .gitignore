@@ -8,6 +8,13 @@
 *.swo
 *.tar.gz
 *.orig
+
+*.aux
+*.out
+*.pdf
+*.toc
+*.outline
+
 tmp-*
 blah*
 junk
