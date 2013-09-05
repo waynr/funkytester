@@ -21,7 +21,7 @@
 
 import sys, logging
 
-import gtk
+import gtk, gobject
 
 from ui.elements.dialogs.selections import AbstractSelectionDialog
 from ui.elements.dialogs.interact_test import InteractTestDialog
@@ -47,6 +47,8 @@ class FunctionalTestWindow(gtk.Window):
 
         self.handler = handler
 
+        self.TIMEOUT = 10000
+
         self.testmanagermodel = handler.testmanagermodel
         self.slotsmanagermodel = handler.slotsmanagermodel
 
@@ -54,6 +56,7 @@ class FunctionalTestWindow(gtk.Window):
         self.test_manager_page = None
 
         self.__setup()
+
 
     def __run_command(self, command):
         result, msg = self.handler.run_command(command)
@@ -167,6 +170,14 @@ class FunctionalTestWindow(gtk.Window):
         message = event.message
         self.context_id = self.statusbar.get_context_id("update-event")
         self.statusbar.push(self.context_id, message)
+
+        gobject.timeout_add(self.TIMEOUT, self.clear_statusbar)
+
+    def clear_statusbar(self):
+        self.context_id = self.statusbar.get_context_id("clear-message")
+        self.statusbar.pop(self.context_id)
+        self.statusbar.push(self.context_id,"")
+        return False
 
     def __destroy_object_cb(self, handler, event):
         adapter = GenericAdapter.get(event.address)
