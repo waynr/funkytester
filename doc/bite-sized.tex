@@ -217,41 +217,53 @@ Before continuing, the README file in the \texttt{funkytester} directory should 
 \end{chapquote}
 
 % REVIEW
-The structure of a directory tree can be methodically analyzed by inspecting each level (or layer) of the directory in turn. We can take a look at each level, starting from the topmost and gradually make our way down the paths of each of its  subdirectories and its contents. This seemed like the best approach to take with the FunkyTester code since it is already set up in a directory tree.
-
-So that's the approach this document takes. Each section in this chapter will take one or two directories, focus  on their contents, and give an overview of what each item aims to accomplish. The subsequent section then looks at the details and contents of those children items. Earlier sections cover parent directories while following sections cover their children.
-
-\section{Top Level: \texttt{funkytester}}
+	The architecture of the code can be studied in great detail by looking at each piece of code and it's what code it depends on. Less important is the directory structure that the code is stored in, but it may be helpful to look it briefly. It should be noted however, the directory structure is subject to change without notice. Refactoring the directory structure will not impact the performance of the code, but may cause some temporary confusion.
+	
+	This document will attempt to give an overview of the general structure of the testset software. Each section in this chapter will take a layer of the structure and overview what each item aims to accomplish. Earlier sections will cover higher level pieces of code while following sections cover deeper sections.
+	
+\section{Top Level Directory: \texttt{funkytester}}
 %REVIEW
-The top level includes the upper-most contents of the \texttt{funkytester} directory. Typing the \texttt{ls} command while in the \texttt{funkytester} directory will give a list of files and subdirectories, which are shown in \hyperref[fig:top]{\textbf{Figure \ref{fig:top}}}.\\
+Before beginning the discussion on the architecture of the code, it is prudent to look at the root directory of the funkytester software. Typing the \texttt{ls} command while in the \texttt{funkytester} directory will give you the current list of files and subdirectories, an example of which is shown below in \hyperref[fig:top]{\textbf{Figure \ref{fig:top}}}.\\
+	
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{top_layer.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester $ ls
+bin      doc        ext      INSTALL  Makefile   pytest_log  resources  TODO
+COPYING  doxy.conf  include  lib      py_test.c  README      scripts
+/funkytester $ 
+
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Layer One: Contents of \texttt{funkytester}}
 		\label{fig:top}
 	\end{minipage} 
 \vspace{5pt}% gives some breathing room below
 
 
-In this section, we'll look at the bigger picture purpose of these items, listed in sections from least to most important. You'll want to start building a mental picture of the organization of the code starting now. Since some directories contain more information (and some just contain more \textit{important} information than others), you should also be giving weights to the directories. I do my best to facilitate this process by giving an idea of which ones to focus on.
+This section will explain each of the files and directories in turn and give an importance level to each. Most of the files located in this directory are supplemental files, while the directories contain the actual code.
 
-There is at least one file in \texttt{funkytester} that has to do with Doxygen. Doxygen is software that we use to document the code in a systematic way. We can configure its output by editing the \texttt{doxy.conf} file. \hyperref[app:doxy]{\textbf{Appendix \ref{app:doxy}}} gives more details on the workings of Doxygen, and it shows an example of the commenting style we are using for it. Depending on what has been pushed to the git repository, there may be more than one Doxygen-generated file in the \texttt{funkytester} directory, but there should only be one -- \texttt{doxy.conf}.
+There is at least one file in \texttt{funkytester} that has to do with Doxygen, \texttt{doxy.conf}. Doxygen is software that is used to document the code in a systematic way. The output can be configured by editing the \texttt{doxy.conf} file. \hyperref[app:doxy]{\textbf{Appendix \ref{app:doxy}}} gives more details on the workings of Doxygen, and  shows an example of the commenting style used for it.
 
 \subsection{Peripheral Items}
 % README, TODO, COPYING, INSTALL, include, Makefile, py_test.c, pytest_log, 
 % RemoteSystemsTempFiles, scripts
-These are items of least importance, as far as I know. Also included are several items I'm unfamiliar with (read: so some of these items may be more important than I know). As far as understanding the FunkyTester code, though, these are the items you shouldn't concern yourself too much with. Acknowledge that they are there in case you need to refer to them in the future, but then move on.
+These are items of least importance, as far as understanding the FunkyTester code. It is best to just acknowledge that they are there in case they are needed for reference in the future.
 \begin{itemize}
 	\item \texttt{README}: It should be updated as work progresses, but for now the majority of this file consists of notes for future development. It also describes metadata that is needed for the testset to run. The \hyperref[subsec:medium]{\textbf{next section}} will go more into depth on metadata.
 	\item \texttt{TODO}: Detailed list of what needs to be worked on (more specific than \texttt{README}'s visions of the future).
 	\item \texttt{COPYING}: Copyright and distribution information.
-	\item \texttt{INSTALL}: Gives a list of software needed to run the testset.
-	\item \texttt{include}: \dstar Seems to be a number of scripts that the testset uses\dstar
-	\item \texttt{Makefile}: For use with the make utility. See \hyperref[app:make]{\textbf{Appendix \ref{app:make}}} if you want to learn more, but don't fixate on make for the sake of this project.
-	\item \texttt{py\_test.c}: \dstar This is a mystery to me. Perhaps an older version of the testset?\dstar
-	\item \texttt{pytest\_log}: \dstar This looks like output from a tmux session when running the testset. I'm not sure what it's doing here. Maybe it is an example of the format of log output we'd like to have in the future.\dstar
-	\item \texttt{RemoteSystemsTempFiles}: An empty directory. \dstar Based on the name, it's probably intended to be used from a remote machine. Possibly a remote mount point? \dstar
-	\item \texttt{scripts}: At this time there is just one script in this directory. \dstar I'm not sure what it does or that it matters for our purposes. \dstar
+	\item \texttt{INSTALL}: Gives a list of software required to be installed to run the testset.
+	\item \texttt{Makefile}: For use with the make utility. See \hyperref[app:make]{\textbf{Appendix \ref{app:make}}} for more information, but make is not vital for this project.
+	%possibly deprecated vvv
+	\item \texttt{py\_test.c}: This is a version of the test software written in C?
+	\item \texttt{pytest\_log}: Log file that shows exactly what is happening to the code as it executes. Can be viewed live by using the command \texttt{tail -f pytest\_log} while in the funkytester directory.
+	\item \texttt{scripts}: At this time there is just one script in this directory. This is an initialization script and is not vital to the understanding of the code.
 \end{itemize}
 
 
@@ -260,15 +272,16 @@ These are items of least importance, as far as I know. Also included are several
 % REVIEW
 Two of these directories have to do with Platform and Product metadata. The third is the directory containing this manual along with some other helpful items.
 \begin{itemize}
+	\item \texttt{include/}: Contains the C and C header files used to run most of the tests on the board under test.
 	%2DO: more on ext: contains interfaces info for ADAM modules (see the README)
-	\item \texttt{ext}: Contains the second repository we had to clone when getting set up with the code -- \texttt{emac}. This subdirectory holds data and information about EMAC customers' specific products and cannot be stored publicly.
+	\item \texttt{ext}: Contains the second repository that had to be cloned when getting set up with the code -- \texttt{emac}. This subdirectory holds data and information about EMAC customers' specific products and cannot be stored publicly.
 	\item \texttt{resources}: Contains specifications (manifest files) on EMAC-specific products such as testing platforms.
-	\item \texttt{doc}: Contains this document (\textit{FunkyTester Code: Breaking it into Bite-Sized Pieces}) along with a subdirectory of diagrams of portions of the code. Inside \texttt{diagrams} are four diagrams: a pair for \texttt{funkytester/lib/ft} and a pair for \texttt{funkytester/lib/ui}. Each pair of diagrams consists of a class diagram and a package diagram. These are all .dot format, so you may need to install xdot in order to view them. It may be helpful to look at these to get an idea of how different parts of \texttt{ft} and \texttt{ui} interact.
+	\item \texttt{doc}: This directory may not be included with every branch in the repository. If it is included, it will contain this document and the dependancies for this document. Also, in the \texttt{diagrams} subdirectory there are four diagrams that illustrate the hierarchy of the code: a pair for \texttt{funkytester/lib/ft} and a pair for \texttt{funkytester/lib/ui}. Each pair of diagrams consists of a class diagram and a package diagram. These are all .dot format, so xdot may need to be installed in order to view them. It may be helpful to look at these to get an idea of how different parts of \texttt{ft} and \texttt{ui} interact.
 \end{itemize}
 
 \subsection{Focus On These Guys}
 % bin, lib
-\hyperref[sec:layer2]{\textbf{Section \ref{sec:layer2}}} will talk more about the remaining two subdirectories: \texttt{bin} and \texttt{lib}. For now, you should know that \texttt{lib} contains the majority of the code and that \texttt{bin} contains the script that actually runs the testset.
+\hyperref[sec:layer2]{\textbf{Section \ref{sec:layer2}}} go more in depth about the remaining two subdirectories: \texttt{bin} and \texttt{lib}. For now, \texttt{lib} contains the majority of the code and that \texttt{bin} contains the script that actually runs the testset.
 
 \section{Layer Two} \label{sec:layer2}
 The two most important directories in \texttt{funkytester} are \texttt{bin} and \texttt{lib}. The former holds the ``final product": the software we actually run in order to begin testing a board. The latter holds the majority of the rest of the code: the GUI implementation.
