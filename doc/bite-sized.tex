@@ -95,6 +95,7 @@
 \begin{document}
 \maketitle
 \tableofcontents\newpage
+%\lstset{language=bash}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -232,8 +233,8 @@ Before beginning the discussion on the architecture of the code, it is prudent t
         \begin{tabular}{l}
 \begin{lstlisting}
 /funkytester $ ls
-bin      doc        ext      INSTALL  Makefile   pytest_log  resources  TODO
-COPYING  doxy.conf  include  lib      py_test.c  README      scripts
+bin/     doc/       ext/      INSTALL  Makefile   pytest_log  resources/  TODO
+COPYING  doxy.conf  include/  lib/     py_test.c  README      scripts/
 /funkytester $ 
 
 \end{lstlisting}
@@ -281,21 +282,35 @@ Two of these directories have to do with Platform and Product metadata. The thir
 
 \subsection{Focus On These Guys}
 % bin, lib
-\hyperref[sec:layer2]{\textbf{Section \ref{sec:layer2}}} go more in depth about the remaining two subdirectories: \texttt{bin} and \texttt{lib}. For now, \texttt{lib} contains the majority of the code and that \texttt{bin} contains the script that actually runs the testset.
-
-\section{Layer Two} \label{sec:layer2}
 The two most important directories in \texttt{funkytester} are \texttt{bin} and \texttt{lib}. The former holds the ``final product": the software we actually run in order to begin testing a board. The latter holds the majority of the rest of the code: the GUI implementation.
 
-\subsection{\texttt{bin}}
-The contents of the \texttt{bin} directory are shown in \hyperref[fig:bin]{\textbf{Figure \ref{fig:bin}}}. What makes \texttt{bin} so important is that it houses the \texttt{pytest.py} file. This is the script we run when we start the testset. \dstar The rest of the scripts in this directory look like they are probably used when tests are run.\dstar\\
+\section{Layer Two: Start of the Code} \label{sec:layer2}
+After the top layer directory, \texttt{funkytester}, the directory structure does not mean much as far as code architecture is concerned. What is important, however, is the the structure of the classes and functions inside of the file structure.
 
+%\subsection{\texttt{bin}}
+The architecturally top level script is pytest.py. This script is run to start the server and again to start the client UI. Also any options or flags that need to be passed to the software are parsed by pytest.py. Pytest.py is located in the funkytester/bin directory with a few other files. An example of the contents of the \texttt{bin} directory are shown in \hyperref[fig:bin]{\textbf{Figure \ref{fig:bin}}}.
+
+\vspace{12pt}% gives some breathing room above
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{layer_two_bin.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester/bin $ ls
+jamplayer            pytest.py  startup.sh         wifi_test.sh
+project_unittest.py  setup.sh   test-backlight.py  xmlrpcserver.py
+/funkytester/bin $ 
+
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Layer Two: Contents of \texttt{funkytester/bin}}
 		\label{fig:bin}
 	\end{minipage}
 
+\begin{comment}
 \subsection{\texttt{lib}}
 %REVIEW
 The contents of \texttt{lib} can be seen in \hyperref[fig:lib]{\textbf{Figure \ref{fig:lib}}}. The meat of the FunkyTester code lives inside this directory, including the actual testing software and the user interface code.\\
@@ -316,24 +331,37 @@ Let's look at each of these items in a little more detail:
 \end{itemize}
 
 Since the importance of \texttt{funkytester/bin} is mostly encapsulated by it being the location of \texttt{pytest.py}, it makes sense to now shift focus entirely to \texttt{funkytester/lib}, which is exactly what we'll do in \hyperref[sec:layer3]{\textbf{Layer Three}}.
+\end{comment}
 
-\section{Layer Three}	\label{sec:layer3}
+\section{Layer Three: Main Codebase}	\label{sec:layer3}
 % -- Where the Shit Hits the Fan} 
-\begin{chapquote}{H. L. Mencken, \textit{Prejudices, First Series}}
-``Every normal man must be tempted, at times, to spit on his hands, hoist the black flag, and begin slitting throats."
-\end{chapquote}
+%\begin{chapquote}{H. L. Mencken, \textit{Prejudices, First Series}}
+%``Every normal man must be tempted, at times, to spit on his hands, hoist the black flag, and begin slitting throats."
+%\end{chapquote}
 
 % REVIEW
-Layer Three is where we first start seriously looking at some code. There are two avenues we'll traverse: \texttt{funkytester/lib/ft} and \texttt{funkytester/lib/ui}. The directory \texttt{ft} holds abstractions of physical items: the Unit Under Test, the testing Platform, and Platform Slots, and also the code for interactions among these abstractions. The code for the Graphical User Interface is located in the \texttt{ui} directory.
+The main section of code falls into two groups : \texttt{ft} and \texttt{ui}. The \texttt{ft} section holds abstractions of physical items: the Unit Under Test, the testing Platform, and Platform Slots, and also the code for interactions among these abstractions. The code for the Graphical User Interface is located in the \texttt{ui} section.
 
 \subsection{Contents of \texttt{funkytester/lib/ft}}
 The directory \texttt{funkytester/lib/ft} is a package of modules. Every package must have a file called \texttt{\_\_init\_\_.py} (see \hyperref[fig:lib/ft]{\textbf{Figure \ref{fig:lib/ft}}}) so that the Python interpreter can interpret the directory as a package. Interestingly, this file can be empty. In other words, it may not do anything at all except indicate that the directory is a package. In \texttt{funkytester/lib/ft}, the \texttt{\_\_init\_\_.py} script does \textit{almost} nothing. It simply sets the \texttt{\_\_all\_\_} variable, which explicitly sets which names in the package are public. Without a defined \texttt{\_\_all\_\_} variable, all names in the package are considered public (except for those names beginning with an underscore, which is the conventional method of indicating an `internal use' object or function).
 
-This would be a good section to mention MySQL and sqlalchemy. These are items you'll want ot be familiar with as you begin looking at the code. Take a minute to read through \hyperref[app:SQL]{\textbf{Appendix \ref{app:SQL}}}. \\
+Before continuing, it is recommend to read through \hyperref[app:SQL]{\textbf{Appendix \ref{app:SQL}}} and become familiar with MySQL and sqlalchemy. \\
 
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{layer_three_ft.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester/lib/ft $ ls
+command.py   device/   event.pyc    __init__.pyc  server/  unittest/
+command.pyc  event.py  __init__.py  platform/     test/    util/
+/funkytester/lib/ft $ 
+
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Layer Four: Contents of \texttt{funkytester/lib/ft}}
 		\label{fig:lib/ft}
 	\end{minipage}
@@ -349,13 +377,24 @@ The scripts \texttt{command.py} and \texttt{event.py} are used for communicating
 % 2DO
 % a 'find . -name '*.php' | xargs wc -l' will show that /ft/ has 4191 LOC and /ui/
 % has 1994 LOC	
-Since there is both a \texttt{\_\_init\_\_.py} and a module contained in \texttt{funkytester/lib/ui}, we've got ourselves a package. It's a smaller package than \texttt{ft}, but it's no less complex. In fact, since it is where the GUI code lives, it could be argued that it is even more complex than the code for \texttt{ft} (user interface code is notoriously complicated).
+Since there is both a \texttt{\_\_init\_\_.py} and a module contained in \texttt{funkytester/lib/ui}, it is a package. It's a smaller package than \texttt{ft}, but it's no less complex. In fact, since this is where the GUI is located, it could be argued that it is even more complex than the code for \texttt{ft} (user interface code is notoriously complicated).
 
-Okay, let's take a look at the contents of this package -- see \hyperref[fig:lib/ui]{\textbf{Figure \ref{fig:lib/ui}}}. Besides the \texttt{\_\_init\_\_.py} script (which again just sets the \texttt{\_\_all\_\_} variable), there is one other script: \texttt{funct.py}. We'll get to this in a minute. The only module is called \texttt{elements}. Within \texttt{elements} lie all of the \textit{elements} we need for a GUI programmed with GTK+ (see \hyperref[sec:GTK]{\textbf{Appendix \ref{app:GTK}}}). These elements are just more abstractions -- Python objects that represent dialogs, menus, buttons, etc. The \texttt{funct.py} script instantiates an event handler along with two different models. A model is a type of element, so we'll see more on these in \hyperref[sec:ui]{\textbf{Chapter \ref{sec:ui}}}. For now just note that it is an abstraction needed for communication between the user interface and the event handler.\\
+Looking at the contents of this package -- see \hyperref[fig:lib/ui]{\textbf{Figure \ref{fig:lib/ui}}}, besides the \texttt{\_\_init\_\_.py} script (which again just sets the \texttt{\_\_all\_\_} variable), there is just one script and one module. The module is called \texttt{elements}. Within \texttt{elements} lie all of the \textit{elements} needed for a GUI programmed with GTK+ (see \hyperref[sec:GTK]{\textbf{Appendix \ref{app:GTK}}}). These elements are just more abstractions -- Python objects that represent dialogs, menus, buttons, etc. The \texttt{funct.py} script instantiates an event handler along with two different models. A model is a type of element, which will be explained in \hyperref[sec:ui]{\textbf{Chapter \ref{sec:ui}}}. For now just note that it is an abstraction needed for communication between the user interface and the event handler.\\
 
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{layer_three_ui.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester/lib/ft $ ls
+elements/  funct.py  funct.pyc  __init__.py  __init__.pyc
+/funkytester/lib/ft $ 
+
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Layer Four: Contents of \texttt{funkytester/lib/ui}}
 		\label{fig:lib/ui}
 	\end{minipage}
