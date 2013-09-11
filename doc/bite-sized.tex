@@ -412,9 +412,9 @@ elements/  funct.py  funct.pyc  __init__.py  __init__.pyc
 
 \section{\texttt{platform}}
 % 2DO
-Before we talk about \texttt{platform}, take a look at \hyperref[fig:platform]{\textbf{Figure \ref{fig:platform}}}. This is a diagram of the abstractions in the \texttt{platform} directory and the best way I've found to think of their interactions. The largest abstraction in the picture is Platform and it acts as a hub for all other abstraction interactions. This Platform is the object in the code that represents the testing platform. For now, we only have two different platforms: the GE EVSC and the Quad Testset. But, as noted earlier, the code is set up so that we could have any number of testing platforms and still use the same code to set up the testing. 
+Before \texttt{platform} is discussed, please note \hyperref[fig:platform]{\textbf{Figure \ref{fig:platform}}}. This is a diagram of the abstractions in the \texttt{platform} directory and a way to think of their interactions. The largest abstraction in the picture is Platform and it acts as a hub for all other abstraction interactions. This Platform is the object in the code that represents the testing platform. For now, there are only two different platforms: the GE EVSC and the Quad Testset. But, as noted earlier, the code is set up so that there could be any number of testing platforms and still use the same code to set up the testing. 
 
-In general, the names of objects (or abstractions) make sense. The PlatformSlot objects in the code represent slots in the physical platform. The UnitUnderTests are objects representing the boards we are testing. The Product objects are a little different in that they don't represent physical objects. A Product takes information given in a manifest.yaml file that is product-specific and translates that .yaml information into Python-accessible information by means of creating a new object. This object is the Product. The reason for this is that the information provided by the manifest.yaml file is company-specific and cannot be saved in a public repository. Saving it to a .yaml file first allows us to protect sensitive information (our clients' and our own).\\
+In general, the names of objects (or abstractions) correspond to their respective physical counterparts. The PlatformSlot objects in the code represent slots in the physical platform. The UnitUnderTests are objects representing the boards being tested. The Product objects are a little different in that they don't represent physical objects. A Product takes information given in a manifest.yaml file that is product-specific and translates that .yaml information into Python-accessible information by means of creating a new object. This object is the Product. The reason for this is that the information provided by the manifest.yaml file is company-specific and cannot be saved in a public repository. Saving it to a .yaml file first allows any sensitive information to be protected.\\
 
 	\begin{minipage}{\linewidth}
 		\makebox[\linewidth]{
@@ -424,15 +424,15 @@ In general, the names of objects (or abstractions) make sense. The PlatformSlot 
 	\end{minipage} 
 	\vspace{5pt}		%give some breathing room below
 
-Now that we've been introduced to the basic building blocks of the \texttt{platform} directory, let's take a look at how the flow of control is passed from one object to the next as the Platform is set up.
+Now that the basic building blocks of the \texttt{platform} module have been introduced, the process of how the control flow is passed from one object to the next as the Platform is set up will be discussed.
 
-A good thing to keep in mind is lineage: namely, Platform is the parent of each PlatformSlot and each PlatformSlot has a single UnitUnderTest child. Note that for each set up, we will deal with only one Platform. In the drawing above, the parent-to-child lineage shows up as physical attachments among the objects. In this picture, the Platform has two PlatformSlots attached to it, each of which are attached to a UnitUnderTest (by those black cords). The dotted lines with arrows show a `weaker' attachment. These arrows represent a flow of information from the manifest.yaml files to a Product object to a PlatformSlot to the UnitUnderTest. Each UnitUnderTest will have its own manifest.yaml file since each represents a single product. 
+A good thing to keep in mind is lineage: namely, Platform is the parent of each PlatformSlot and each PlatformSlot has a single UnitUnderTest child. Note that for each set up, we will deal with only one Platform. In the figure above, the parent-to-child lineage shows up as physical attachments among the objects. In this diagram, the Platform has two PlatformSlots attached to it, each of which are attached to a UnitUnderTest (by the black cords). The dotted lines with arrows show a `weaker' attachment. These arrows represent a flow of information from the manifest.yaml files to a Product object to a PlatformSlot to the UnitUnderTest. Each UnitUnderTest will have its own manifest.yaml file since each represents a single product. 
 
 %REVAMP
-For example, one UnitUnderTest may be a G4 while the other is a G2. Since the GE EVSC has only one PlatformSlot, the picture above would not be possible (it would only have one PlatformSlot), but it gives a good intuition for what's going on. The Quad Testset, by the way, would have four PlatformSlots.
+For example, one UnitUnderTest may be a G4 while the other is a G2. Since the GE EVSC has only one PlatformSlot, the picture above would not be possible (it would only have one PlatformSlot), but it gives a good intuition for what's going on. The Quad Testset would have four PlatformSlots.
 
 %REVAMP -- Product was already covered. i like this explanation better, though.
-Let's back up a little and talk about the Product, which is a Python object, but doesn't have a picture (just a small mention -- a cameo if you will) in our diagram. This is because there isn't a physical analogue to the Product object. The Product is just a means of gathering information from a manifest.yaml file and making it Python-accessable. %more
+A note about the Product, which is a Python object, but doesn't have a picture (just a small mention) in the diagram. This is because there isn't a physical analogue to the Product object. The Product is just a means of gathering information from a manifest.yaml file and making it Python-accessable. %more
 
 %transition
 PlatformSlot accesses both UnitUnderTest and Product and gives the UnitUnderTest pertinent information from Product.
@@ -442,9 +442,9 @@ PlatformSlot accesses both UnitUnderTest and Product and gives the UnitUnderTest
 There are two different abstractions within the \texttt{test} module: tests and actions. Each test that the user wishes to run on the Unit Under Test must have its details set up in a specification file. The specification for a test holds the recipe for running the test: a set of actions. For example, one test might test a UUT's ability to read from a file. That test must mount, try to read, and then unmount. Each of these three things is an action. A read test simply runs these three actions in order.
 
 %fix the output here for funkytester/resources/products/<platform>/spec
-The specification files are actually written as .yaml files and are saved in the directory with the path \texttt{funkytester/resources/products/<platform>/spec}. Each board to be tested has its own specification file for the tests to be run on it. Then  \texttt{specification.py} translates the test specs from the .yaml file into Python objects so we can access the specifications in \texttt{action.py}.
+The specification files are actually written as .yaml files and are saved in the directory with the path \texttt{funkytester/resources/products/<platform>/spec} on the testset. Each board to be tested has its own specification file for the tests to be run on it. Then  \texttt{specification.py} translates the test specs from the .yaml file into Python objects so we can access the specifications in \texttt{action.py}.
 
-To re-cap: the specification file gives specifics for each test ``recipe": a list of actions that must be called in order to run the test. The \texttt{test.py} script gives us an abstraction of each test, which can be used to access the action object created by \texttt{action.py}. Test objects can then later be accessed by other parts of the code.\\
+To review, the specification file gives specifics for each test ``recipe": a list of actions that must be called in order to run the test. The \texttt{test.py} script gives us an abstraction of each test, which can be used to access the action object created by \texttt{action.py}. Test objects can then later be accessed by other parts of the code.\\
 
 	\begin{minipage}{\linewidth}
 		\makebox[\linewidth]{
@@ -456,7 +456,7 @@ To re-cap: the specification file gives specifics for each test ``recipe": a lis
 
 \section{Communicating With the User Interface}
 % events and commands
-Events are messages from the platform to the user interface, whereas commands are messages that are sent from the user interface to the platform. We need both routes of communication in order to have a properly working interface. Each side (the front-end UI and the back-end platform) must have feedback from the other in order to respond appropriately and give the user an idea of what is happening. For instance, if a test fails, the user should be notified and if possible, given a short message as to why the failure occurred.\\
+Events are messages from the platform to the user interface, whereas commands are messages that are sent from the user interface to the platform. Both routes of communication are needed in order to have a properly working interface. Each side (the front-end UI and the back-end platform) must have feedback from the other in order to respond appropriately and give the user an idea of what is happening. For instance, if a test fails, the user should be notified and if possible, given a short message as to why the failure occurred.\\
 
 %communication breakdown
 	\begin{minipage}{\linewidth}
@@ -475,18 +475,31 @@ Events are messages from the platform to the user interface, whereas commands ar
 \end{chapquote}
 %say stuff about PyGTK -- hlink to appendix
 %2DO
-When looking into the GUI code, you'll have to switch hats. The GUI is based on an event-driven programming paradigm, which is quite different than the other code in the FunkyTester. If you aren't familiar with event-driven programming and you haven't yet checked out \hyperref[app:GTK]{\textbf{Appendix \ref{app:GTK}}}, now would be a great time to do that.
+When looking into the GUI code, please note that the flow is completely different from the back end code. The GUI is based on an event-driven programming paradigm, which is quite different than the other code in the FunkyTester. For more information about event-driven programming and the GTK GUI, please refer to \hyperref[app:GTK]{\textbf{Appendix \ref{app:GTK}}}.
 
 We mentioned in \hyperref[sec:ui_contents]{\textbf{Section \ref{sec:ui_contents}}} that \texttt{funkytester/lib/ui} contains one module and one script (besides the obligatory \texttt{\_\_init\_\_.py}). Let's take a closer look at the module \texttt{elements} and its contents.
 
 % talk about /elements/
 \section{\texttt{elements}}
-In the following subsections, we'll go into each of the modules within \texttt{elements}, so let's just focus on the scripts in this directory for now, ignoring \texttt{\_\_init\_\_.py}.\\
+In the following subsections, the modules within \texttt{elements} will be explored, for now just focus on the scripts in this directory, ignoring \texttt{\_\_init\_\_.py}.\\
 
 %2DO: where we puttin this?
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{elements.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester/lib/ui/elements $ ls
+adapters/       functeventhandler.py   generic.py    menus/    utils.pyc
+dialogs/        functeventhandler.pyc  generic.pyc   models/
+functester.py   functwidgets.py        __init__.py   pages/
+functester.pyc  functwidgets.pyc       __init__.pyc  utils.py
+/funkytester/lib/ui/elements $ 
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Contents of \texttt{funkytester/lib/ui/elements}}
 		\label{fig:ui/elements}
 	\end{minipage}
@@ -498,7 +511,7 @@ In the following subsections, we'll go into each of the modules within \texttt{e
 	\item \texttt{functeventhandler.py}: queues events that are emitted from the platform and handles each in turn. Each event is handled based on the type of event it is (for example: a Test event or a Platform event).
 	\item \texttt{functwidget.py}: Two classes: PlatformSlotSetupWidget, which inherits from gtk.Frame; and AbstractSelectionWidget, which inherits from gtk.VBox. An AbstractSelectionWidget sets up a selection box, determines when a selection has been made, and passes the flow of control appropriately (via callback functions).
 	\item \texttt{generic.py}: Again, two classes: FunctTreeStore, which is a gtk.TreeStore object that is used for storing adapters; and the GenericAdapter class, which inherits from gobject.GObject and is the parent for the adapters (to be introduced shortly).
-	\item \texttt{utils.py}: miscellaneous, but very important functionality.
+	\item \texttt{utils.py}: A single class for creating a labeled hbox. Miscellaneous, but very important functionality.
 \end{itemize}
 
 % 2DO a different order might make more sense for the following sections
@@ -508,14 +521,15 @@ In the following subsections, we'll go into each of the modules within \texttt{e
 
 \begin{itemize}
 	\item\texttt{adapters}: Adapters maintain the state of platform objects; that is, the state of the Platform, PlatformSlots, Tests, Actions, and UnitUnderTests.
-	\item\texttt{models}: A TreeView object is essentially a group of descriptors that are used to describe columns. The TreeView object is then populated with models, which are rows, each of which have column attributes from the TreeView object. Think of it this way: TreeView attributes across the top of a chart (x-axis) and models as the label down the side (y-axis).\\
+	\item\texttt{models}: A TreeView object is essentially a group of descriptors that are used to describe columns. The TreeView object is then populated with models, which are rows, each of which have column attributes from the TreeView object. For example: TreeView attributes across the top of a chart (x-axis) and models as the label down the side (y-axis).\\
 	Testmodels consist of rows of units (UUTs) and two layers of nested rows: tests and actions. Each of these layers of the testmodel have associated menus (see below).
 	\item\texttt{pages}: Pages are the containers for TreeView-model objects. They are seen in the GUI as the tabs labeled ``Slot Setup" and ``Test Manager".
 	\item\texttt{dialogs}: Dialogs are any pop-up windows. They may ask for information from the user (eg: select a product or version), or they may just give the user information. This is the case with warnings that pop up with traceback information in the case of an error.
 	\item\texttt{menus}: These are content menus. At the moment, they are seen only as the menus that pop up when an item in the GUI is right-clicked. There are four different kinds of menus: slot menus, which are associated with the slot models; and UUT, test, and action menus, which are associated with a test model.
 \end{itemize}
 
-Now that we have some idea about the details in the user interface code, let's re-examine the highest level of this directory. %now talk about what funct is doing --> how the flow goes (where it pulls info from) -- a general overview
+Now that some of the details in the user interface code have been looked at, the highest level of the \texttt{ui} architecture needs to be re-examined. %now talk about what funct is doing --> how the flow goes (where it pulls info from) -- a general overview
+\section{\texttt{funct}}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
