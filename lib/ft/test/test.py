@@ -9,6 +9,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from ft import Base
 
+from ft.event import EventGenerator
 import ft.event
 from ft.test import Action
 from ft.util import ui_adapter
@@ -50,7 +51,7 @@ class TestDB(Base):
 # types. Also acts as an abstract interface to specify functionality required of
 # sub classes.
 #
-class Test(TestDB):
+class Test(TestDB, EventGenerator):
 
     ## Creates a new Test object
     #
@@ -120,23 +121,6 @@ class Test(TestDB):
                 status = self.status,
                 )
 
-    def fire(self, event, **kwargs):
-        self.event_handler.fire(event, **kwargs)
-
-    def _fire_status(self, state_bit=None, on=True, **kwargs):
-        if state_bit:
-            if on:
-                self.status |= state_bit
-            elif not on:
-                self.status &= ~state_bit
-
-        self.fire(ft.event.TestEvent,
-                obj = self,
-                status = self.status,
-                datetime = time.time(),
-                **kwargs
-                )
-
     ## Checks the status of the test's actions and updates the test's
     # status appropriately.
     #
@@ -149,22 +133,22 @@ class Test(TestDB):
         self._check()
         if not self.status & Test.State.VALID:
             if self.status & Test.State.FAIL:
-                self._fire_status(Test.State.FAIL | Test.State.BROKEN, False)
+                self.fire_status(None, Test.State.FAIL | Test.State.BROKEN)
             else:
-                self._fire_status(Test.State.INVALID_INTERFACE |
-                        Test.State.FAIL)
+                self.fire_status(Test.State.INVALID_INTERFACE |
+                        Test.State.FAIL, None)
 
     def _check(self):
         raise NotImplementedError
 
     def _check_action(self, action):
         if action.status & Action.State.BROKEN:
-            self._fire_status(Test.State.BROKEN | Test.State.FAIL)
+            self.fire_status(Test.State.BROKEN | Test.State.FAIL, None)
             return False
         if action.status & Action.State.FAIL:
-            self._fire_status(Test.State.FAIL)
+            self.fire_status(Test.State.FAIL, None)
             return False
-        self._fire_status(Test.State.FAIL, False)
+        self.fire_status(None, Test.State.FAIL)
         return True
 
     ## Runs the test, fires events to signal that the test begins and ends
@@ -290,7 +274,7 @@ class SingleTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
-        self._fire_status(Test.State.RUNNING)
+        self.fire_status(Test.State.RUNNING, None)
 
         output_list = list()
 
@@ -316,10 +300,9 @@ class SingleTest(Test,):
             if action.allow_fail:
                 action.status &= ~Action.State.FAIL
 
-            action._fire_status()
+            action.fire_status()
 
-        self._fire_status(Test.State.RUNNING, False)
-        self._fire_status(Test.State.HAS_RUN)
+        self.fire_status(Test.State.HAS_RUN, Test.State.Running)
     
     def _destroy(self):
         for action in self.actions[::-1]:
@@ -418,7 +401,7 @@ class ExpectTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
-        self._fire_status(Test.State.RUNNING)
+        self.fire_status(Test.State.RUNNING, None)
 
         for i in range(self.num_values):
             # run statechanger actions
@@ -459,8 +442,7 @@ class ExpectTest(Test,):
     
                 action.set_status(expected_value, test_value, tolerance)
 
-        self._fire_status(Test.State.RUNNING, False)
-        self._fire_status(Test.State.HAS_RUN)
+        self.fire_status(Test.State.HAS_RUN, Test.State.RUNNING)
     
     def _destroy(self):
         for action in self.statecheckers[::-1]:
@@ -504,7 +486,7 @@ class InteractTest(Test):
     # Fires an InteractTest event 
     #
     def _run(self):
-        self._fire_status(Test.State.RUNNING)
+        self.fire_status(None, Test.State.RUNNING)
         self.fire( ft.event.TestInteract,
                 obj = self,
                 prompt = self.test_dict["message"],
@@ -518,12 +500,11 @@ class InteractTest(Test):
     class CommandsAsync(Test.CommandsAsync):
         @staticmethod
         def set_pass(test, data):
-            test._fire_status(Test.State.HAS_RUN)
-            test._fire_status(Test.State.RUNNING | Test.State.FAIL |
-                    Test.State.BROKEN | Test.State.INVALID_INTERFACE, False)
+            test.fire_status(Test.State.HAS_RUN, Test.State.RUNNING |
+                    Test.State.FAIL | Test.State.BROKEN |
+                    Test.State.INVALID_INTERFACE)
 
         @staticmethod
         def set_fail(test, data):
-            test._fire_status(Test.State.HAS_RUN | Test.State.FAIL)
-            test._fire_status(Test.State.RUNNING, False)
+            test.fire_status(Test.State.HAS_RUN | Test.State.FAIL, Test.State.RUNNING)
 

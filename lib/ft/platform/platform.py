@@ -20,6 +20,7 @@ from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
 from sqlalchemy.orm import relationship
 from ft import Base
 
+from ft.event import EventGenerator
 import ft.event
 from ft.platform.unit import UnitUnderTest
 from ft.platform.product import Product
@@ -49,7 +50,7 @@ class PlatformDB(Base):
                 self.metadata_version, )
         return rstring % rtuple
 
-class Platform(PlatformDB, HasMetadata, Commandable):
+class Platform(PlatformDB, HasMetadata, Commandable, EventGenerator):
 
     __metadata_type__ = "platforms"
 
@@ -76,9 +77,6 @@ class Platform(PlatformDB, HasMetadata, Commandable):
                 obj = self, 
                 name = self.name,
                 )
-
-    def fire(self, event, **kwargs):
-        self.event_handler.fire(event, **kwargs)
 
     def configure(self):
         config_file = path.join(self.repo.local_path, "config.yaml")

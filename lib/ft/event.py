@@ -1,7 +1,27 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
-import logging
+import logging, time
+
+## Mixin class to provide common event implementor functionality.
+#
+class EventGenerator(object):
+
+    def fire(self, event, **kwargs):
+        self.event_handler.fire(event, **kwargs)
+
+    def fire_status(self, on_mask=None, off_mask=None, **kwargs):
+        if on_mask:
+            self.status |= on_mask
+        if off_mask:
+            self.status &= ~off_mask
+
+        self.fire(TestEvent,
+                obj = self,
+                status = self.status,
+                datetime = time.time(),
+                **kwargs
+                )
 
 ## Base class for events
 #

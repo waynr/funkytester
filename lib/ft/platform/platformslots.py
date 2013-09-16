@@ -10,6 +10,7 @@ from sqlalchemy import ( Column, Integer, String, Boolean, DateTime, Text,
 from sqlalchemy.orm import relationship
 from ft import Base
 
+from ft.event import EventGenerator
 import ft.event
 from ft.platform.unit import UnitUnderTest
 from ft.platform.product import Product
@@ -35,7 +36,7 @@ class PlatformSlotDB(Base):
         OCCUPIED    = 0x0001
         POWER       = 0x0002
 
-class PlatformSlot(PlatformSlotDB, Commandable):
+class PlatformSlot(PlatformSlotDB, Commandable, EventGenerator):
 
     def __init__(self, slot_config, parent):
         self.config = slot_config
@@ -65,22 +66,6 @@ class PlatformSlot(PlatformSlotDB, Commandable):
 
     def get_serialport(self):
         return weakref.ref(self.__serial)
-
-    def fire(self, event, **kwargs):
-        self.event_handler.fire(event, **kwargs)
-
-    def _fire_status(self, state_bit=None, on=True):
-        if state_bit:
-            if on:
-                self.status |= state_bit
-            elif not on:
-                self.status &= ~state_bit
-
-        self.fire(ft.event.PlatformSlotEvent,
-                obj = self,
-                status = self.status,
-                datetime = time.time()
-                )
 
     def configure(self, specification_name):
         self.product.set_specification(specification_name)
@@ -168,7 +153,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                 self.__control["power"].disable()
                 if self.__control.has_key("backlight"):
                     self.__control["backlight"].disable()
-                self._fire_status(PlatformSlot.State.POWER, False)
+                self.fire_status(None, PlatformSlot.State.POWER)
 
         else:
             self.fire( ft.event.UpdateStatus,
@@ -188,7 +173,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
                 self.__control["power"].enable()
                 if self.__control.has_key("backlight"):
                     self.__control["backlight"].enable()
-                self._fire_status(PlatformSlot.State.POWER)
+                self.fire_status(PlatformSlot.State.POWER, None)
         else:
             self.fire( ft.event.UpdateStatus, 
                     message = "WARNING: Automated powerup not available.",
@@ -211,7 +196,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
         serial_number = data["serialnum"]
 
         if self.status & PlatformSlot.State.OCCUPIED:
-            self._fire_status()
+            self.fire_status(None, None)
             self.fire( ft.event.UpdateStatus,
                     message = "WARNING: PlatformSlot currently populated.",
                     )
@@ -223,7 +208,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
 
         self.platform.uuts[serial_number] = self.uut
         
-        self._fire_status(PlatformSlot.State.OCCUPIED)
+        self.fire_status(PlatformSlot.State.OCCUPIED, None)
         self.fire( ft.event.PlatformSlotEvent, 
                 obj = self,
                 current_uut = serial_number,
@@ -239,7 +224,7 @@ class PlatformSlot(PlatformSlotDB, Commandable):
     #
     def _clear_uut(self):
         self.uut.deactivate()
-        self._fire_status(PlatformSlot.State.OCCUPIED, False)
+        self.fire_status(None, PlatformSlot.State.OCCUPIED)
         self.fire( ft.event.PlatformSlotEvent,
                 obj = self,
                 current_uut = "",

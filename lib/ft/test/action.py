@@ -7,6 +7,7 @@ from sqlalchemy import Column, Integer, String, Boolean, Date, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from ft import Base
 
+from ft.event import EventGenerator
 import ft.event
 from ft.util import ui_adapter
 
@@ -47,7 +48,7 @@ class ActionDB(Base):
 
 ## Base class for actions that comprise a test run.
 #
-class Action(ActionDB):
+class Action(ActionDB, EventGenerator):
 
     instances   = dict()
 
@@ -95,23 +96,6 @@ class Action(ActionDB):
         # decrease reference count on remote xmlrpc objects?
         pass
 
-    def fire(self, event, **kwargs):
-        self.event_handler.fire(event, **kwargs)
-
-    def _fire_status(self, state_bit=None, on=True, **kwargs):
-        if state_bit:
-            if on:
-                self.status |= state_bit
-            elif not on:
-                self.status &= ~state_bit
-
-        self.fire(ft.event.ActionEvent,
-                obj = self,
-                status = self.status,
-                datetime = time.time(),
-                **kwargs
-                )
-
     def set_address(self, address):
         self.address = (self.test.address, address)
         self.fire( ft.event.ActionInit,
@@ -148,7 +132,7 @@ class Action(ActionDB):
         self.fire(ft.event.ActionStart,
                 obj = self
                 )
-        self._fire_status(Action.State.RUNNING | Action.State.FAIL)
+        self.fire_status(Action.State.RUNNING | Action.State.FAIL)
         if not value == None:
             self.kwargs[self.kwargs_value_key] = value
         try:
@@ -163,12 +147,11 @@ class Action(ActionDB):
                     )
             result = None
         else:
-            self._fire_status(Action.State.FAIL, False)
+            self.fire_status(None, Action.State.FAIL) 
             self.fire(ft.event.ActionFinish,
                 obj = self
                 )
-        self._fire_status(Action.State.RUNNING, False)
-        self._fire_status(Action.State.HAS_RUN)
+        self.fire_status(Action.State.HAS_RUN, Action.State.RUNNING)
         return result
 
     def _call(self,):
@@ -194,7 +177,7 @@ class Action(ActionDB):
                 "actual": act,
                 "tolerance": tol,
                 }
-        self._fire_status(value = self.value)
+        self.fire_status(value = self.value)
 
 if __name__ == "__main__":
     a   = Action()

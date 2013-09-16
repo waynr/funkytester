@@ -20,6 +20,7 @@ from interfaces import (
         LinuxTerminalInterface,
         )
 
+from ft.event import EventGenerator
 import ft.event
 from ft import Base
 from ft.command import Commandable
@@ -31,7 +32,7 @@ from ft.test import Test
 #  the UUT are pertinent so the base UnitUnderTest class is unmodified after
 #  declaring those attributes.
 #
-class UnitUnderTestDB(Base):
+class UnitUnderTestDB(Base, EventGenerator):
 
     __tablename__ = "pyft_unit_under_test"
     id = Column(Integer, primary_key=True)
@@ -109,27 +110,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                 )
         self.activate()
 
-    def fire(self, event, **kwargs):
-        self.event_handler.fire(event, **kwargs)
-
-    def _fire_status(self, state_bit=None, on=True):
-        if state_bit:
-            if on:
-                self.status |= state_bit
-            elif not on:
-                self.status &= ~state_bit
-
-        self.fire(ft.event.UnitUnderTestEvent,
-                obj = self,
-                status = self.status,
-                datetime = time.time()
-                )
-
     ## Indicate that the UUT is an active Platform Object.
     #
     def activate(self):
-        self._fire_status(UnitUnderTest.State.INIT, False)
-        self._fire_status(UnitUnderTest.State.ACTIVE)
+        self.fire_status(UnitUnderTest.State.ACTIVE, UnitUnderTest.State.INIT)
 
     ## Perform all the steps necessary to make current UUT "inactive".
     #
@@ -149,7 +133,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         #    * best to do this in the UI code itself?
 
         # status notification
-        self._fire_status(UnitUnderTest.State.ACTIVE, False)
+        self.fire_status(None, UnitUnderTest.State.ACTIVE)
 
     def powerdown(self):
         self.platform_slot.powerdown()
@@ -157,7 +141,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
     def powerup(self):
         self.platform_slot.powerup()
-        self._fire_status(UnitUnderTest.State.POWER)
+        self.fire_status(UnitUnderTest.State.POWER, None)
 
     def configure(self, serial_number, product, mac_address=None):
         self.serial_number = serial_number
@@ -231,8 +215,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         if not interface.chk(10):
             raise Exception("U-Boot prompt not found!")
 
-        self._fire_status(UnitUnderTest.State.BOOTL)
-        self._fire_status(UnitUnderTest.State.READY, False)
+        self.fire_status(UnitUnderTest.State.BOOTL, UnitUnderTest.State.READY)
 
         # run given uboot template line-by-line at uboot prompt
         for command in commands:
@@ -243,10 +226,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         self.ip_address = interface.get_var("ipaddr")
         logging.debug(self.ip_address)
 
-        self._fire_status(UnitUnderTest.State.READY)
+        self.fire_status(UnitUnderTest.State.READY, None)
 
     def _nfs_test_boot(self):
-        self._fire_status(UnitUnderTest.State.BOOT_NFS)
+        self.fire_status(UnitUnderTest.State.BOOT_NFS, None)
         # get nfs_test.template from product
         template_string = self.product.get_file("nfs_test.template")
         
@@ -262,17 +245,15 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             nfs_base_dir = platform.config.nfs_base_dir,
             baud = self.product.config.serial["baud"],
             )
-        self._fire_status(UnitUnderTest.State.BOOTING)
-        self._fire_status(UnitUnderTest.State.BOOTL, False)
+        self.fire_status(UnitUnderTest.State.BOOTING, UnitUnderTest.State.BOOTL)
         
         # run boot command
         interface = self.interfaces["uboot"]
 
         interface.cmd("run boot-test", prompt="sh-3.2#", timeout=40)
 
-        self._fire_status(UnitUnderTest.State.READY |
-                UnitUnderTest.State.LINUX)
-        self._fire_status(UnitUnderTest.State.BOOTING, False)
+        self.fire_status(UnitUnderTest.State.READY | UnitUnderTest.State.LINUX,
+                UnitUnderTest.State.BOOTING)
 
     ## Initialize UUT's Test objects; if UUT is not booted, boot it to nfs.
     #
@@ -285,7 +266,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             logging.debug("Not ready.")
             time.sleep(0.1)
 
-        self._fire_status(UnitUnderTest.State.LOAD_TESTS)
+        self.fire_status(UnitUnderTest.State.LOAD_TESTS, None)
         interface = self.interfaces["linux"]
 
         # run xmlrpc server on remote machine
@@ -328,8 +309,7 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
             test.initialize_actions()
             self.tests.append(test)
 
-        self._fire_status(UnitUnderTest.State.READY)
-        self._fire_status(UnitUnderTest.State.LOAD_TESTS, False)
+        self.fire_status(UnitUnderTest.State.READY, UnitUnderTest.State.LOAD_TESTS)
 
     ## Run all tests; if tests are not initialized, initialize them.
     #
@@ -339,10 +319,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                     obj = self,
                     message = "WARNING: No tests available!",
                     )
-        self._fire_status(UnitUnderTest.State.TESTING)
+        self.fire_status(UnitUnderTest.State.TESTING, None)
         for test in self.tests:
             test.run()
-        self._fire_status(UnitUnderTest.State.READY)
+        self.fire_status(UnitUnderTest.State.READY, None)
 
     def _load_kfs(self):
         pass
