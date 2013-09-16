@@ -169,12 +169,16 @@ It is important not to get mentally bogged down by all of the code and the seemi
 	\item \textbf{Take notes}: Taking notes is a valuable tool to help with understanding source code. Notes allow for documentation of areas in the code that are not understood at the time. A developer assigned to the project may be contactedat a leter time for clarification. Keep these notes in a document for future developers to use in their learning process.
 	%2DO: make the parenthetical note a sidenote if time
 	% Rework entire section
+\begin{comment}
 	\item \textbf{Don't trust comments}: On the /personal/montana branch (don't understand the lingo? \hyperref[app:git]{\textbf{git it}}), I wrote the majority of the comments and I have a less-than-ideal understanding of programming and Python. If the comments are helpful for you to gain some sort of intuition, then they will have done their job. But if they don't make sense to you or seem more convoluted than the code itself, then by all means go to the code and see for yourself what's going on.
+\end{comment}
 	\item \textbf{Look at the Code}: To fully understand this document and the software it describes, it is beneficial to have the source code and directory structure available to look at.
 	\end{itemize}
-	%possibly remove final section entirely
+Finally, it should be noted that this manual cannot be used to replace time spent reading and understanding the code. This manual is simply a supplement to working through the software and raw code.
+%possibly remove final section entirely vvv
+\begin{comment}
 Finally, I should end with a note about this manual. I am not the expert on this code. I didn't write the code, and it's taken me quite a bit of time to familiarize myself with it. I certainly don't have a complete understanding of every piece of code, but I've done my best to present what I do know and to indicate the portions I am unfamiliar with. When I write about things I don't know much about, I'll surround my conjectures by two stars: \dstar. Hopefully these stars, along with the tone of uncertainty of these passages, will encourage the reader to tread lightly.
-
+\end{comment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Where to Begin?}
 There are a few steps involved in the set up process for the testset software. First, two git repositories must be cloned. One of these contained the source code for the testset -- this is the \texttt{funkytester} directory, minus the contents of its \texttt{ext/emac} subdirectory. The \texttt{ext/emac} subdirectory contains product-specific information and isn't suited for public display on the internet (needed to keep EMAC's clients' information safe). This subdirectory was the second of the repositories we cloned (it contains the \textit{manifest} file, which is very important for running the testset). See \hyperref[sec:gitcloning]{\textbf{Appendix \ref{sec:gitcloning}}} for a detailed walk-through of that process.\\
@@ -195,9 +199,7 @@ The next step is to set up for running the testset software via SSH on the tests
 
 To run the software, refer to \hyperref[sec:run]{\textbf{Appendix \ref{sec:run}}}.
 
-Finally, open the \texttt{INSTALL} file located in the \texttt{funkytester} directory and install all the necessary software. All of the listed applications are vital to the correct performance of the testset software. 
-
-If there are still issues running the software after installing everything listed in the \texttt{INSTALL} file, please refer to the suggestions in \hyperref[sec:trouble]{\textbf{Appendix \ref{sec:trouble}}}.
+Finally, open the \texttt{INSTALL} file located in the \texttt{funkytester} directory and install all the necessary software. All of the listed applications are vital to the correct performance of the testset software. If there are still issues running the software after installing everything listed in the \texttt{INSTALL} file, please refer to the suggestions in \hyperref[sec:trouble]{\textbf{Appendix \ref{sec:trouble}}}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Bird's Eye View -- Some Insight into the Testset Design and Purpose}
@@ -477,7 +479,7 @@ Events are messages from the platform to the user interface, whereas commands ar
 %2DO
 When looking into the GUI code, please note that the flow is completely different from the back end code. The GUI is based on an event-driven programming paradigm, which is quite different than the other code in the FunkyTester. For more information about event-driven programming and the GTK GUI, please refer to \hyperref[app:GTK]{\textbf{Appendix \ref{app:GTK}}}.
 
-We mentioned in \hyperref[sec:ui_contents]{\textbf{Section \ref{sec:ui_contents}}} that \texttt{funkytester/lib/ui} contains one module and one script (besides the obligatory \texttt{\_\_init\_\_.py}). Let's take a closer look at the module \texttt{elements} and its contents.
+It was mentioned in \hyperref[sec:ui_contents]{\textbf{Section \ref{sec:ui_contents}}} that \texttt{funkytester/lib/ui} contains one module and one script (besides the obligatory \texttt{\_\_init\_\_.py}). The module \texttt{elements} and its contents will now be looked at with greater scrutiny.
 
 % talk about /elements/
 \section{\texttt{elements}}
@@ -529,7 +531,8 @@ functester.pyc  functwidgets.pyc       __init__.pyc  utils.py
 \end{itemize}
 
 Now that some of the details in the user interface code have been looked at, the highest level of the \texttt{ui} architecture needs to be re-examined. %now talk about what funct is doing --> how the flow goes (where it pulls info from) -- a general overview
-\section{\texttt{funct}}
+\section{Overview of \texttt{funct}}
+In this section the top level of the user interface, \texttt{funct}, will be explored. There exists only one function in \texttt{funct.py}, that function is \texttt{main}. This is where the initial models and event handlers are called to start building the GUI. Also, \texttt{funct} is where the main GTK loop is started. This loop is responsible for responding to user inputs and displaying the proper output. 
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
