@@ -4,12 +4,25 @@
 import logging, time
 
 ## Mixin class to provide common event implementor functionality.
+# 
+#  Events items encapsulate various pieces of information about the Platform
+#  object that inherits from the "EventGenerator" class. This allows remote
+#  "shadow" representations of Platform objects to be updated asynchronously
+#  from within Platform code.
 #
 class EventGenerator(object):
 
     def fire(self, event, **kwargs):
         self.event_handler.fire(event, **kwargs)
 
+    ## Updates client representation with important information about the
+    #  represented Platform object.
+    #
+    #  @param on_mask Bitmask containing status bits that need to be set.
+    #  @param off_mask Bitmask containing status bits that need to be unset.
+    #  @param kwargs All other key word arguments passed to the method are
+    #  passed on to the 'fire' method.
+    #
     def fire_status(self, on_mask=None, off_mask=None, **kwargs):
         if on_mask:
             self.status |= on_mask
