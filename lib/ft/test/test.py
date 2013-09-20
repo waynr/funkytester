@@ -302,7 +302,7 @@ class SingleTest(Test,):
 
             action.fire_status()
 
-        self.fire_status(Test.State.HAS_RUN, Test.State.Running)
+        self.fire_status(Test.State.HAS_RUN, Test.State.RUNNING)
     
     def _destroy(self):
         for action in self.actions[::-1]:
