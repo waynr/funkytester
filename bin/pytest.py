@@ -20,7 +20,12 @@
 # Note: Much of this file's design is inspired by bitbake version 1.15.3
 #
 
-__version__ = "0.3.0"
+__major_version__ = "00"
+__minor_version__ = "05"
+__bug_version = "00" # need to create a git hook or something that automatically
+                     # replaces this text with a short SHA256 hash
+
+__version__ = ".".join([__major_version__, __minor_version__, __bug_version__])
 
 import signal, os, os.path as path
 import sys, logging, optparse, socket, time
