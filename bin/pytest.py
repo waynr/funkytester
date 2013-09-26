@@ -61,7 +61,7 @@ from ft.platform import Platform
 
 def parse_options():
     option_parser = optparse.OptionParser(
-            version = "EMAC Functional Test, verison {0}".format(
+            version = "FunkyTester, Version {0}".format(
                 __version__),
             usage = """%prog [options] <TEST_DIR>""",
             )
