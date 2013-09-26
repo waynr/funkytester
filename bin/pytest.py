@@ -22,7 +22,7 @@
 
 __major_version__ = "00"
 __minor_version__ = "05"
-__bug_version = "00" # need to create a git hook or something that automatically
+__bug_version__ = "00" # need to create a git hook or something that automatically
                      # replaces this text with a short SHA256 hash
 
 __version__ = ".".join([__major_version__, __minor_version__, __bug_version__])
