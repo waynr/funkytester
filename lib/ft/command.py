@@ -68,6 +68,8 @@ class Command(object):
             logging.debug(error)
             return None, error
 
+        return None, ""
+
     def __get_recipient(self, command):
         return self.__get_recipient_v0(command)
         #return self.__get_recipient_v1(command)
