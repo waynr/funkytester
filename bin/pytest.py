@@ -232,7 +232,12 @@ def main():
 
     if options.platform_server_type == "sockets":
         if options.server_only:
-            setup_platform_server(platform_server, options)
+            try:
+                setup_platform_server(platform_server, options)
+            except socket.error, e:
+                if e.errno == 98:
+                    sys.exit("ERROR: Address '{0}:{1}' already in use!".format(
+                        server_info[0], server_info[1]))
             platform_server.server.join()
         elif options.client_only:
             try:
