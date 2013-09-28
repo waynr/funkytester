@@ -2,7 +2,7 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 from multiprocessing import Queue
-import threading, logging
+import time, threading, logging, Queue as StdLibQueue
 
 class PlatformClient(threading.Thread):
 
@@ -30,15 +30,17 @@ class PlatformClient(threading.Thread):
 
     def run_command(self, command):
         self.outgoing_queue.put(command)
-        #if command == "TERMINATE":
-            #return None, ""
+        if command == "TERMINATE":
+            while not self.outgoing_queue.empty():
+                time.sleep(0.5)
+            return None, ""
         try:
             response = self.incoming_queue.get(True, 20)
             if response:
                 return response
-            else:
-                return None, ("FATAL: Timeout while awaiting response from"
-                              "PlatformServer.")
+        except StdLibQueue.Empty:
+                raise PlatformTimeoutError ("FATAL: Timeout while awaiting "
+                        "response from PlatformServer.")
         except KeyboardInterrupt:
             pass
 
@@ -81,3 +83,13 @@ class EventHandlerRegistry(object):
             self.handlers.remove(handler)
             return True
         return False
+
+## Error indicates timeout occurred between client and server.
+#
+class PlatformTimeoutError(Exception):
+    # Indiciates timeout occurred between client and server.
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return repr(self.message)

@@ -152,7 +152,11 @@ class PlatformSocketServer(threading.Thread):
             command = self.__receive_command(socket_handler)
             if command:
                 result = self.__handle_command(command)
-                socket_handler.put(result)
+                if result[0] == "RESPONSE":
+                    socket_handler.put(result)
+                elif result[0] == "DISCONNECT":
+                    # TODO: Handle asynchronous client disconnects.
+                    pass
         if event_mask & select.POLLOUT:
             message = socket_handler.get()
             if message:
@@ -179,9 +183,11 @@ class PlatformSocketServer(threading.Thread):
     def __handle_command(self, command):
         if command == "TERMINATE":
             self.running.clear()
-            return ("RESPONSE", False)
+            return ("TERMINATE", (False, ""))
+        if command == "DISCONNECT":
+            return ("DISCONNECT", (False, ""))
         if command == None:
-            return ("RESPONSE", False)
+            return ("RESPONSE", (False, ""))
         logging.debug(command)
         result = ("RESPONSE", self.__run_command(command))
         return result

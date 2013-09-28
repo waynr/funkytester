@@ -247,6 +247,8 @@ def main():
             try:
                 client = platform_server.establish_connection(server_info)
                 init_ui(platform_server, client)
+            except server.PlatformTimeoutError as e:
+                sys.exit(e.message)
             except socket.error as msg:
                 sys.exit("ERROR: Could not connect to '{0}:{1}.".format(
                     server_info[0], server_info[1]))
