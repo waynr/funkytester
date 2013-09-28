@@ -57,7 +57,11 @@ logging.debug("GE Functional Test Init")
 
 #-------------------------------------------------------------------------------
 # Load Functional Test & Associated libraries
+
 from ft.platform import Platform 
+
+#-------------------------------------------------------------------------------
+# Option Parsing
 
 def parse_options():
     option_parser = optparse.OptionParser(
@@ -185,15 +189,15 @@ def is_server_local(server_info):
     host = server_info[0]
     return host == "localhost" or host.startswith("127")
 
-def init_ui(server, client):
-        import ui.funct
-        try:
-            return server.launch_ui(ui.funct.main, client)
-        except Exception:
-            import traceback
-            traceback.print_exc(15)
-        finally:
-            client.terminate()
+def init_ui(platform_server, client):
+    import ui.funct
+    try:
+        return platform_server.launch_ui(ui.funct.main, client)
+    except Exception:
+        import traceback
+        traceback.print_exc(15)
+    finally:
+        client.terminate()
 
 def main():
     option_parser = parse_options()
