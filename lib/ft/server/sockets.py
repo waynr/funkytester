@@ -12,7 +12,11 @@ from ft.server.sockethandler import (
     SocketObjectHandler,
     PlatformSocketError
     )
-from ft.server.common import PlatformClient, EventHandlerRegistry
+from ft.server.common import ( 
+        PlatformClient, 
+        EventHandlerRegistry,
+        PlatformTimeoutError,
+        )
 
 class PlatformSocketClient(PlatformClient):
 
@@ -114,12 +118,23 @@ class PlatformSocketServer(threading.Thread):
         self.main()
 
     def main(self):
-        while self.running.is_set():
+        event_list = []
+        while True:
             with self.poll_lock:
                 event_list = self.poll.poll(100)
             for event in event_list:
                 self.__handle_socket_fd(event)
+            if not self.running.is_set() and self.no_outgoing():
+                break
         self.__cleanup()
+
+    ## Determine whether or not any socket handlers are waiting to send data.
+    #
+    def no_outgoing(self):
+        for socket_fd, socket_handler in self.socket_dict.items():
+            if not socket_handler.empty():
+                return False
+        return True
 
     __poll_mask = (select.POLLIN | select.POLLPRI | select.POLLERR |
             select.POLLHUP | select.POLLNVAL | select.POLLOUT)

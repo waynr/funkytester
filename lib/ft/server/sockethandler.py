@@ -146,6 +146,9 @@ class QueuedSocketHandler(SocketObjectHandler):
         super(QueuedSocketHandler, self).__init__(*args, **kwargs)
         self.outgoing_queue = Queue()
 
+    def empty(self):
+        return self.outgoing_queue.empty()
+
     def put(self, message):
         self.outgoing_queue.put(message)
 
