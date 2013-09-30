@@ -154,10 +154,11 @@ class PlatformSocketServer(threading.Thread):
             e = tmp.get(False)
             socket_handler.put(e)
 
-    def __unregister_socket(self, socket):
+    def __unregister_socket(self, socket_handler):
         with self.poll_lock:
-            self.poll.unregister(socket)
-            self.socket_dict.pop(socket.fileno())
+            self.poll.unregister(socket_handler)
+            self.socket_dict.pop(socket_handler.fileno())
+            socket_handler.close()
 
     def __handle_socket_fd(self, event):
         error = None
@@ -171,8 +172,14 @@ class PlatformSocketServer(threading.Thread):
                 if result[0] == "RESPONSE":
                     socket_handler.put(result)
                 elif result[0] == "DISCONNECT":
-                    # TODO: Handle asynchronous client disconnects.
-                    pass
+                    self.__unregister_socket(socket_handler)
+                    # TODO: determine whether client had control, if so reset
+                    # server to "clean" state that can be connected to and
+                    # controlled by another client
+                elif result[0] == "TERMINATE":
+                    self.__unregister_socket(socket_handler)
+                    # TODO: finish handling proper termination in multi-client
+                    # case
         if event_mask & select.POLLOUT:
             message = socket_handler.get()
             if message:
