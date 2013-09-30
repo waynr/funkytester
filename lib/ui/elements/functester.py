@@ -140,7 +140,6 @@ class FunctionalTestWindow(gtk.Window):
 
     def __terminate(self):
         self.handler.running = False
-        self.__run_command("TERMINATE")
         gtk.main_quit()
 
     def __display_error(self, message=None, event=None):
