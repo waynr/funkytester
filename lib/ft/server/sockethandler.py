@@ -70,6 +70,7 @@ class SocketDataHandler(object):
         self.address = address
 
     def close(self):
+        self.__socket.shutdown(socket.SHUT_RDWR)
         self.__socket.close()
 
     def fileno(self):
