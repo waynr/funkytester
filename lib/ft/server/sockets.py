@@ -197,6 +197,7 @@ class PlatformSocketServer(threading.Thread):
 
     def __handle_command(self, command):
         if command == "TERMINATE":
+            logging.debug("Server TERMINATE sequence")
             self.running.clear()
             return ("TERMINATE", (False, ""))
         if command == "DISCONNECT":

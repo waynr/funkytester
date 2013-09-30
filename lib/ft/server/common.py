@@ -48,6 +48,7 @@ class PlatformClient(threading.Thread):
         self.handler_registry.register_handler(handler)
 
     def terminate(self):
+        logging.debug("Client TERMINATE sequence")
         self.run_command("TERMINATE")
         while not self.outgoing_queue.empty():
             pass
