@@ -65,6 +65,7 @@ class PlatformSocketClient(PlatformClient):
                 self.socket_handler.send(command)
 
     def _terminate(self):
+        self.socket_handler.close()
         self.running.clear()
 
 class PlatformSocketServer(threading.Thread):

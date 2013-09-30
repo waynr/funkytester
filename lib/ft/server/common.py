@@ -31,8 +31,7 @@ class PlatformClient(threading.Thread):
     def run_command(self, command):
         self.outgoing_queue.put(command)
         if command == "TERMINATE":
-            while not self.outgoing_queue.empty():
-                time.sleep(0.5)
+            time.sleep(1)
             return None, ""
         try:
             response = self.incoming_queue.get(True, 20)
