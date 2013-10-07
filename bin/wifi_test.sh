@@ -1,6 +1,7 @@
 #!/bin/bash
 
 INTERFACE=${1:?}
+ESSID=${2:?}
 
 #-------------------------------------------------------------------------------
 # Functions
@@ -22,14 +23,17 @@ fail() {
 #-------------------------------------------------------------------------------
 # Main
 #
+( ip addr | grep ${INTERFACE} 2>&1 > /dev/null ) || \
+	fail "WiFi interface (${INTERFACE}) appears to be missing." 
+
 quality=` iwlist "${INTERFACE}" scan \
-	| grep -A 3 evsc \
-	| awk 'BEGIN { FS="[=\ /]+" } /Quality/ { print $3 }' `
+	| grep -A 3 ${ESSID} \
+	| awk 'BEGIN { FS="[=\ /:]+" } /Quality/ { print $3 }' `
 
 ( [ "${?}" != "0" ] || [ "${quality}" == "" ] ) && \
-	fail "WiFi interface (${1}) appears to be missing."
+	fail "WiFi access point (${ESSID}) appears to be missing."
 
-[ "${quality}" -lt "70" ]  && \
+[ "${quality}" -lt "70" ] && \
 	fail "WiFi Signal quality (${quality}) must be > 70/100 to pass."
 
 pass
