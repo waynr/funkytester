@@ -361,8 +361,15 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
         @staticmethod
         def run_all_tests(uut, data):
 
-            if len(self.tests) == 0:
-                self._initialize_tests()
+            if len(uut.tests) == 0:
+                uut._initialize_tests()
+
+            uut.fire( ft.event.UpdateStatus,
+                    obj = uut,
+                    message = "INFO: Finishing test setup.",
+                    )
+
+            time.sleep(20)
 
             uut._run_all_tests()
 
