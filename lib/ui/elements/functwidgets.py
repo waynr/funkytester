@@ -222,7 +222,7 @@ class AbstractSelectionWidget(gtk.VBox):
 
         model = gtk.ListStore(str, str)
         combobox = gtk.ComboBox(model)
-        combobox.set_property('width-request', 560)
+        combobox.set_property('width-request', 440)
         hbox.pack_start(combobox)
 
         column_name_cell = gtk.CellRendererText()
