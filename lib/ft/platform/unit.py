@@ -363,13 +363,12 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
 
             if len(uut.tests) == 0:
                 uut._initialize_tests()
+                time.sleep(20) # BUG507
 
             uut.fire( ft.event.UpdateStatus,
                     obj = uut,
                     message = "INFO: Finishing test setup.",
                     )
-
-            time.sleep(20)
 
             uut._run_all_tests()
 
