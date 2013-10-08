@@ -319,10 +319,10 @@ class UnitUnderTest(UnitUnderTestDB, Commandable):
                     obj = self,
                     message = "WARNING: No tests available!",
                     )
-        self.fire_status(UnitUnderTest.State.TESTING, None)
+        self.fire_status(UnitUnderTest.State.TESTING, UnitUnderTest.State.READY)
         for test in self.tests:
             test.run()
-        self.fire_status(UnitUnderTest.State.READY, None)
+        self.fire_status(UnitUnderTest.State.READY, UnitUnderTest.State.TESTING)
 
     def _load_kfs(self):
         pass
