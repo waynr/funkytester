@@ -442,6 +442,9 @@ class ExpectTest(Test,):
     
                 action.set_status(expected_value, test_value, tolerance)
 
+            if action.status & Action.State.FAIL:
+                break
+
         self.fire_status(Test.State.HAS_RUN, Test.State.RUNNING)
     
     def _destroy(self):
