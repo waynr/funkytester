@@ -166,7 +166,10 @@ class Test(TestDB, EventGenerator):
         count   = 0
         while count < self.max_retry:
             try:
+                self.fire_status(Test.State.RUNNING, None)
                 self._run()
+                if not self.type == "interact":
+                    self.fire_status(Test.State.HAS_RUN, Test.State.RUNNING)
             except:
                 import traceback
                 msg = traceback.format_exc()
@@ -274,8 +277,6 @@ class SingleTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
-        self.fire_status(Test.State.RUNNING, None)
-
         output_list = list()
 
         for action in self.actions:
@@ -302,8 +303,6 @@ class SingleTest(Test,):
 
             action.fire_status()
 
-        self.fire_status(Test.State.HAS_RUN, Test.State.RUNNING)
-    
     def _destroy(self):
         for action in self.actions[::-1]:
             action.destroy()
@@ -401,8 +400,6 @@ class ExpectTest(Test,):
     # @param self The object pointer
     #
     def _run(self,):
-        self.fire_status(Test.State.RUNNING, None)
-
         for i in range(self.num_values):
             # run statechanger actions
             for statechanger in self.statechangers:
@@ -442,10 +439,8 @@ class ExpectTest(Test,):
     
                 action.set_status(expected_value, test_value, tolerance)
 
-            if action.status & Action.State.FAIL:
-                break
-
-        self.fire_status(Test.State.HAS_RUN, Test.State.RUNNING)
+                if action.status & Action.State.FAIL:
+                    return False
     
     def _destroy(self):
         for action in self.statecheckers[::-1]:
@@ -489,7 +484,6 @@ class InteractTest(Test):
     # Fires an InteractTest event 
     #
     def _run(self):
-        self.fire_status(None, Test.State.RUNNING)
         self.fire( ft.event.TestInteract,
                 obj = self,
                 prompt = self.test_dict["message"],
