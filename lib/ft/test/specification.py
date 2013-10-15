@@ -26,14 +26,16 @@ class Specification(object,):
     # @param specification_file_name Pointer to the file to be loaded
     #
     def __init__(self, specification_file_name ):
-        self.test_spec = self.load(specification_file_name)
-        Specification.check(self)
+        test_spec = self.load(specification_file_name)
+        if test_spec:
+            self.test_spec = test_spec
+            self.validate()
 
     ## Tests the loaded dictionary test_spec for correct format
     #
     # @param self The object pointer
     #
-    def check(self):
+    def validate(self):
 
         ## A list of required members in a specification dictionary
         #
