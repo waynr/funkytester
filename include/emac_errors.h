@@ -28,6 +28,7 @@
 				   contents of a file written compared to the same file
 				   read, for instance) */
  #define TIMEOUT	5
+ #define INVALID_ARG	6
 
 #define BLOCK_DEV	64
 #define BLOCK_NO_MOUNT	65
@@ -76,4 +77,10 @@
 
 #define PWM		384
  #define PWM_NO_WWRITE	385	/* PWM no WIDTHUSWRITE */
+
+#define I2C		416
+ #define I2C_NO_DEVICE	417	/* I2C set address fails */
+ #define I2C_NO_READ	418	/* I2C read fails */
+ #define I2C_NO_WRITE	419	/* I2C write fails */
+ #define I2C_ACT_V_EXP	420	/* I2C write fails */
 

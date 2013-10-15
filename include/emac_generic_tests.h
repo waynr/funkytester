@@ -69,3 +69,4 @@ int test_analog_mcp3208(char *, char *, char *);
 int test_gpo(char *, char *);
 int test_gpi(char *, char *);
 
+int test_i2c_read(char*, char *, char*, char*);

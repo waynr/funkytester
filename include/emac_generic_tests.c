@@ -31,6 +31,7 @@
 #include "ping.h"
 #include "kbhit.h"
 #include "i2c.h"
+#include "i2c-dev.h"
 #include "spi.h"
 
 #include "emac_generic_tests.h"
@@ -713,14 +714,93 @@ int test_gpi(char *device, char *dialog)
 	return SUCCESS;
 }
 
-int test_i2c_adt7410(char *i2c_dev, char *i2c_addr)
+/*
+ * device - /dev/ file which, through the linux I2C driver, works on the I2C
+ *  bus to read and write values to the addressed device.
+ * i2c_addr - address of the device to be tested on the I2C bus.
+ * reg_read - register to be read from the addressed device.
+ * expected_value - expected value of the given register at the given I2C
+ *  addres.
+ *
+ * Generally speaking, this test is designed to verify the behavior of the I2C
+ * bus on the UUT by reading values from registers whose values are typically
+ * well-known, such as version registers. It is important to note that this does
+ * not necessarily verify the correct functioning of the I2C device itself.
+ *
+ */
+int test_i2c_read(char *device, char *i2c_addr, char *i2c_reg, char* expected_value)
 {
-	int addr;
+	int fd, num_bytes, expected, actual, reg, addr;
+	__u8 b;
+	__u16 val;
 
-	if (i2c_addr == NULL) 
-		addr = ADT7410_ADDR;
-	else
-		addr = strtol(i2c_addr, NULL, 0);
+	/* Access the specified I2C bus. */
+	if ((fd = open(device, O_RDWR)) == -1) {
+		printf("FAIL\nI2C test failed opening %s: %s\n", \
+				device, strerror(errno));
+		return FD_NO_OPEN;
+	}
+
+	addr = (int) strtol(i2c_addr, NULL, 16);
+	/* Set I2C slave address.  */
+	if (ioctl(fd, I2C_SLAVE, addr) < 0) {
+		printf("FAIL\nI2C Address set Fail. Error on ioctl: %s\n",
+				strerror(errno));
+		return I2C_NO_DEVICE;
+	}
+
+	reg = (__u8) strtol(i2c_reg, NULL, 16);
+	/* Tell I2C device which register to report */
+	if (i2c_write_byte(fd, reg) == -1) {
+		printf("FAIL\nI2C Register request failed. Error on ioctl: \
+				%s\n", strerror(errno)); 
+		return I2C_NO_WRITE;
+	}
+
+	/* Figure out to read 1 or 2 bytes */
+	num_bytes = strlen(expected_value);
+	if ((num_bytes != 2) && (num_bytes != 4)) {
+		printf("FAIL\nI2C Invalid expected value: %s\n",
+				expected_value);
+		return INVALID_ARG;
+	}
+	
+	/* Read first byte. */
+	if (i2c_read_byte(fd, &b) == -1) {
+		printf("FAIL\nI2C Read byte failed. Error on ioctl: %s\n",
+				strerror(errno)); 
+		return I2C_NO_READ;
+	}
+	val = (__u16)b;
+
+	if (num_bytes == 4) {
+		/* Read second byte. */
+		if (i2c_read_byte(fd, &b) == -1) {
+			printf("FAIL\nI2C Read byte failed. Error on ioctl: \
+					%s\n", strerror(errno)); 
+			return I2C_NO_READ;
+		}
+		/* Combine with first byte. */
+		val <<= 8;
+		val += (__u16)b;
+	} 
+
+	/* Compare read value against expected value. Convert both to int, then
+	 * perform simple comparison of their values.
+	 */
+	errno = 0;
+	expected = (int) strtol(expected_value, NULL, 16);
+	if (errno) {
+		printf("FAIL\nI2C Invalid expected value %s\n", expected_value);
+		return INVALID_ARG;
+	}
+
+	actual = (int) val;
+	if (expected != actual) {
+		printf("FAIL\nI2C Actual: 0x%X, Expected: 0x%X\n", val,
+				expected);
+		return I2C_ACT_V_EXP;
+	}
 
 	return SUCCESS;
 }

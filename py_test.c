@@ -26,29 +26,33 @@ j* SoM-9M10 functional test
 int main(int argc, char *argv[])
 {
 	int failed = 0;
-	char *first_arg;
+	char *command;
 	int retval = 0;
 
-	first_arg = argv[1];
+	if (argc == 1) {
+		fprintf(stderr,"Usage: %s COMMAND ARGS\n", 
+				argv[0]);
+		exit(EXIT_FAILURE);
+	}
 
-	/* imagine how much nicer this would be with the guards and pattern
-	 * matching of Haskell...
-	 */
+	command = argv[1];
+
+	/* TODO: Create some custom testing-related structs */
 	
-	if (strcmp(first_arg, "serial_test") == 0) {
+	if (strcmp(command, "serial_test") == 0) {
 		if (argc > 4 || argc < 3) {
 			fprintf(stderr,"Usage: %s %s <dir1> [dir2]\n", 
-					argv[0],first_arg);
+					argv[0],command);
 			exit(EXIT_FAILURE);
 		} else if (argc == 4) {
 			retval = test_serial(argv[2],argv[3]);
 		} else if (argc == 3) {
 			retval = test_serial(argv[2],argv[2]);
 		}
-	} else if (strcmp(first_arg, "mcp3208_analog_test") == 0) {
+	} else if (strcmp(command, "mcp3208_analog_test") == 0) {
 		if (argc > 5 || argc < 2) {
 			fprintf(stderr,"Usage: %s %s [file [num [dialog]]]\n", 
-					argv[0],first_arg);
+					argv[0],command);
 			exit(EXIT_FAILURE);
 		} else if (argc == 5) {
 			retval = test_analog_mcp3208(argv[2],argv[3],argv[4]);
@@ -59,10 +63,19 @@ int main(int argc, char *argv[])
 		} else {
 			retval = test_analog_mcp3208(NULL,NULL,DIALOG);
 		}
-	} else if (strcmp(first_arg, "gpio_analog_test") == 0) {
+	} else if (strcmp(command, "i2c_read_test") == 0) {
+		if (argc != 6) {
+			fprintf(stderr,"Num Args: %d", argc);
+			fprintf(stderr,"Usage: %s %s <dev> <addr> <reg> <expected_value> \n", argv[0],
+					command);
+			exit(EXIT_FAILURE);
+		} else {
+			retval = test_i2c_read(argv[2], argv[3], argv[4], argv[5]);
+		}
+	} else if (strcmp(command, "gpio_analog_test") == 0) {
 		if (argc > 5 || argc < 2) {
 			fprintf(stderr,"Usage: %s %s [file [num [dialog]]]\n", 
-					argv[0],first_arg);
+					argv[0],command);
 			exit(EXIT_FAILURE);
 		} else if (argc == 5) {
 			retval = test_analog_gpio(argv[2],argv[3],argv[4]);
@@ -73,37 +86,37 @@ int main(int argc, char *argv[])
 		} else {
 			retval = test_analog_gpio(NULL,NULL,DIALOG);
 		}
-	} else if (strcmp(first_arg, "pld_test") == 0) {
+	} else if (strcmp(command, "pld_test") == 0) {
 		if (argc == 2) {
 			retval = test_pld(NULL);
 		} else if (argc > 3) {
 			fprintf(stderr,"Usage: %s %s [device file]\n",argv[0],
-					first_arg);
+					command);
 			exit(EXIT_FAILURE);
 		} else {
 			retval = test_pld(argv[2]);
 		}
-	} else if (strcmp(first_arg, "rtc_test") == 0) {
+	} else if (strcmp(command, "rtc_test") == 0) {
 		if (argc == 2) {
 			retval = test_rtc(NULL);
 		} else if (argc > 3) {
 			fprintf(stderr,"Usage: %s %s [device file]\n",argv[0],
-					first_arg);
+					command);
 			exit(EXIT_FAILURE);
 		} else {
 			retval = test_rtc(argv[2]);
 		}
-	} else if (strcmp(first_arg, "block_device_test") == 0) {
+	} else if (strcmp(command, "block_device_test") == 0) {
 		if (argc != 3) {
-			fprintf(stderr,"Usage: %s %s <dir1>\n",argv[0],first_arg);
+			fprintf(stderr,"Usage: %s %s <dir1>\n",argv[0],command);
 			exit(EXIT_FAILURE);
 		}
 		retval = test_block(argv[2]);
 	} else {
-		printf("Fail, please try again.\n");
+		fprintf(stderr,"Invalid command: %s\n", command);
 		failed = 1;
+		exit(EXIT_FAILURE);
 	}
 
 	return retval;
 }
-
