@@ -50,8 +50,6 @@ class ActionDB(Base):
 #
 class Action(ActionDB, EventGenerator):
 
-    instances   = dict()
-
     ## The constructor
     #
     # Fires ActionInit and ActionReady events
@@ -84,6 +82,8 @@ class Action(ActionDB, EventGenerator):
             log_action_output   = action_dict["log_output"]
 
         self.status = Action.State.INIT
+
+        self.instances = {}
 
     def destroy(self):
         self._destroy()
