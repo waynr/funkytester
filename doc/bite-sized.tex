@@ -95,6 +95,7 @@
 \begin{document}
 \maketitle
 \tableofcontents\newpage
+%\lstset{language=bash}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -162,20 +163,25 @@
 \end{chapquote}
 
 \section{Keep it Zen}
-It's important not to get mentally bogged down by all of the code and the seeming lack of structure therein. Seriously -- reading code is more an exercise in mental perseverance than anything else. That being said, here are a few tips from the pros from the internet that may help you:
+It is important not to get mentally bogged down by all of the code and the seeming lack of structure therein. Reading code is more an exercise in mental perseverance than anything else. The following are a few tips from that may help code comprehension:
 	\begin{itemize}
-	\item \textbf{Use a debugger}: a debugger will allow you to step through the code, see where functions are called, who calls them, etc.
-	\item \textbf{Take notes}: As you read through, there will be moments of severe frustration and irritation. Write these down, as best as you can. Ask Wayne or me later for clarification. Also write down your ``aha!" moments, as those are sure to happen, too. Keep these notes in a document for future developers -- your moments of frustration and learning may help someone else understand the code more quickly and less painfully.
+	\item \textbf{Use a debugger}: a debugger allow stepping through the code, seeing where functions are called, who calls them, etc.
+	\item \textbf{Take notes}: Taking notes is a valuable tool to help with understanding source code. Notes allow for documentation of areas in the code that are not understood at the time. A developer assigned to the project may be contactedat a leter time for clarification. Keep these notes in a document for future developers to use in their learning process.
 	%2DO: make the parenthetical note a sidenote if time
+	% Rework entire section
+\begin{comment}
 	\item \textbf{Don't trust comments}: On the /personal/montana branch (don't understand the lingo? \hyperref[app:git]{\textbf{git it}}), I wrote the majority of the comments and I have a less-than-ideal understanding of programming and Python. If the comments are helpful for you to gain some sort of intuition, then they will have done their job. But if they don't make sense to you or seem more convoluted than the code itself, then by all means go to the code and see for yourself what's going on.
-	\item \textbf{Look at the Code}: Yes. It seems obvious. But really, you should do it. Have the directories open and look around as you read through this document. It can only help.
+\end{comment}
+	\item \textbf{Look at the Code}: To fully understand this document and the software it describes, it is beneficial to have the source code and directory structure available to look at.
 	\end{itemize}
-	
+Finally, it should be noted that this manual cannot be used to replace time spent reading and understanding the code. This manual is simply a supplement to working through the software and raw code.
+%possibly remove final section entirely vvv
+\begin{comment}
 Finally, I should end with a note about this manual. I am not the expert on this code. I didn't write the code, and it's taken me quite a bit of time to familiarize myself with it. I certainly don't have a complete understanding of every piece of code, but I've done my best to present what I do know and to indicate the portions I am unfamiliar with. When I write about things I don't know much about, I'll surround my conjectures by two stars: \dstar. Hopefully these stars, along with the tone of uncertainty of these passages, will encourage the reader to tread lightly.
-
+\end{comment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Where do We Begin?}
-I'm going to assume someone has already walked you through the set up process in person, but let's go over that again just for good measure. First, we had to clone two git repositories. One of these contained the source code for the testset -- this is our \texttt{funkytester} directory, minus the contents of its \texttt{ext/emac} subdirectory. The \texttt{ext/emac} subdirectory contains product-specific information and isn't suited for public display on the internet (we have to keep our clients' information safe). This subdirectory was the second of the repositories we needed (it contains the \textit{manifest} file, which is super important for running the testset). See \hyperref[sec:gitcloning]{\textbf{Appendix \ref{sec:gitcloning}}} for a detailed walk-through of that process.\\
+\section{Where to Begin?}
+There are a few steps involved in the set up process for the testset software. First, two git repositories must be cloned. One of these contained the source code for the testset -- this is the \texttt{funkytester} directory, minus the contents of its \texttt{ext/emac} subdirectory. The \texttt{ext/emac} subdirectory contains product-specific information and isn't suited for public display on the internet (needed to keep EMAC's clients' information safe). This subdirectory was the second of the repositories we cloned (it contains the \textit{manifest} file, which is very important for running the testset). See \hyperref[sec:gitcloning]{\textbf{Appendix \ref{sec:gitcloning}}} for a detailed walk-through of that process.\\
 
 \begin{comment}
 %2DO update the code snippet. talk about server socket whatever.
@@ -188,14 +194,12 @@ Getting these repositories installed all of the code we needed in order to run t
 Notice that this calls the \texttt{pytest.py} file with that super important manifest file we were just talking about as an argument. I'm not really sure what the \texttt{-p} argument does.
 \end{comment}
 
-The next thing we did was get set up for running the testset software via SSH on the testset machine (that is, the actual physical piece of equipment that's sitting on wheels in the hallway next to my workspace\ldots or wherever it's been moved recently). This is important because running the software on a local machine doesn't actually do any testing. It can't. It's not connected in any way to a board. But when we SSH into the testset machine and run the software (this time from the \texttt{projects/funkytester} directory), we are testing the board -- as long as there is one that's hooked up to the tester! Go to \hyperref[sec:SSH]{\textbf{Appendix \ref{sec:SSH}}} for more details on that set-up process.
+The next step is to set up for running the testset software via SSH on the testset machine (that is, the physical piece of equipment that actually interfaces with the board). This is important because running the software on a local machine doesn't actually do any testing, it is not connected in any way to a board. Running the software through SSH on the testset machine (this time from the \texttt{projects/funkytester} directory), allows testing of the board hooked to the tester. Go to \hyperref[sec:SSH]{\textbf{Appendix \ref{sec:SSH}}} for more details on that set-up process.
 %maybe have different colors for directory names on different machines: explain the colors in the beginning of the document
 
-To run the software, take a look at \hyperref[sec:run]{\textbf{Appendix \ref{sec:run}}}.
+To run the software, refer to \hyperref[sec:run]{\textbf{Appendix \ref{sec:run}}}.
 
-Finally, make sure to open the \texttt{INSTALL} file located in the \texttt{funkytester} directory and install all the necessary software on your machine. If you don't, you're going to have a rough time trying to get the software to run. 
-
-If you still are having issues running the software after installing everything listed in the \texttt{INSTALL} file, try out the suggestions in \hyperref[sec:trouble]{\textbf{Appendix \ref{sec:trouble}}}.
+Finally, open the \texttt{INSTALL} file located in the \texttt{funkytester} directory and install all the necessary software. All of the listed applications are vital to the correct performance of the testset software. If there are still issues running the software after installing everything listed in the \texttt{INSTALL} file, please refer to the suggestions in \hyperref[sec:trouble]{\textbf{Appendix \ref{sec:trouble}}}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{A Bird's Eye View -- Some Insight into the Testset Design and Purpose}
@@ -206,7 +210,7 @@ If you still are having issues running the software after installing everything 
 %this is good info, but probably not appropriate here. incorporate it into the 
 % document as appropriate.
 % REVAMP
-Make sure you read the README file in the \texttt{funkytester} directory. There is a list of terminology that will be essential to know about when you start reading through the code. Really, the important thing to keep in mind is that the majority of the items in the terminology list are simply abstractions of real-life objects. For example, the Platform class is an abstraction of the platform. Currently, there are only two platforms -- the GE EVSC Funtional Tester and the Quad Testset. Note that the testset software was designed with the idea that it could be used for any platform that may be developed in the future. That is, there is the potential for the FunkyTester test software to incorporate future testing platforms as well.
+Before continuing, the README file in the \texttt{funkytester} directory should be read. There is a list of terminology that will be essential to know about when reading through the code. The important thing to keep in mind is that the majority of the items in the terminology list are simply abstractions of real-life objects. For example, the Platform class is an abstraction of the platform. Currently, there are only two platforms -- the GE EVSC Funtional Tester and the Quad Testset. Note that the testset software was designed with the idea that it could be used for any platform that may be developed in the future. That is, there is the potential for the FunkyTester test software to incorporate future testing platforms as well.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -216,41 +220,53 @@ Make sure you read the README file in the \texttt{funkytester} directory. There 
 \end{chapquote}
 
 % REVIEW
-The structure of a directory tree can be methodically analyzed by inspecting each level (or layer) of the directory in turn. We can take a look at each level, starting from the topmost and gradually make our way down the paths of each of its  subdirectories and its contents. This seemed like the best approach to take with the FunkyTester code since it is already set up in a directory tree.
-
-So that's the approach this document takes. Each section in this chapter will take one or two directories, focus  on their contents, and give an overview of what each item aims to accomplish. The subsequent section then looks at the details and contents of those children items. Earlier sections cover parent directories while following sections cover their children.
-
-\section{Top Level: \texttt{funkytester}}
+	The architecture of the code can be studied in great detail by looking at each piece of code and it's what code it depends on. Less important is the directory structure that the code is stored in, but it may be helpful to look it briefly. It should be noted however, the directory structure is subject to change without notice. Refactoring the directory structure will not impact the performance of the code, but may cause some temporary confusion.
+	
+	This document will attempt to give an overview of the general structure of the testset software. Each section in this chapter will take a layer of the structure and overview what each item aims to accomplish. Earlier sections will cover higher level pieces of code while following sections cover deeper sections.
+	
+\section{Top Level Directory: \texttt{funkytester}}
 %REVIEW
-The top level includes the upper-most contents of the \texttt{funkytester} directory. Typing the \texttt{ls} command while in the \texttt{funkytester} directory will give a list of files and subdirectories, which are shown in \hyperref[fig:top]{\textbf{Figure \ref{fig:top}}}.\\
+Before beginning the discussion on the architecture of the code, it is prudent to look at the root directory of the funkytester software. Typing the \texttt{ls} command while in the \texttt{funkytester} directory will give you the current list of files and subdirectories, an example of which is shown below in \hyperref[fig:top]{\textbf{Figure \ref{fig:top}}}.\\
+	
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{top_layer.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester $ ls
+bin/     doc/       ext/      INSTALL  Makefile   pytest_log  resources/  TODO
+COPYING  doxy.conf  include/  lib/     py_test.c  README      scripts/
+/funkytester $ 
+
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Layer One: Contents of \texttt{funkytester}}
 		\label{fig:top}
 	\end{minipage} 
 \vspace{5pt}% gives some breathing room below
 
 
-In this section, we'll look at the bigger picture purpose of these items, listed in sections from least to most important. You'll want to start building a mental picture of the organization of the code starting now. Since some directories contain more information (and some just contain more \textit{important} information than others), you should also be giving weights to the directories. I do my best to facilitate this process by giving an idea of which ones to focus on.
+This section will explain each of the files and directories in turn and give an importance level to each. Most of the files located in this directory are supplemental files, while the directories contain the actual code.
 
-There is at least one file in \texttt{funkytester} that has to do with Doxygen. Doxygen is software that we use to document the code in a systematic way. We can configure its output by editing the \texttt{doxy.conf} file. \hyperref[app:doxy]{\textbf{Appendix \ref{app:doxy}}} gives more details on the workings of Doxygen, and it shows an example of the commenting style we are using for it. Depending on what has been pushed to the git repository, there may be more than one Doxygen-generated file in the \texttt{funkytester} directory, but there should only be one -- \texttt{doxy.conf}.
+There is at least one file in \texttt{funkytester} that has to do with Doxygen, \texttt{doxy.conf}. Doxygen is software that is used to document the code in a systematic way. The output can be configured by editing the \texttt{doxy.conf} file. \hyperref[app:doxy]{\textbf{Appendix \ref{app:doxy}}} gives more details on the workings of Doxygen, and  shows an example of the commenting style used for it.
 
 \subsection{Peripheral Items}
 % README, TODO, COPYING, INSTALL, include, Makefile, py_test.c, pytest_log, 
 % RemoteSystemsTempFiles, scripts
-These are items of least importance, as far as I know. Also included are several items I'm unfamiliar with (read: so some of these items may be more important than I know). As far as understanding the FunkyTester code, though, these are the items you shouldn't concern yourself too much with. Acknowledge that they are there in case you need to refer to them in the future, but then move on.
+These are items of least importance, as far as understanding the FunkyTester code. It is best to just acknowledge that they are there in case they are needed for reference in the future.
 \begin{itemize}
 	\item \texttt{README}: It should be updated as work progresses, but for now the majority of this file consists of notes for future development. It also describes metadata that is needed for the testset to run. The \hyperref[subsec:medium]{\textbf{next section}} will go more into depth on metadata.
 	\item \texttt{TODO}: Detailed list of what needs to be worked on (more specific than \texttt{README}'s visions of the future).
 	\item \texttt{COPYING}: Copyright and distribution information.
-	\item \texttt{INSTALL}: Gives a list of software needed to run the testset.
-	\item \texttt{include}: \dstar Seems to be a number of scripts that the testset uses\dstar
-	\item \texttt{Makefile}: For use with the make utility. See \hyperref[app:make]{\textbf{Appendix \ref{app:make}}} if you want to learn more, but don't fixate on make for the sake of this project.
-	\item \texttt{py\_test.c}: \dstar This is a mystery to me. Perhaps an older version of the testset?\dstar
-	\item \texttt{pytest\_log}: \dstar This looks like output from a tmux session when running the testset. I'm not sure what it's doing here. Maybe it is an example of the format of log output we'd like to have in the future.\dstar
-	\item \texttt{RemoteSystemsTempFiles}: An empty directory. \dstar Based on the name, it's probably intended to be used from a remote machine. Possibly a remote mount point? \dstar
-	\item \texttt{scripts}: At this time there is just one script in this directory. \dstar I'm not sure what it does or that it matters for our purposes. \dstar
+	\item \texttt{INSTALL}: Gives a list of software required to be installed to run the testset.
+	\item \texttt{Makefile}: For use with the make utility. See \hyperref[app:make]{\textbf{Appendix \ref{app:make}}} for more information, but make is not vital for this project.
+	%possibly deprecated vvv
+	\item \texttt{py\_test.c}: This is a version of the test software written in C?
+	\item \texttt{pytest\_log}: Log file that shows exactly what is happening to the code as it executes. Can be viewed live by using the command \texttt{tail -f pytest\_log} while in the funkytester directory.
+	\item \texttt{scripts}: At this time there is just one script in this directory. This is an initialization script and is not vital to the understanding of the code.
 \end{itemize}
 
 
@@ -259,29 +275,44 @@ These are items of least importance, as far as I know. Also included are several
 % REVIEW
 Two of these directories have to do with Platform and Product metadata. The third is the directory containing this manual along with some other helpful items.
 \begin{itemize}
+	\item \texttt{include/}: Contains the C and C header files used to run most of the tests on the board under test.
 	%2DO: more on ext: contains interfaces info for ADAM modules (see the README)
-	\item \texttt{ext}: Contains the second repository we had to clone when getting set up with the code -- \texttt{emac}. This subdirectory holds data and information about EMAC customers' specific products and cannot be stored publicly.
+	\item \texttt{ext}: Contains the second repository that had to be cloned when getting set up with the code -- \texttt{emac}. This subdirectory holds data and information about EMAC customers' specific products and cannot be stored publicly.
 	\item \texttt{resources}: Contains specifications (manifest files) on EMAC-specific products such as testing platforms.
-	\item \texttt{doc}: Contains this document (\textit{FunkyTester Code: Breaking it into Bite-Sized Pieces}) along with a subdirectory of diagrams of portions of the code. Inside \texttt{diagrams} are four diagrams: a pair for \texttt{funkytester/lib/ft} and a pair for \texttt{funkytester/lib/ui}. Each pair of diagrams consists of a class diagram and a package diagram. These are all .dot format, so you may need to install xdot in order to view them. It may be helpful to look at these to get an idea of how different parts of \texttt{ft} and \texttt{ui} interact.
+	\item \texttt{doc}: This directory may not be included with every branch in the repository. If it is included, it will contain this document and the dependancies for this document. Also, in the \texttt{diagrams} subdirectory there are four diagrams that illustrate the hierarchy of the code: a pair for \texttt{funkytester/lib/ft} and a pair for \texttt{funkytester/lib/ui}. Each pair of diagrams consists of a class diagram and a package diagram. These are all .dot format, so xdot may need to be installed in order to view them. It may be helpful to look at these to get an idea of how different parts of \texttt{ft} and \texttt{ui} interact.
 \end{itemize}
 
 \subsection{Focus On These Guys}
 % bin, lib
-\hyperref[sec:layer2]{\textbf{Section \ref{sec:layer2}}} will talk more about the remaining two subdirectories: \texttt{bin} and \texttt{lib}. For now, you should know that \texttt{lib} contains the majority of the code and that \texttt{bin} contains the script that actually runs the testset.
-
-\section{Layer Two} \label{sec:layer2}
 The two most important directories in \texttt{funkytester} are \texttt{bin} and \texttt{lib}. The former holds the ``final product": the software we actually run in order to begin testing a board. The latter holds the majority of the rest of the code: the GUI implementation.
 
-\subsection{\texttt{bin}}
-The contents of the \texttt{bin} directory are shown in \hyperref[fig:bin]{\textbf{Figure \ref{fig:bin}}}. What makes \texttt{bin} so important is that it houses the \texttt{pytest.py} file. This is the script we run when we start the testset. \dstar The rest of the scripts in this directory look like they are probably used when tests are run.\dstar\\
+\section{Layer Two: Start of the Code} \label{sec:layer2}
+After the top layer directory, \texttt{funkytester}, the directory structure does not mean much as far as code architecture is concerned. What is important, however, is the the structure of the classes and functions inside of the file structure.
 
+%\subsection{\texttt{bin}}
+The architecturally top level script is pytest.py. This script is run to start the server and again to start the client UI. Also any options or flags that need to be passed to the software are parsed by pytest.py. Pytest.py is located in the funkytester/bin directory with a few other files. An example of the contents of the \texttt{bin} directory are shown in \hyperref[fig:bin]{\textbf{Figure \ref{fig:bin}}}.
+
+\vspace{12pt}% gives some breathing room above
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{layer_two_bin.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester/bin $ ls
+jamplayer            pytest.py  startup.sh         wifi_test.sh
+project_unittest.py  setup.sh   test-backlight.py  xmlrpcserver.py
+/funkytester/bin $ 
+
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Layer Two: Contents of \texttt{funkytester/bin}}
 		\label{fig:bin}
 	\end{minipage}
 
+\begin{comment}
 \subsection{\texttt{lib}}
 %REVIEW
 The contents of \texttt{lib} can be seen in \hyperref[fig:lib]{\textbf{Figure \ref{fig:lib}}}. The meat of the FunkyTester code lives inside this directory, including the actual testing software and the user interface code.\\
@@ -302,24 +333,37 @@ Let's look at each of these items in a little more detail:
 \end{itemize}
 
 Since the importance of \texttt{funkytester/bin} is mostly encapsulated by it being the location of \texttt{pytest.py}, it makes sense to now shift focus entirely to \texttt{funkytester/lib}, which is exactly what we'll do in \hyperref[sec:layer3]{\textbf{Layer Three}}.
+\end{comment}
 
-\section{Layer Three}	\label{sec:layer3}
+\section{Layer Three: Main Codebase}	\label{sec:layer3}
 % -- Where the Shit Hits the Fan} 
-\begin{chapquote}{H. L. Mencken, \textit{Prejudices, First Series}}
-``Every normal man must be tempted, at times, to spit on his hands, hoist the black flag, and begin slitting throats."
-\end{chapquote}
+%\begin{chapquote}{H. L. Mencken, \textit{Prejudices, First Series}}
+%``Every normal man must be tempted, at times, to spit on his hands, hoist the black flag, and begin slitting throats."
+%\end{chapquote}
 
 % REVIEW
-Layer Three is where we first start seriously looking at some code. There are two avenues we'll traverse: \texttt{funkytester/lib/ft} and \texttt{funkytester/lib/ui}. The directory \texttt{ft} holds abstractions of physical items: the Unit Under Test, the testing Platform, and Platform Slots, and also the code for interactions among these abstractions. The code for the Graphical User Interface is located in the \texttt{ui} directory.
+The main section of code falls into two groups : \texttt{ft} and \texttt{ui}. The \texttt{ft} section holds abstractions of physical items: the Unit Under Test, the testing Platform, and Platform Slots, and also the code for interactions among these abstractions. The code for the Graphical User Interface is located in the \texttt{ui} section.
 
 \subsection{Contents of \texttt{funkytester/lib/ft}}
 The directory \texttt{funkytester/lib/ft} is a package of modules. Every package must have a file called \texttt{\_\_init\_\_.py} (see \hyperref[fig:lib/ft]{\textbf{Figure \ref{fig:lib/ft}}}) so that the Python interpreter can interpret the directory as a package. Interestingly, this file can be empty. In other words, it may not do anything at all except indicate that the directory is a package. In \texttt{funkytester/lib/ft}, the \texttt{\_\_init\_\_.py} script does \textit{almost} nothing. It simply sets the \texttt{\_\_all\_\_} variable, which explicitly sets which names in the package are public. Without a defined \texttt{\_\_all\_\_} variable, all names in the package are considered public (except for those names beginning with an underscore, which is the conventional method of indicating an `internal use' object or function).
 
-This would be a good section to mention MySQL and sqlalchemy. These are items you'll want ot be familiar with as you begin looking at the code. Take a minute to read through \hyperref[app:SQL]{\textbf{Appendix \ref{app:SQL}}}. \\
+Before continuing, it is recommend to read through \hyperref[app:SQL]{\textbf{Appendix \ref{app:SQL}}} and become familiar with MySQL and sqlalchemy. \\
 
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{layer_three_ft.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester/lib/ft $ ls
+command.py   device/   event.pyc    __init__.pyc  server/  unittest/
+command.pyc  event.py  __init__.py  platform/     test/    util/
+/funkytester/lib/ft $ 
+
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Layer Four: Contents of \texttt{funkytester/lib/ft}}
 		\label{fig:lib/ft}
 	\end{minipage}
@@ -335,13 +379,24 @@ The scripts \texttt{command.py} and \texttt{event.py} are used for communicating
 % 2DO
 % a 'find . -name '*.php' | xargs wc -l' will show that /ft/ has 4191 LOC and /ui/
 % has 1994 LOC	
-Since there is both a \texttt{\_\_init\_\_.py} and a module contained in \texttt{funkytester/lib/ui}, we've got ourselves a package. It's a smaller package than \texttt{ft}, but it's no less complex. In fact, since it is where the GUI code lives, it could be argued that it is even more complex than the code for \texttt{ft} (user interface code is notoriously complicated).
+Since there is both a \texttt{\_\_init\_\_.py} and a module contained in \texttt{funkytester/lib/ui}, it is a package. It's a smaller package than \texttt{ft}, but it's no less complex. In fact, since this is where the GUI is located, it could be argued that it is even more complex than the code for \texttt{ft} (user interface code is notoriously complicated).
 
-Okay, let's take a look at the contents of this package -- see \hyperref[fig:lib/ui]{\textbf{Figure \ref{fig:lib/ui}}}. Besides the \texttt{\_\_init\_\_.py} script (which again just sets the \texttt{\_\_all\_\_} variable), there is one other script: \texttt{funct.py}. We'll get to this in a minute. The only module is called \texttt{elements}. Within \texttt{elements} lie all of the \textit{elements} we need for a GUI programmed with GTK+ (see \hyperref[sec:GTK]{\textbf{Appendix \ref{app:GTK}}}). These elements are just more abstractions -- Python objects that represent dialogs, menus, buttons, etc. The \texttt{funct.py} script instantiates an event handler along with two different models. A model is a type of element, so we'll see more on these in \hyperref[sec:ui]{\textbf{Chapter \ref{sec:ui}}}. For now just note that it is an abstraction needed for communication between the user interface and the event handler.\\
+Looking at the contents of this package -- see \hyperref[fig:lib/ui]{\textbf{Figure \ref{fig:lib/ui}}}, besides the \texttt{\_\_init\_\_.py} script (which again just sets the \texttt{\_\_all\_\_} variable), there is just one script and one module. The module is called \texttt{elements}. Within \texttt{elements} lie all of the \textit{elements} needed for a GUI programmed with GTK+ (see \hyperref[sec:GTK]{\textbf{Appendix \ref{app:GTK}}}). These elements are just more abstractions -- Python objects that represent dialogs, menus, buttons, etc. The \texttt{funct.py} script instantiates an event handler along with two different models. A model is a type of element, which will be explained in \hyperref[sec:ui]{\textbf{Chapter \ref{sec:ui}}}. For now just note that it is an abstraction needed for communication between the user interface and the event handler.\\
 
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{layer_three_ui.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester/lib/ft $ ls
+elements/  funct.py  funct.pyc  __init__.py  __init__.pyc
+/funkytester/lib/ft $ 
+
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Layer Four: Contents of \texttt{funkytester/lib/ui}}
 		\label{fig:lib/ui}
 	\end{minipage}
@@ -359,9 +414,9 @@ Okay, let's take a look at the contents of this package -- see \hyperref[fig:lib
 
 \section{\texttt{platform}}
 % 2DO
-Before we talk about \texttt{platform}, take a look at \hyperref[fig:platform]{\textbf{Figure \ref{fig:platform}}}. This is a diagram of the abstractions in the \texttt{platform} directory and the best way I've found to think of their interactions. The largest abstraction in the picture is Platform and it acts as a hub for all other abstraction interactions. This Platform is the object in the code that represents the testing platform. For now, we only have two different platforms: the GE EVSC and the Quad Testset. But, as noted earlier, the code is set up so that we could have any number of testing platforms and still use the same code to set up the testing. 
+Before \texttt{platform} is discussed, please note \hyperref[fig:platform]{\textbf{Figure \ref{fig:platform}}}. This is a diagram of the abstractions in the \texttt{platform} directory and a way to think of their interactions. The largest abstraction in the picture is Platform and it acts as a hub for all other abstraction interactions. This Platform is the object in the code that represents the testing platform. For now, there are only two different platforms: the GE EVSC and the Quad Testset. But, as noted earlier, the code is set up so that there could be any number of testing platforms and still use the same code to set up the testing. 
 
-In general, the names of objects (or abstractions) make sense. The PlatformSlot objects in the code represent slots in the physical platform. The UnitUnderTests are objects representing the boards we are testing. The Product objects are a little different in that they don't represent physical objects. A Product takes information given in a manifest.yaml file that is product-specific and translates that .yaml information into Python-accessible information by means of creating a new object. This object is the Product. The reason for this is that the information provided by the manifest.yaml file is company-specific and cannot be saved in a public repository. Saving it to a .yaml file first allows us to protect sensitive information (our clients' and our own).\\
+In general, the names of objects (or abstractions) correspond to their respective physical counterparts. The PlatformSlot objects in the code represent slots in the physical platform. The UnitUnderTests are objects representing the boards being tested. The Product objects are a little different in that they don't represent physical objects. A Product takes information given in a manifest.yaml file that is product-specific and translates that .yaml information into Python-accessible information by means of creating a new object. This object is the Product. The reason for this is that the information provided by the manifest.yaml file is company-specific and cannot be saved in a public repository. Saving it to a .yaml file first allows any sensitive information to be protected.\\
 
 	\begin{minipage}{\linewidth}
 		\makebox[\linewidth]{
@@ -371,15 +426,15 @@ In general, the names of objects (or abstractions) make sense. The PlatformSlot 
 	\end{minipage} 
 	\vspace{5pt}		%give some breathing room below
 
-Now that we've been introduced to the basic building blocks of the \texttt{platform} directory, let's take a look at how the flow of control is passed from one object to the next as the Platform is set up.
+Now that the basic building blocks of the \texttt{platform} module have been introduced, the process of how the control flow is passed from one object to the next as the Platform is set up will be discussed.
 
-A good thing to keep in mind is lineage: namely, Platform is the parent of each PlatformSlot and each PlatformSlot has a single UnitUnderTest child. Note that for each set up, we will deal with only one Platform. In the drawing above, the parent-to-child lineage shows up as physical attachments among the objects. In this picture, the Platform has two PlatformSlots attached to it, each of which are attached to a UnitUnderTest (by those black cords). The dotted lines with arrows show a `weaker' attachment. These arrows represent a flow of information from the manifest.yaml files to a Product object to a PlatformSlot to the UnitUnderTest. Each UnitUnderTest will have its own manifest.yaml file since each represents a single product. 
+A good thing to keep in mind is lineage: namely, Platform is the parent of each PlatformSlot and each PlatformSlot has a single UnitUnderTest child. Note that for each set up, we will deal with only one Platform. In the figure above, the parent-to-child lineage shows up as physical attachments among the objects. In this diagram, the Platform has two PlatformSlots attached to it, each of which are attached to a UnitUnderTest (by the black cords). The dotted lines with arrows show a `weaker' attachment. These arrows represent a flow of information from the manifest.yaml files to a Product object to a PlatformSlot to the UnitUnderTest. Each UnitUnderTest will have its own manifest.yaml file since each represents a single product. 
 
 %REVAMP
-For example, one UnitUnderTest may be a G4 while the other is a G2. Since the GE EVSC has only one PlatformSlot, the picture above would not be possible (it would only have one PlatformSlot), but it gives a good intuition for what's going on. The Quad Testset, by the way, would have four PlatformSlots.
+For example, one UnitUnderTest may be a G4 while the other is a G2. Since the GE EVSC has only one PlatformSlot, the picture above would not be possible (it would only have one PlatformSlot), but it gives a good intuition for what's going on. The Quad Testset would have four PlatformSlots.
 
 %REVAMP -- Product was already covered. i like this explanation better, though.
-Let's back up a little and talk about the Product, which is a Python object, but doesn't have a picture (just a small mention -- a cameo if you will) in our diagram. This is because there isn't a physical analogue to the Product object. The Product is just a means of gathering information from a manifest.yaml file and making it Python-accessable. %more
+A note about the Product, which is a Python object, but doesn't have a picture (just a small mention) in the diagram. This is because there isn't a physical analogue to the Product object. The Product is just a means of gathering information from a manifest.yaml file and making it Python-accessable. %more
 
 %transition
 PlatformSlot accesses both UnitUnderTest and Product and gives the UnitUnderTest pertinent information from Product.
@@ -389,9 +444,9 @@ PlatformSlot accesses both UnitUnderTest and Product and gives the UnitUnderTest
 There are two different abstractions within the \texttt{test} module: tests and actions. Each test that the user wishes to run on the Unit Under Test must have its details set up in a specification file. The specification for a test holds the recipe for running the test: a set of actions. For example, one test might test a UUT's ability to read from a file. That test must mount, try to read, and then unmount. Each of these three things is an action. A read test simply runs these three actions in order.
 
 %fix the output here for funkytester/resources/products/<platform>/spec
-The specification files are actually written as .yaml files and are saved in the directory with the path \texttt{funkytester/resources/products/<platform>/spec}. Each board to be tested has its own specification file for the tests to be run on it. Then  \texttt{specification.py} translates the test specs from the .yaml file into Python objects so we can access the specifications in \texttt{action.py}.
+The specification files are actually written as .yaml files and are saved in the directory with the path \texttt{funkytester/resources/products/<platform>/spec} on the testset. Each board to be tested has its own specification file for the tests to be run on it. Then  \texttt{specification.py} translates the test specs from the .yaml file into Python objects so we can access the specifications in \texttt{action.py}.
 
-To re-cap: the specification file gives specifics for each test ``recipe": a list of actions that must be called in order to run the test. The \texttt{test.py} script gives us an abstraction of each test, which can be used to access the action object created by \texttt{action.py}. Test objects can then later be accessed by other parts of the code.\\
+To review, the specification file gives specifics for each test ``recipe": a list of actions that must be called in order to run the test. The \texttt{test.py} script gives us an abstraction of each test, which can be used to access the action object created by \texttt{action.py}. Test objects can then later be accessed by other parts of the code.\\
 
 	\begin{minipage}{\linewidth}
 		\makebox[\linewidth]{
@@ -403,7 +458,7 @@ To re-cap: the specification file gives specifics for each test ``recipe": a lis
 
 \section{Communicating With the User Interface}
 % events and commands
-Events are messages from the platform to the user interface, whereas commands are messages that are sent from the user interface to the platform. We need both routes of communication in order to have a properly working interface. Each side (the front-end UI and the back-end platform) must have feedback from the other in order to respond appropriately and give the user an idea of what is happening. For instance, if a test fails, the user should be notified and if possible, given a short message as to why the failure occurred.\\
+Events are messages from the platform to the user interface, whereas commands are messages that are sent from the user interface to the platform. Both routes of communication are needed in order to have a properly working interface. Each side (the front-end UI and the back-end platform) must have feedback from the other in order to respond appropriately and give the user an idea of what is happening. For instance, if a test fails, the user should be notified and if possible, given a short message as to why the failure occurred.\\
 
 %communication breakdown
 	\begin{minipage}{\linewidth}
@@ -422,18 +477,31 @@ Events are messages from the platform to the user interface, whereas commands ar
 \end{chapquote}
 %say stuff about PyGTK -- hlink to appendix
 %2DO
-When looking into the GUI code, you'll have to switch hats. The GUI is based on an event-driven programming paradigm, which is quite different than the other code in the FunkyTester. If you aren't familiar with event-driven programming and you haven't yet checked out \hyperref[app:GTK]{\textbf{Appendix \ref{app:GTK}}}, now would be a great time to do that.
+When looking into the GUI code, please note that the flow is completely different from the back end code. The GUI is based on an event-driven programming paradigm, which is quite different than the other code in the FunkyTester. For more information about event-driven programming and the GTK GUI, please refer to \hyperref[app:GTK]{\textbf{Appendix \ref{app:GTK}}}.
 
-We mentioned in \hyperref[sec:ui_contents]{\textbf{Section \ref{sec:ui_contents}}} that \texttt{funkytester/lib/ui} contains one module and one script (besides the obligatory \texttt{\_\_init\_\_.py}). Let's take a closer look at the module \texttt{elements} and its contents.
+It was mentioned in \hyperref[sec:ui_contents]{\textbf{Section \ref{sec:ui_contents}}} that \texttt{funkytester/lib/ui} contains one module and one script (besides the obligatory \texttt{\_\_init\_\_.py}). The module \texttt{elements} and its contents will now be looked at with greater scrutiny.
 
 % talk about /elements/
 \section{\texttt{elements}}
-In the following subsections, we'll go into each of the modules within \texttt{elements}, so let's just focus on the scripts in this directory for now, ignoring \texttt{\_\_init\_\_.py}.\\
+In the following subsections, the modules within \texttt{elements} will be explored, for now just focus on the scripts in this directory, ignoring \texttt{\_\_init\_\_.py}.\\
 
 %2DO: where we puttin this?
 	\begin{minipage}{\linewidth}
-		\makebox[\linewidth]{
-			\includegraphics[keepaspectratio=true,scale=0.6]{elements.png}}
+		\begin{tikzpicture}
+    \node [fill=codebgcolor,rounded corners=5pt]
+    {{
+        \begin{tabular}{l}
+\begin{lstlisting}
+/funkytester/lib/ui/elements $ ls
+adapters/       functeventhandler.py   generic.py    menus/    utils.pyc
+dialogs/        functeventhandler.pyc  generic.pyc   models/
+functester.py   functwidgets.py        __init__.py   pages/
+functester.pyc  functwidgets.pyc       __init__.pyc  utils.py
+/funkytester/lib/ui/elements $ 
+\end{lstlisting}
+        \end{tabular}
+      }};
+  		\end{tikzpicture}
 		\captionof{figure}{Contents of \texttt{funkytester/lib/ui/elements}}
 		\label{fig:ui/elements}
 	\end{minipage}
@@ -445,7 +513,7 @@ In the following subsections, we'll go into each of the modules within \texttt{e
 	\item \texttt{functeventhandler.py}: queues events that are emitted from the platform and handles each in turn. Each event is handled based on the type of event it is (for example: a Test event or a Platform event).
 	\item \texttt{functwidget.py}: Two classes: PlatformSlotSetupWidget, which inherits from gtk.Frame; and AbstractSelectionWidget, which inherits from gtk.VBox. An AbstractSelectionWidget sets up a selection box, determines when a selection has been made, and passes the flow of control appropriately (via callback functions).
 	\item \texttt{generic.py}: Again, two classes: FunctTreeStore, which is a gtk.TreeStore object that is used for storing adapters; and the GenericAdapter class, which inherits from gobject.GObject and is the parent for the adapters (to be introduced shortly).
-	\item \texttt{utils.py}: miscellaneous, but very important functionality.
+	\item \texttt{utils.py}: A single class for creating a labeled hbox. Miscellaneous, but very important functionality.
 \end{itemize}
 
 % 2DO a different order might make more sense for the following sections
@@ -455,14 +523,16 @@ In the following subsections, we'll go into each of the modules within \texttt{e
 
 \begin{itemize}
 	\item\texttt{adapters}: Adapters maintain the state of platform objects; that is, the state of the Platform, PlatformSlots, Tests, Actions, and UnitUnderTests.
-	\item\texttt{models}: A TreeView object is essentially a group of descriptors that are used to describe columns. The TreeView object is then populated with models, which are rows, each of which have column attributes from the TreeView object. Think of it this way: TreeView attributes across the top of a chart (x-axis) and models as the label down the side (y-axis).\\
+	\item\texttt{models}: A TreeView object is essentially a group of descriptors that are used to describe columns. The TreeView object is then populated with models, which are rows, each of which have column attributes from the TreeView object. For example: TreeView attributes across the top of a chart (x-axis) and models as the label down the side (y-axis).\\
 	Testmodels consist of rows of units (UUTs) and two layers of nested rows: tests and actions. Each of these layers of the testmodel have associated menus (see below).
 	\item\texttt{pages}: Pages are the containers for TreeView-model objects. They are seen in the GUI as the tabs labeled ``Slot Setup" and ``Test Manager".
 	\item\texttt{dialogs}: Dialogs are any pop-up windows. They may ask for information from the user (eg: select a product or version), or they may just give the user information. This is the case with warnings that pop up with traceback information in the case of an error.
 	\item\texttt{menus}: These are content menus. At the moment, they are seen only as the menus that pop up when an item in the GUI is right-clicked. There are four different kinds of menus: slot menus, which are associated with the slot models; and UUT, test, and action menus, which are associated with a test model.
 \end{itemize}
 
-Now that we have some idea about the details in the user interface code, let's re-examine the highest level of this directory. %now talk about what funct is doing --> how the flow goes (where it pulls info from) -- a general overview
+Now that some of the details in the user interface code have been looked at, the highest level of the \texttt{ui} architecture needs to be re-examined. %now talk about what funct is doing --> how the flow goes (where it pulls info from) -- a general overview
+\section{Overview of \texttt{funct}}
+In this section the top level of the user interface, \texttt{funct}, will be explored. There exists only one function in \texttt{funct.py}, that function is \texttt{main}. This is where the initial models and event handlers are called to start building the GUI. Also, \texttt{funct} is where the main GTK loop is started. This loop is responsible for responding to user inputs and displaying the proper output. 
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
