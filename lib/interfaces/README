@@ -1,0 +1,11 @@
+== Python Serial Interfaces ==
+This project is intended to provide higher-level constructs to existing standard
+python interfaces, such as pyserial.
+
+For example, suppose you want to automate communication with the U-Boot
+bootloader over a serial connection, or perhaps with a remote Linux computer.
+
+Another example would be communicating with devices over some weird ASCII serial
+interface--such as Advantech's ADAM-4000 line of modules which accept ASCII
+commands over RS-485, typically mediated by an otherwise silent
+ADAM-4521/ADAM-4522 board. This is what I use it for.
