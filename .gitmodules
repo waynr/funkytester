@@ -1,12 +1,12 @@
 [submodule "ext/interfaces"]
 	path = ext/interfaces
-	url = git@git.emacinc.com:public/mirror/interfaces.git
+	url = https://git.emacinc.com:public/mirror/interfaces.git
 [submodule "ext/integration"]
 	path = ext/integration
-	url = git@git.emacinc.com:public/mirror/integration.git
+	url = https://git.emacinc.com:public/mirror/integration.git
 [submodule "ext/eserial"]
 	path = ext/eserial
-	url = git@git.emacinc.com:public/mirror/eserial.git
+	url = https://git.emacinc.com:public/mirror/eserial.git
 [submodule "ext/pexpect"]
 	path = ext/pexpect
-	url = git@git.emacinc.com:public/mirror/pexpect.git
+	url = https://git.emacinc.com:public/mirror/pexpect.git
