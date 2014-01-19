@@ -1,3 +1,3 @@
 [submodule "ext/pexpect"]
 	path = ext/pexpect
-	url = https://git.emacinc.com:public/mirror/pexpect.git
+	url = https://gitorious.org/funkytester/pexpect.git
